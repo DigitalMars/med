@@ -22,6 +22,7 @@ import std.process;
 import std.string;
 import std.c.stdlib;
 import std.c.time;
+import std.utf;
 
 import ed;
 import buffer;
@@ -73,12 +74,12 @@ int spawncli(bool f, int n)
 int spawn(bool f, int n)
 {
     int    s;
-    string line;
+    dstring line;
     version (Windows)
     {
         if ((s=mlreply("MS-DOS command: ", null, line)) != TRUE)
                 return (s);
-        std.process.system(line);
+        std.process.system(toUTF8(line));
         while (term.t_getchar() != '\r')     /* Pause.               */
         {
 	}
@@ -92,7 +93,7 @@ int spawn(bool f, int n)
         term.t_putchar('\n');                /* Already have '\r'    */
         term.t_flush();
         term.t_close();                              /* stty to old modes    */
-        std.process.system(line);
+        std.process.system(toUTF8(line));
         sleep(2);
         term.t_open();
         printf("[End]");                        /* Pause.               */
@@ -114,10 +115,10 @@ int spawn_pipe(bool f, int n)
     int    s; 	       /* return status from CLI */
     WINDOW *wp;        /* pointer to new window */
     BUFFER *bp;        /* pointer to buffer to zot */
-    static string bname = "[DOS]";
+    static dstring bname = "[DOS]";
 
     static string filnam = "DOS.TMP";
-    string line; /* command line sent to shell */
+    dstring line; /* command line sent to shell */
 
     /* get the command to pipe in */
     if ((s = mlreply("DOS:", null, line)) != TRUE)
@@ -142,14 +143,14 @@ int spawn_pipe(bool f, int n)
     if (window_split(FALSE, 1) == FALSE)
         goto fail;
 
-    line ~= ">" ~ filnam;
+    string sline = toUTF8(line) ~ ">" ~ filnam;
 
 version (Windows)
 {
     movecursor(term.t_nrow - 2, 0);
-    std.process.system(line);
+    std.process.system(sline);
     sgarbf = TRUE;
-    if (std.file.exists(filnam) && std.file.isfile(filnam))
+    if (std.file.exists(filnam) && std.file.isFile(filnam))
 	return FALSE;
 }
 version (linux)
@@ -157,14 +158,14 @@ version (linux)
     term.t_putchar('\n');                /* Already have '\r'    */
     term.t_flush();
     term.t_close();                              /* stty to old modes    */
-    std.process.system(line);
+    std.process.system(sline);
     term.t_open();
     term.t_flush();
     sgarbf = TRUE;
 }
 
     /* and read the stuff in */
-    if (file_readin(filnam) == FALSE)
+    if (file_readin(toUTF32(filnam)) == FALSE)
         return(FALSE);
 
     /* and get rid of the temporary file */
@@ -183,12 +184,12 @@ int spawn_filter(bool f, int n)
 {
         int    s;      /* return status from CLI */
         BUFFER *bp;    /* pointer to buffer to zot */
-        string line;      /* command line to send to shell */
-        string tmpnam;    /* place to store real file name */
-        string bname1 = "fltinp";
+        dstring line;      /* command line to send to shell */
+        dstring tmpnam;    /* place to store real file name */
+        dstring bname1 = "fltinp";
 
-        string filnam1 = "fltinp";
-        string filnam2 = "fltout";
+        dstring filnam1 = "fltinp";
+        dstring filnam2 = "fltout";
 
         if (curbp.b_flag & BFRDONLY)   /* if buffer is read-only       */
             return FALSE;               /* fail                         */
@@ -213,14 +214,14 @@ int spawn_filter(bool f, int n)
     version (Windows)
     {
         movecursor(term.t_nrow - 2, 0);
-        std.process.system(line);
+        std.process.system(toUTF8(line));
     }
     version (linux)
     {
         term.t_putchar('\n');                /* Already have '\r'    */
         term.t_flush();
         term.t_close();                              /* stty to old modes    */
-        std.process.system(line);
+        std.process.system(toUTF8(line));
         term.t_open();
         term.t_flush();
     }
@@ -242,8 +243,8 @@ int spawn_filter(bool f, int n)
 
 ret:
         /* and get rid of the temporary file */
-        remove(filnam1);
-        remove(filnam2);
+        remove(toUTF8(filnam1));
+        remove(toUTF8(filnam2));
         return s;
 }
 

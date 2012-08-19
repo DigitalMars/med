@@ -22,7 +22,8 @@
 module search;
 
 import std.string;
-import std.ctype;
+import std.ascii;
+import std.uni;
 
 import ed;
 import line;
@@ -78,7 +79,7 @@ int forwsearch(bool f, int n)
             tlp = clp;
             tbo = cbo;			/* remember where start of pattern */
 
-	    foreach (pc; pat[1 .. length])
+	    foreach (pc; pat[1 .. $])
 	    {
                 if (tlp == curbp.b_linep)	/* if reached end of buffer */
                     goto fail;
@@ -123,8 +124,8 @@ int backsearch(bool f, int n)
     LINE *tlp;
     int tbo;
     int c;
-    invariant(char) *epp;
-    invariant(char) *pp;
+    immutable(dchar) *epp;
+    immutable(dchar) *pp;
     int s;
 
     if ((s = readpattern("Reverse search: ",pat)) != TRUE)
@@ -247,7 +248,7 @@ private int replace(bool query)
     int    retval;
     LINE*  dotpsave;
     int dotosave;
-    string withpat;
+    dstring withpat;
     int stop;
 
     if ((s = readpattern("Replace: ", pat)) != TRUE)
@@ -283,7 +284,7 @@ private int replace(bool query)
 	    tbo = cbo;			/* remember where start of pattern */
 	    int i = 1;
 
-	    foreach (pc; pat[1 .. length])
+	    foreach (pc; pat[1 .. $])
 	    {
 		if (tlp == curbp . b_linep)/* if reached end of buffer */
 		    goto fail;
@@ -386,7 +387,7 @@ L1:
  * and there is no old pattern, it is an error. Display the old pattern, in the
  * style of Jeff Lomicka. There is some do-it-yourself control expansion.
  */
-private int readpattern(string prompt, inout string pat)
+private int readpattern(string prompt, ref dstring pat)
 {
     if( Dnoask_search )
 	return( pat.length != 0 );
@@ -418,21 +419,21 @@ enum
 
 static int ifhash(LINE* clp)
 {
-    int len;
-    int i,h;
-    static string[] hash = ["if","elif","else","endif"];
+    size_t len;
+    int i;
+    static dstring[] hash = ["if","elif","else","endif"];
 
-    len = llength(clp);
+    len = clp.l_text.length;
     if (len < 3 || lgetc(clp,0) != '#')
 	goto ret0;
     for (i = 1; ; i++)
     {
 	if (i >= len)
 	    goto ret0;
-	if (!isspace(lgetc(clp,i)))
+	if (!isSpace(clp.l_text[i]))
 	    break;
     }
-    for (h = 0; h < hash.length; h++)
+    for (size_t h = 0; h < hash.length; h++)
 	if (len - i >= hash[h].length &&
 	    clp.l_text[i .. i + hash[h].length] == hash[h])
 	    return h + 1;
@@ -453,7 +454,7 @@ int search_paren(bool f, int n)
     int cbo;
     int len;
     int i;
-    char chinc,chdec,ch;
+    dchar chinc,chdec,ch;
     int count;
     int forward;
     int h;

@@ -17,7 +17,13 @@
 
 module ed;
 
-alias ushort attchar_t;
+alias ubyte attr_t;
+
+struct attchar_t
+{
+    dchar  chr;
+    attr_t attr;
+}
 
 enum
 {
@@ -126,11 +132,11 @@ enum
 
 struct CONFIG
 {
-    uint modeattr;          /* for mode line                */
-    uint normattr;          /* for normal text              */
-    uint eolattr;           /* for end of line              */
-    uint markattr;          /* for selected text            */
-    uint tabchar;           /* char to use for tab display  */
+    attr_t modeattr;          /* for mode line                */
+    attr_t normattr;          /* for normal text              */
+    attr_t eolattr;           /* for end of line              */
+    attr_t markattr;          /* for selected text            */
+    char tabchar;             /* char to use for tab display  */
 }
 
 /**************

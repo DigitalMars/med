@@ -16,7 +16,8 @@
 
 module more;
 
-import std.ctype;
+import std.ascii;
+import std.uni;
 
 import ed;
 import main;
@@ -238,7 +239,7 @@ void deblank()
     for (i = len - 1; i >= 0; i--)
     {
 	c = lgetc(curwp.w_dotp, i);
-	if (!isspace(c))
+	if (!isSpace(c))
 	    break;
     }
     n = (len - 1) - i;

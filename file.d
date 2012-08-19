@@ -21,6 +21,7 @@ import std.stdio;
 import std.path;
 import std.string;
 import std.c.stdlib;
+import std.utf;
 
 import ed;
 import main;
@@ -46,7 +47,7 @@ int filenext(bool f, int n)
 		return FALSE;
 	if (gargi < gargs.length)	/* if more files on command line */
 	{
-		s = readin(gargs[gargi]);
+		s = readin(toUTF32(gargs[gargi]));
 		gargi++;
 	}
 	else				/* get file name from user	*/
@@ -61,11 +62,12 @@ int filenext(bool f, int n)
 
 int Dinsertfile(bool f, int n)
 {
-    string fname;
+    dstring fnamed;
 
-    if (mlreply("Insert file: ", null, fname) == FALSE)
+    if (mlreply("Insert file: ", null, fnamed) == FALSE)
 	    return FALSE;
 
+    string fname = toUTF8(fnamed);
     try
     {
 	fname = std.path.expandTilde(fname);
@@ -76,7 +78,7 @@ int Dinsertfile(bool f, int n)
 	size_t s;
 	while ((s = fp.readln(line)) != 0)
 	{
-	    foreach(c; line)
+	    foreach(dchar c; line)
 	    {
 		if (c == '\r' || c == '\n')
 		    break;
@@ -120,7 +122,7 @@ int Dinsertfile(bool f, int n)
 int fileread(bool f, int n)
 {
         int    s;
-        string fname;
+        dstring fname;
 
         if ((s=mlreply("Read file: ", null, fname)) != TRUE)
                 return (s);
@@ -138,26 +140,26 @@ int fileread(bool f, int n)
  */
 int filevisit(bool f, int n)
 {
-        string fname;
+        dstring fname;
 
         return	mlreply("Visit file: ", null, fname) &&
 		window_split(f,n) &&
 		file_readin(fname);
 }
 
-int file_readin(string fname)
+int file_readin(dstring fname)
 {
     LINE   *lp;
     int    i;
     int    s;
-    string bname;
+    dstring bname;
 
     /* If there is an existing buffer with the same file name, simply	*/
     /* switch to it instead of reading the file again.			*/
     foreach (bp; buffers)
     {
 	/* Always redo temporary buffers, check for filename match.	*/
-	if ((bp.b_flag&BFTEMP)==0 && fnmatch(bp.b_fname, fname))
+	if ((bp.b_flag&BFTEMP)==0 && globMatch(bp.b_fname, fname))
 	{
 	    /* If the current buffer now becomes undisplayed		*/
 	    if (--curbp.b_nwnd == 0)
@@ -241,17 +243,17 @@ int file_readin(string fname)
  * to read in a file specified on the command line as
  * an argument.
  */
-int readin(string fname)
+int readin(dstring dfname)
 {
     auto bp = curbp;                            // Cheap.
     auto b = buffer_clear(bp);  		// Might be old.
     if (b != TRUE)
 	    return b;
     bp.b_flag &= ~(BFTEMP|BFCHG);
-    bp.b_fname = fname;
+    bp.b_fname = dfname;
 
     /* Determine if file is read-only	*/
-    fname = std.path.expandTilde(fname);
+    auto fname = std.path.expandTilde(toUTF8(dfname));
     if (ffreadonly(fname))			/* is file read-only?	*/
 	    bp.b_flag |= BFRDONLY;
     else
@@ -269,17 +271,18 @@ int readin(string fname)
 	int nline = 0;
 	char[] line;
 	size_t s;
+	bool first = true;
 	while ((s = fp.readln(line)) != 0)
 	{
-	    if (line.length && line[length - 1] == '\n')
-		line = line[0 .. length - 1];
-	    if (line.length && line[length - 1] == '\r')
-		line = line[0 .. length - 1];
+	    if (line.length && line[$ - 1] == '\n')
+		line = line[0 .. $ - 1];
+	    if (line.length && line[$ - 1] == '\r')
+		line = line[0 .. $ - 1];
 
 	    LINE   *lp1;
 	    LINE   *lp2;
 
-	    if ((lp1=line_realloc(null,line.length)) == null) {
+	    if ((lp1=line_realloc(null,0)) == null) {
 		    s = FIOERR;             /* Keep message on the  */
 		    break;                  /* display.             */
 	    }
@@ -288,8 +291,11 @@ int readin(string fname)
 	    lp1.l_fp = curbp.b_linep;
 	    lp1.l_bp = lp2;
 	    curbp.b_linep.l_bp = lp1;
-	    lp1.l_text[] = line[];
+	    if (first && line.length >= 3 && line[0] == 0xEF && line[1] == 0xBB && line[2] == 0xBF)
+		line = line[3..$];	// skip BOM
+	    lp1.l_text = cast(dchar[])toUTF32(line[]);
 
+	    first = false;
 	    ++nline;
 	}
 	fp.close();
@@ -327,7 +333,7 @@ int readin(string fname)
  * I suppose that this information could be put in
  * a better place than a line of code.
  */
-string makename(string fname)
+dstring makename(dstring fname)
 {
 	return fname;
 }
@@ -344,7 +350,7 @@ string makename(string fname)
 int filewrite(bool f, int n)
 {
     int    s;
-    string fname;
+    dstring fname;
 
     if ((s=mlreply("Write file: ", null, fname)) != TRUE)
 	return (s);
@@ -439,15 +445,15 @@ int filemodify(bool f, int n)
  * a macro for this. Most of the grief is error
  * checking of some sort.
  */
-int writeout(string fn)
+int writeout(dstring dfn)
 {
-    fn = std.path.expandTilde(fn);
+    auto fn = std.path.expandTilde(toUTF8(dfn));
     /*
      * Supply backups when writing files.
      */
     version (Windows)
     {
-	auto backupname = std.path.addExt(fn, "bak");
+	auto backupname = std.path.setExtension(fn, "bak");
     }
     else
     {
@@ -477,7 +483,7 @@ int writeout(string fn)
         auto lp = lforw(curbp.b_linep);             // First line.
         int nline = 0;                         // Number of lines.
         while (lp != curbp.b_linep) {
-                f.writeln(lp.l_text[0 .. llength(lp)]);
+                f.writeln(toUTF8(lp.l_text[0 .. llength(lp)]));
                 ++nline;
                 lp = lforw(lp);
         }
@@ -508,7 +514,7 @@ int writeout(string fn)
 int filename(bool f, int n)
 {
         int    s;
-        string fname;
+        dstring fname;
 
         if ((s=mlreply("New File Name: ", null, fname)) == ABORT)
                 return (s);
@@ -528,7 +534,7 @@ int filename(bool f, int n)
  * Write region out to file.
  */
 
-int file_writeregion(string filename, REGION* region)
+int file_writeregion(dstring dfilename, REGION* region)
 {
     auto lp = region.r_linep;		/* First line.          */
     auto loffs = region.r_offset;
@@ -537,14 +543,14 @@ int file_writeregion(string filename, REGION* region)
 
     try
     {
-	filename = std.path.expandTilde(filename);
+	auto filename = std.path.expandTilde(toUTF8(dfilename));
 	auto f = File(filename, "w");
 	while (size > 0)
 	{
 	    auto nchars = llength(lp) - loffs;
 	    if (nchars > size)		/* if last line is not a full line */
 		nchars = size;
-	    f.writeln(lp.l_text[loffs .. loffs + nchars]);
+	    f.writeln(toUTF8(lp.l_text[loffs .. loffs + nchars]));
 	    size -= nchars + 1;
 	    ++nline;
 	    lp = lforw(lp);

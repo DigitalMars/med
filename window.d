@@ -278,7 +278,7 @@ int window_split(bool f, int n)
 		foreach (i, w; windows)
 		{   if (w == curwp)
 		    {
-			windows = windows[0 .. i + 1] ~ wp ~ windows[i + 1 .. length];
+			windows = windows[0 .. i + 1] ~ wp ~ windows[i + 1 .. $];
 			break;
 		    }
 		}
@@ -289,7 +289,7 @@ int window_split(bool f, int n)
 		foreach (i, w; windows)
 		{   if (w == curwp)
 		    {
-			windows = windows[0 .. i] ~ wp ~ windows[i .. length];
+			windows = windows[0 .. i] ~ wp ~ windows[i .. $];
 			break;
 		    }
 		}
@@ -461,7 +461,7 @@ int delwind(bool f, int n)
 	if (windows[0] == delwp)		// Pick which window to be in next
 	{
 		curwp = windows[1];
-		windows = windows[1 .. length];
+		windows = windows[1 .. $];
 		curbp = curwp.w_bufp;
 		auto lp = curwp.w_linep;
 		int i  = curwp.w_toprow;
@@ -479,7 +479,7 @@ int delwind(bool f, int n)
 		    if (wp == delwp)
 		    {
 			curwp = windows[i - 1];
-			windows = windows[0 .. i] ~ windows[i + 1 .. length];
+			windows = windows[0 .. i] ~ windows[i + 1 .. $];
 			break;
 		    }
 		}

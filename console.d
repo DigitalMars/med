@@ -90,7 +90,7 @@ struct TERM
 	    {   buf = lookaheadir;
 		lookahead = 0;
 	    }
-	    else if (!ReadConsoleInputA(hStdin,&buf,1,&cNumRead))
+	    else if (!ReadConsoleInputW(hStdin,&buf,1,&cNumRead))
 	    {   c = 3;				// ^C
 		goto Lret;
 	    }
@@ -204,11 +204,12 @@ void updateline(int row,attchar_t[] buffer,attchar_t[] physical)
     }
     for (col = 0; col < numcols; col++)
     {
-	sb[col].AsciiChar = buffer[col] & 0xFF;
-	sb[col].Attributes = (buffer[col] >> 8) & 0xFF;
+	auto c = buffer[col].chr;
+	sb[col].UnicodeChar = cast(WCHAR)c;
+	sb[col].Attributes = buffer[col].attr;
 	//printf("col = %2d, x%2x, '%c'\n",col,sb[col].AsciiChar,sb[col].AsciiChar);
     }
-    if (!WriteConsoleOutputA(cast(HANDLE)disp_state.handle,sb,sbsize,sbcoord,&sdrect))
+    if (!WriteConsoleOutputW(cast(HANDLE)disp_state.handle,sb,sbsize,sbcoord,&sdrect))
     {
 	// error
     }
@@ -296,7 +297,7 @@ static uint win32_keytran(KEY_EVENT_RECORD *pkey)
     c = 0;
     if (!pkey.bKeyDown)
 	goto Lret;				// ignore button up events
-    c = pkey.AsciiChar & 0xFF;
+    c = pkey.UnicodeChar;
     if (c == 0)
     {
 	switch (pkey.wVirtualScanCode)
@@ -310,7 +311,7 @@ static uint win32_keytran(KEY_EVENT_RECORD *pkey)
 		c = (pkey.wVirtualScanCode << 8) & 0xFF00;
 		if (pkey.dwControlKeyState & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
 		{
-		    switch (c)
+		    final switch (c)
 		    {   case 0x4700:	c = 0x7700;	break;	// Home
 			case 0x4F00:	c = 0x7500;	break;	// End
 			case 0x4900:	c = 0x8400;	break;	// PgUp

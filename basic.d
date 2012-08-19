@@ -213,7 +213,7 @@ int backline(bool f, int n)
  */
 
 int gotoline(bool f, int n)
-{	string number;
+{	dstring number;
 
 	if (mlreply("Goto line: ", null, number) == FALSE)
 		return FALSE;

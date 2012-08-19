@@ -18,7 +18,7 @@
 module region;
 
 import std.string;
-import std.ctype;
+import std.ascii;
 
 import ed;
 import line;
@@ -208,7 +208,7 @@ private int region_case(bool flag)
 		lright = coltodoto(linep,region.r_rightcol);
 		for (; loffs < lright; loffs++)
 		{   c = lgetc(linep, loffs);
-		    if (flag ? isupper(c) : islower(c))
+		    if (flag ? isUpper(c) : isLower(c))
 			lputc(linep, loffs, cast(char)(c ^ 0x20));
 		}
 		linep = lforw(linep);
@@ -223,7 +223,7 @@ private int region_case(bool flag)
 		    loffs = 0;
 		} else {
 		    c = lgetc(linep, loffs);
-		    if (flag ? isupper(c) : islower(c))
+		    if (flag ? isUpper(c) : isLower(c))
 			lputc(linep, loffs, cast(char)(c ^ 0x20));
 		    ++loffs;
 		}

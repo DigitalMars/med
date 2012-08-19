@@ -63,43 +63,43 @@ version (Windows)
 {
 int display_eol_bg(bool f, int n)
 {
-    config.eolattr += 0x1000;
+    config.eolattr += 0x10;
     return display_recalc();
 }
 
 int display_norm_bg(bool f, int n)
 {
-    config.normattr += 0x1000;
+    config.normattr += 0x10;
     return display_recalc();
 }
 
 int display_norm_fg(bool f, int n)
 {
-    config.normattr = (config.normattr & 0xF0FF) + ((config.normattr + 0x100) & 0xF00);
+    config.normattr = (config.normattr & 0xF0) + ((config.normattr + 1) & 0xF);
     return display_recalc();
 }
 
 int display_mode_bg(bool f, int n)
 {
-    config.modeattr += 0x1000;
+    config.modeattr += 0x10;
     return display_recalc();
 }
 
 int display_mode_fg(bool f, int n)
 {
-    config.modeattr = (config.modeattr & 0xF0FF) + ((config.modeattr + 0x100) & 0xF00);
+    config.modeattr = (config.modeattr & 0xF0) + ((config.modeattr + 1) & 0xF);
     return display_recalc();
 }
 
 int display_mark_bg(bool f, int n)
 {
-    config.markattr += 0x1000;
+    config.markattr += 0x10;
     return display_recalc();
 }
 
 int display_mark_fg(bool f, int n)
 {
-    config.markattr = (config.markattr & 0xF0FF) + ((config.markattr + 0x100) & 0xF00);
+    config.markattr = (config.markattr & 0xF0) + ((config.markattr + 1) & 0xF);
     return display_recalc();
 }
 }
@@ -147,11 +147,11 @@ int	vtrow	= 0;			/* Row location of SW cursor */
 int	vtcol	= 0;			/* Column location of SW cursor */
 int	ttrow	= HUGE;			/* Row location of HW cursor */
 int	ttcol	= HUGE;			/* Column location of HW cursor */
-int	attr;				/* Attribute for chars to vtputc() */
+attr_t	attr;				/* Attribute for chars to vtputc() */
 int	hardtabsize = 8;		// hardware tab size
 
-vchar[][] vscreen;                      /* Virtual screen. */
-vchar[][] pscreen;                      /* Physical screen. */
+attchar_t[][] vscreen;                      /* Virtual screen. */
+attchar_t[][] pscreen;                      /* Physical screen. */
 
 /*
  * Initialize the data structures used by the display code. The edge vectors
@@ -163,20 +163,20 @@ vchar[][] pscreen;                      /* Physical screen. */
 void vtinit()
 {
     term.t_open();
-    vscreen = new vchar[][term.t_nrow];
-    pscreen = new vchar[][term.t_nrow];
+    vscreen = new attchar_t[][term.t_nrow];
+    pscreen = new attchar_t[][term.t_nrow];
     vrowflags = new ubyte[term.t_nrow];
 
     version (linux)
     {
-	blnk_ln = new vchar[term.t_ncol];
+	blnk_ln = new attchar_t[term.t_ncol];
 	blnk_ln[] = ' ';
     }
 
     foreach (i; 0 .. term.t_nrow)
     {
-	vscreen[i] = new vchar[term.t_ncol];
-	pscreen[i] = new vchar[term.t_ncol];
+	vscreen[i] = new attchar_t[term.t_ncol];
+	pscreen[i] = new attchar_t[term.t_ncol];
     }
 }
 
@@ -233,7 +233,10 @@ void vtputc(int c, int startcol)
     auto vp = vscreen[vtrow];
 
     if (vtcol - startcol >= term.t_ncol)
-        vp[term.t_ncol - 1] = cast(ushort)('+' | config.modeattr);
+    {
+	vp[term.t_ncol - 1].chr = '+';
+	vp[term.t_ncol - 1].attr = config.modeattr;
+    }
     else if (c == '\t')
     {
 	auto i = hardtabsize - (vtcol % hardtabsize);
@@ -249,9 +252,15 @@ void vtputc(int c, int startcol)
     else
     {
 	if (vtcol - startcol == 0 && startcol != 0)
-            vp[0] = cast(ushort)('+' | config.modeattr);
+	{
+            vp[0].chr = '+';
+            vp[0].attr = config.modeattr;
+	}
 	else if (vtcol - startcol >= 0)
-	    vp[vtcol - startcol] = cast(ushort)(c | attr);
+	{
+	    vp[vtcol - startcol].chr = cast(char)c;
+	    vp[vtcol - startcol].attr = attr;
+	}
 	vtcol++;
     }
 }
@@ -265,9 +274,9 @@ int getcol(LINE *dotp, int doto)
     return getcol2(dotp.l_text, doto);
 }
 
-int getcol2(char[] dotp, int doto)
+int getcol2(dchar[] dotp, int doto)
 {   int curcol,i;
-    char c;
+    dchar c;
 
     curcol = 0;
     i = 0;
@@ -312,7 +321,13 @@ int coltodoto(LINE* lp, int col)
 
 static void vtputs(const char[] s, int startcol)
 {
-    foreach (c; s)
+    foreach (dchar c; s)
+	vtputc(c, startcol);
+}
+
+static void vtputs(const dchar[] s, int startcol)
+{
+    foreach (dchar c; s)
 	vtputc(c, startcol);
 }
 
@@ -323,7 +338,7 @@ static void vtputs(const char[] s, int startcol)
 void vteeol(int startcol)
 {
     int col = max(vtcol - startcol, 0);
-    vscreen[vtrow][col .. term.t_ncol] = cast(ushort)(config.eolattr | ' ');
+    vscreen[vtrow][col .. term.t_ncol] = attchar_t(' ', config.eolattr);
     vtcol = startcol + term.t_ncol;
 }
 
@@ -495,10 +510,8 @@ Lout:
 
                 vrowflags[i] |= VFCHG;	/* assume this line will change */
                 vtmove(i, 0);			/* start at beg of line	*/
-                for (int j = 0; 1; ++j)
+                for (size_t j = 0; j < llength(lp); ++j)
 		{
-		    if (j >= llength(lp))
-			break;
                     vtputc(lgetc(lp, j),wp.w_startcol);
 		}
                 vteeol(wp.w_startcol);		/* clear remainder of line */
@@ -519,7 +532,7 @@ Lout:
 				inmark++;
 			    attr = config.normattr;
 			}
-                        for (int j = 0; 1; ++j)
+                        for (size_t j = 0; 1; ++j)
 			{   if (marking)
 			    {	if (column_mode)
 				{
@@ -592,7 +605,10 @@ version (MOUSE)
 	{
             vrowflags[i] |= VFCHG;
 	    for (int j = 0; j < term.t_ncol; j++)
-		pscreen[i][j] = cast(ushort)(config.normattr * 256 + ' ');
+	    {
+		pscreen[i][j].chr = ' ';
+		pscreen[i][j].attr = config.normattr;
+	    }
 	}
 
 version (MOUSE)
@@ -731,7 +747,7 @@ version (MOUSE)
  */
 version (linux)
 {
-void updateline(int row, vchar[] vline, vchar[] pline)
+void updateline(int row, attchar_t[] vline, attchar_t[] pline)
 {
     char *cp3;
     char *cp4;
@@ -765,7 +781,7 @@ void updateline(int row, vchar[] vline, vchar[] pline)
         {
         --cp3;
         --cp4;
-        if (cp3[0] != ' ')              /* Note if any nonblank */
+        if (cp3.chr != ' ' || cp3.attr)     /* Note if any nonblank */
             nbflag = TRUE;              /* in right match. */
         }
 
@@ -773,7 +789,7 @@ void updateline(int row, vchar[] vline, vchar[] pline)
 
     if (nbflag == FALSE)                /* Erase to EOL ? */
         {
-        while (cp5!=cp1 && cp5[-1]==' ')
+        while (cp5!=cp1 && cp5[-1].chr==' ' && cp5[-1].attr == 0)
             --cp5;
 
         if (cp3-cp5 <= 3)               /* Use only if erase is */
@@ -784,11 +800,11 @@ void updateline(int row, vchar[] vline, vchar[] pline)
 
     while (cp1 != cp5)                  /* Ordinary. */
     {
-	if( *cp1 & STANDATTR )
+	if( cp1.attr & STANDATTR )
 	{	if( !tstand ) {	term.t_standout(); tstand = TRUE;	} }
 	else
 	{	if(  tstand ) {	term.t_standend(); tstand = FALSE;	} }
-        term.t_putchar(*cp1 & ~STANDATTR);
+        term.t_putchar(cp1.chr);
         ++ttcol;
         *cp2++ = *cp1++;
     }
@@ -840,7 +856,7 @@ void modeline(WINDOW* wp)
     vtputs(EMACSREV,0);
     vtputc(' ', 0);
 
-    if (fnmatch(bp.b_bname,bp.b_fname) == 0)
+    if (globMatch(bp.b_bname,bp.b_fname) == 0)
     {	vtputs("-- Buffer: ",0);
 	vtputs(bp.b_bname,0);
 	vtputc(' ',0);
@@ -890,8 +906,8 @@ void movecursor(int row, int col)
 void mlerase()
 {
     auto vp = vscreen[term.t_nrow - 1];
-    foreach (inout c; vp[0 .. term.t_ncol])
-	c = cast(ushort)(config.eolattr | ' ');
+    foreach (ref c; vp[0 .. term.t_ncol])
+	c = attchar_t(' ', config.eolattr);
     vrowflags[term.t_nrow - 1] |= VFCHG;
     mpresf = FALSE;
 }
@@ -903,7 +919,7 @@ void mlerase()
  */
 int mlyesno(string prompt)
 {
-    string buf;
+    dstring buf;
 
     for (;;)
     {
@@ -929,7 +945,7 @@ int mlyesno(string prompt)
  */
 
 const HISTORY_MAX = 10;
-string history[HISTORY_MAX];
+dstring history[HISTORY_MAX];
 int history_top;
 
 int HDEC(int hi)	{ return (hi == 0) ? HISTORY_MAX - 1 : hi - 1; }
@@ -942,7 +958,7 @@ int HINC(int hi)	{ return (hi == HISTORY_MAX - 1) ? 0 : hi + 1; }
  * lets macros run at full speed. The reply is always terminated by a carriage
  * return. Handle erase, kill, and abort keys.
  */
-int mlreply(string prompt, string init, out string result)
+int mlreply(string prompt, dstring init, out dstring result)
 {
     int dot;		// insertion point in buffer
     int buflen;		// number of characters in buffer
@@ -955,8 +971,10 @@ int mlreply(string prompt, string init, out string result)
 
     if (kbdmop != null)
     {
-	auto len = strlen(cast(char *)kbdmop);
-	result = (cast(char*)kbdmop)[0 .. len].idup;
+	size_t len;
+	while (kbdmop[len])
+	    ++len;
+	result = kbdmop[0 .. len].idup;
 	kbdmop += len + 1;
 	return (len != 0);
     }
@@ -968,7 +986,7 @@ int mlreply(string prompt, string init, out string result)
 
     mpresf = TRUE;
 
-    char[] buf;
+    dchar[] buf;
     auto promptlen = prompt.length;
     buf = init.dup;
     buflen = buf.length;
@@ -1004,10 +1022,10 @@ int mlreply(string prompt, string init, out string result)
 	{   case 0x0D:                  /* Return, end of line */
                 if (kbdmip != null)
 		{
-                    if (kbdmip + buflen + 1 > &kbdm[length-3])
+                    if (kbdmip + buflen + 1 > &kbdm[$-3])
 			goto err;	/* error	*/
 
-		    memcpy(kbdmip, buf.ptr, buflen);
+		    memcpy(kbdmip, buf.ptr, buflen * buf[0].sizeof);
 		    (cast(char*)kbdmip)[buflen] = 0;
 		    (*cast(char**)&kbdmip) += buflen + 1;
 		}
@@ -1022,7 +1040,7 @@ int mlreply(string prompt, string init, out string result)
 			if (history[history_top])
 			    delete history[history_top];
 		    }
-		    result = cast(invariant)buf;
+		    result = cast(immutable)buf;
 		    return 1;
 		}
 		return 0;
@@ -1064,7 +1082,7 @@ int mlreply(string prompt, string init, out string result)
             case 0x08:                  /* Backspace, erase */
                 if (dot != 0)
 		{
-		    memmove(buf.ptr + dot - 1, buf.ptr + dot, buflen - dot);
+		    memmove(buf.ptr + dot - 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
 		    --dot;
 		    --buflen;
 		    buf = buf[0 .. buflen];
@@ -1075,7 +1093,7 @@ int mlreply(string prompt, string init, out string result)
 	    case DelKEY:
                 if (dot < buflen)
 		{
-		    memmove(buf.ptr + dot, buf.ptr + dot + 1, buflen - dot - 1);
+		    memmove(buf.ptr + dot, buf.ptr + dot + 1, (buflen - dot - 1) * buf[0].sizeof);
 		    --buflen;
 		    buf = buf[0 .. buflen];
 		    changes = 1;
@@ -1097,7 +1115,7 @@ int mlreply(string prompt, string init, out string result)
 		    for (n = 0; (c = kill_remove(n)) != -1; n++)
 		    {
 			buf.length = buf.length + 1;
-			memmove(buf.ptr + dot + 1, buf.ptr + dot, buflen - dot);
+			memmove(buf.ptr + dot + 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
 			buflen++;
 			buf[dot++] = cast(char)c;
 		    }
@@ -1154,7 +1172,7 @@ int mlreply(string prompt, string init, out string result)
                 else
 		{
 		    buf.length = buf.length + 1;
-		    memmove(buf.ptr + dot + 1, buf.ptr + dot, buflen - dot);
+		    memmove(buf.ptr + dot + 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
 		    buflen++;
                     buf[dot++] = cast(char)c;
 		    changes = 1;

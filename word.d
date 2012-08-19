@@ -15,7 +15,7 @@
 
 module word;
 
-import std.ctype;
+import std.ascii;
 
 import ed;
 import main;
@@ -86,7 +86,7 @@ int word_wrap_line(bool f, int n)
     int i;
     int j;
     int col;
-    char c;
+    dchar c;
     int inword;
     int lasti;
     LINE* oldp;
@@ -288,7 +288,7 @@ int capword(bool f, int n)
 
 private int word_setcase(bool f, int n, int flag)
 {
-    char    c;
+    dchar    c;
 
     if (n < 0)
 	return (false);
@@ -299,7 +299,7 @@ private int word_setcase(bool f, int n, int flag)
 	}
 	if (flag == 2 && inword() != false) {
 	    c = lgetc(curwp.w_dotp, curwp.w_doto);
-	    if (islower(c))
+	    if (isLower(c))
 	    {   c -= 'a'-'A';
 		lputc(curwp.w_dotp, curwp.w_doto, c);
 		line_change(WFHARD);
@@ -309,16 +309,16 @@ private int word_setcase(bool f, int n, int flag)
 	}
 	while (inword() != false) {
 	    c = lgetc(curwp.w_dotp, curwp.w_doto);
-	    switch (flag)
+	    final switch (flag)
 	    {   case 0:
-		    if (islower(c)) {
+		    if (isLower(c)) {
 			c -= 'a'-'A';
 			goto L1;
 		    }
 		    break;
 		case 1:
 		case 2:
-		    if (isupper(c)) {
+		    if (isUpper(c)) {
 			c += 'a'-'A';
 		    L1: lputc(curwp.w_dotp, curwp.w_doto, c);
 			line_change(WFHARD);
@@ -406,6 +406,6 @@ bool inword()
         if (curwp.w_doto == llength(curwp.w_dotp))
                 return false;
         auto c = lgetc(curwp.w_dotp, curwp.w_doto);
-	return (isalnum(c) ||
+	return (isAlphaNum(c) ||
 		 c=='$' || c=='_');	/* For identifiers      */
 }

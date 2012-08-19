@@ -103,8 +103,8 @@ int random_twiddle(bool f, int n)
 {
         LINE   *dotp;
         int    doto;
-        char    cl;
-        char    cr;
+        dchar    cl;
+        dchar    cr;
 
         dotp = curwp.w_dotp;
         doto = curwp.w_doto;
@@ -485,7 +485,7 @@ err:
  * of text if typed with a big argument. Normally bound to "C-D".
  */
 
-static char undelch;
+static dchar undelch;
 
 int random_forwdel(bool f, int n)
 {

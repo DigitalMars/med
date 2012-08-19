@@ -23,6 +23,7 @@
 module line;
 
 import std.c.string;
+import std.utf;
 
 import ed;
 import buffer;
@@ -42,14 +43,15 @@ import random;
 struct  LINE {
         LINE *l_fp;             /* Link to the next line        */
         LINE *l_bp;             /* Link to the previous line    */
-        char[] l_text;          /* A bunch of characters.       */
+        dchar[] l_text;         /* A bunch of characters.       */
 }
 
 LINE* lforw(LINE* lp) { return lp.l_fp; }
 LINE* lback(LINE* lp) { return lp.l_bp; }
-char lgetc(LINE* lp, int n) { return lp.l_text[n]; }
-char lputc(LINE* lp, int n, char c) { return lp.l_text[n] = c; }
+dchar lputc(LINE* lp, int n, dchar c) { return lp.l_text[n] = c; }
 int llength(LINE* lp) { return lp.l_text.length; }
+dchar lgetc(LINE* lp, int n) { return lp.l_text[n]; }
+
 
 /*
  * This routine allocates a block of memory large enough to hold a LINE
@@ -145,10 +147,8 @@ void line_change(int flag)
  * greater than the place where you did the insert. Return TRUE if all is
  * well, and FALSE on errors.
  */
-int line_insert(int n, char c)
+int line_insert(int n, dchar c)
 {
-        char   *cp1;
-        char   *cp2;
         LINE   *lp1;
         LINE   *lp2;
         LINE   *lp3;
@@ -180,7 +180,7 @@ int line_insert(int n, char c)
 
 	memmove(lp2.l_text.ptr + doto + n,
 		lp2.l_text.ptr + doto,
-		lp2.l_text.length - n - doto);
+		(lp2.l_text.length - n - doto) * dchar.sizeof);
 	if (n == 1)
 	    lp2.l_text[doto] = c;
 	else
@@ -209,7 +209,7 @@ int line_insert(int n, char c)
  * Same as line_insert(), but for overwrite mode.
  */
 
-int line_overwrite(int n, char c)
+int line_overwrite(int n, dchar c)
 {   int status = true;
 
     while (n-- > 0)
@@ -233,8 +233,6 @@ int line_overwrite(int n, char c)
  */
 int line_newline()
 {
-        char   *cp1;
-        char   *cp2;
         LINE   *lp1;
         LINE   *lp2;
         int    doto;
@@ -245,7 +243,7 @@ int line_newline()
         doto = curwp.w_doto;                   /* offset of "."        */
 	lp2 = line_realloc(null,doto);		/* New first half line  */
 	lp2.l_text[0 .. doto] = lp1.l_text[0 .. doto];
-	memmove(lp1.l_text.ptr, lp1.l_text.ptr + doto, lp1.l_text.length - doto);
+	memmove(lp1.l_text.ptr, lp1.l_text.ptr + doto, (lp1.l_text.length - doto) * dchar.sizeof);
 	lp1.l_text.length = lp1.l_text.length - doto;
 
         lp2.l_bp = lp1.l_bp;
@@ -311,7 +309,7 @@ bool line_delete(int n, bool kflag)
                 }
 		memmove(dotp.l_text.ptr + doto,
 			dotp.l_text.ptr + doto + chunk,
-			dotp.l_text.length - chunk - doto);
+			(dotp.l_text.length - chunk - doto) * dchar.sizeof);
 		dotp.l_text.length = dotp.l_text.length - chunk;
 
 		foreach (wp; windows)
@@ -361,7 +359,7 @@ bool line_delnewline()
 	lp3 = line_realloc(lp1, lp1used + lp2.l_text.length);
 	lp3.l_bp.l_fp = lp3;
 
-	memmove(lp3.l_text.ptr + lp1used, lp2.l_text.ptr, lp2.l_text.length);
+	memmove(lp3.l_text.ptr + lp1used, lp2.l_text.ptr, lp2.l_text.length * dchar.sizeof);
         lp3.l_fp = lp2.l_fp;
         lp3.l_fp.l_bp = lp3;
 
@@ -394,7 +392,7 @@ bool line_delnewline()
 
 struct killbuf_t
 {
-    char[] buf;
+    dchar[] buf;
 }
 
 __gshared killbuf_t[4] killbuffer;
@@ -425,7 +423,7 @@ void kill_freebuffer()
  * put something in the kill buffer you are going to put more stuff there too
  * later. Return TRUE if all is well, and FALSE on errors.
  */
-bool kill_appendchar(char c)
+bool kill_appendchar(dchar c)
 {
     kbp.buf ~= c;
     return (TRUE);
@@ -435,7 +433,7 @@ bool kill_appendchar(char c)
  * Append string to kill buffer.
  */
 
-bool kill_appendstring(const char[] s)
+bool kill_appendstring(const dchar[] s)
 {
     kbp.buf ~= s;
     return (TRUE);

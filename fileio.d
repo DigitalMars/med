@@ -22,6 +22,7 @@ import std.stdio;
 import std.c.stdio;
 import std.c.stdlib;
 import core.stdc.errno;
+import std.conv;
 
 version (Windows)
 {
@@ -57,7 +58,7 @@ bool ffreadonly(string name)
     {
 	a = std.file.getAttributes(name);
     }
-    catch (Object o)
+    catch (Throwable o)
     {
     }
 
@@ -84,9 +85,9 @@ int ffrename(string from, string to)
 	{
 	    struct_stat buf;
 	    if( stat( toStringz(from), &buf ) != -1
-	     && !(buf.st_uid == getuid() && (buf.st_mode & 0200))
-	     && !(buf.st_gid == getgid() && (buf.st_mode & 0020))
-	     && !(                          (buf.st_mode & 0002)) )
+	     && !(buf.st_uid == getuid() && (buf.st_mode & octal!200))
+	     && !(buf.st_gid == getgid() && (buf.st_mode & octal!20))
+	     && !(                          (buf.st_mode & octal!2)) )
 	    {
 		    mlwrite("Cannot open file for writing.");
 		    /* Note the above message is a lie, but because this	*/
@@ -97,7 +98,7 @@ int ffrename(string from, string to)
 	}
 	rename( from, to );
     }
-    catch (Object o)
+    catch (Throwable o)
     {
     }
     return( FIOSUC );

@@ -38,6 +38,7 @@ import std.string;
 import std.stdio;
 import std.c.time;
 import std.c.stdlib;
+import std.utf;
 
 import ed;
 import file;
@@ -65,10 +66,10 @@ BUFFER  *curbp;                         /* Current buffer               */
 WINDOW  *curwp;                         /* Current window               */
 BUFFER  *bheadp;                        /* BUFFER listhead              */
 BUFFER  *blistp;                        /* Buffer list BUFFER           */
-ushort   kbdm[256] = [CTLX|')'];        /* Macro                        */
-ushort   *kbdmip;                       /* Input  for above             */
-ushort   *kbdmop;                       /* Output for above             */
-string    pat;                          /* Pattern                      */
+dchar   kbdm[256] = [CTLX|')'];         /* Macro                        */
+dchar   *kbdmip;                        /* Input  for above             */
+dchar   *kbdmop;                        /* Output for above             */
+dstring pat;                            /* search pattern               */
 ubyte   insertmode = 1;                 /* insert/overwrite mode        */
 string  progname;                       /* this program name            */
 
@@ -205,7 +206,7 @@ struct KEYTAB {
     int function(bool, int) k_fp; /* Routine to handle it         */
 }
 
-invariant KEYTAB[]  keytab =
+immutable KEYTAB[]  keytab =
 [
         /* Definitions common to all versions   */
        { CTRL('@'),              &ctrlg}, /*basic_setmark*/
@@ -357,7 +358,7 @@ invariant KEYTAB[]  keytab =
 ];
 
 /* Translation table from 2 key sequence to single value        */
-invariant ushort[2][] altf_tab =
+immutable ushort[2][] altf_tab =
 [
         ['B',            0x8016],         /* listbuffers          */
         ['D',            0x8037],         /* Dinsertdate          */
@@ -381,7 +382,7 @@ invariant ushort[2][] altf_tab =
         [InsKEY,         0x8042],         /* random_openline      */
 ];
 
-invariant ushort[2][] esc_tab =
+immutable ushort[2][] esc_tab =
 [
         ['.',            0x8025],         /* basic_setmark        */
         ['>',            0x8026],         /* gotoeob              */
@@ -412,7 +413,7 @@ invariant ushort[2][] esc_tab =
         [UPKEY,          0x8035],         // Dbackup
 ];
 
-invariant ushort[2][] ctlx_tab =
+immutable ushort[2][] ctlx_tab =
 [
         ['@',            0x8001],	// spawn_pipe
         ['#',            0x8002],	// spawn_filter
@@ -444,7 +445,7 @@ invariant ushort[2][] ctlx_tab =
 
 struct CMDTAB
 {   ushort    ktprefix;           /* prefix key value                     */
-    invariant ushort[2][]  kt;    /* which translation table              */
+    immutable ushort[2][]  kt;    /* which translation table              */
 };
 
 CMDTAB cmdtab[] =
@@ -464,18 +465,18 @@ int main(string[] args)
 {
     bool   f;
     int    n;
-    string bname;
+    dstring bname;
 
     hasmouse = msm_init();                  /* initialize mouse     */
     progname = args[0];                     /* remember program name */
     bname = "main";                         /* Work out the name of */
     if (args.length > 1)                    /* the default buffer.  */
-	    bname = makename(args[1]);
+	    bname = makename(toUTF32(args[1]));
     vtinit();                               /* Displays.            */
     edinit(bname);                          /* Buffers, windows.    */
     if (args.length > 1) {
 	    update();                       /* You have to update   */
-	    readin(args[1]);                /* in case "[New file]" */
+	    readin(toUTF32(args[1]));       /* in case "[New file]" */
     }
     else
 	mlwrite("[No file]");
@@ -497,15 +498,15 @@ int main(string[] args)
             n = getarg();
         }
         if (kbdmip != null) {                   /* Save macro strokes.  */
-                if (c!=CMD_ENDMACRO && kbdmip>&kbdm[length-6]) {
+                if (c!=CMD_ENDMACRO && kbdmip>&kbdm[$-6]) {
                         ctrlg(FALSE, 0);
                         continue;
                 }
                 if (f != FALSE) {
                         *kbdmip++ = CTRL('U');
-                        *kbdmip++ = cast(ushort)n;
+                        *kbdmip++ = n;
                 }
-                *kbdmip++ = cast(ushort)c;
+                *kbdmip++ = c;
         }
         execute(0, c, f, n);                       /* Do it.               */
     }
@@ -567,7 +568,7 @@ int getarg()
  * as an argument, because the main routine may have been told to read in a
  * file by default, and we want the buffer name to be right.
  */
-void edinit(string bname)
+void edinit(dstring bname)
 {
         auto bp = buffer_find(bname, TRUE, 0);             /* First buffer         */
         blistp = buffer_find("[List]", TRUE, BFTEMP); /* Buffer list buffer   */
@@ -865,11 +866,11 @@ version (Windows)
 {
     CONFIG config =
     {	// mode, norm, eol, mark, tab
-	//0x7400,0x0200,0x0700,0x2400,
-	//0x3400,0x7F00,0x7800,0x3B00,
-	//0x3400,0x0E00,0x0E00,0x3B00,
-	//0x3400,0x7000,0x7000,0x3B00,
-	0x3400,0xF000,0xF000,0x3B00,
+	//0x74,0x02,0x07,0x24,
+	//0x34,0x7F,0x78,0x3B,
+	//0x34,0x0E,0x0E,0x3B,
+	//0x34,0x70,0x70,0x3B,
+	0x34,0xF0,0xF0,0x3B,
         ' '/*0xAF*/,
     };
 }
