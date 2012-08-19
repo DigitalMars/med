@@ -1,0 +1,391 @@
+
+
+/* This version of microEmacs is based on the public domain C
+ * version written by Dave G. Conroy.
+ * The D programming language version is written by Walter Bright.
+ * http://www.digitalmars.com/d/
+ * This program is in the public domain.
+ */
+
+/*
+ * The routines in this file provide support for computers with
+ * WIN32 console I/O support.
+ */
+
+module console;
+
+import std.stdio;
+import std.c.stdlib;
+import std.c.windows.windows;
+
+import ed;
+import disp;
+
+
+enum BEL = 0x07;                    /* BEL character.               */
+enum ESC = 0x1B;                    /* ESC character.               */
+
+
+static HANDLE hStdin;			// console input handle
+static DWORD fdwSaveOldMode;
+
+static INPUT_RECORD lookaheadir;
+static int lookahead;			// !=0 if data in lookaheadir
+
+/*
+ * Standard terminal interface dispatch table. Most of the fields point into
+ * "termio" code.
+ */
+
+
+
+struct TERM
+{
+    short   t_nrow;              /* Number of rows.              */
+    short   t_ncol;              /* Number of columns.           */
+
+    void t_open()             /* Open terminal at the start.  */
+    {
+	hStdin  = GetStdHandle(STD_INPUT_HANDLE);
+	if (hStdin == INVALID_HANDLE_VALUE)
+	{   printf("getstdhandle\n");
+	    exit(EXIT_FAILURE);
+	}
+
+	if (!GetConsoleMode(hStdin,&fdwSaveOldMode))
+	{   printf("getconsolemode\n");
+	    exit(EXIT_FAILURE);
+	}
+
+	if (!SetConsoleMode(hStdin,ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT))
+	{   printf("setconsolemode\n");
+	    exit(EXIT_FAILURE);
+	}
+
+	disp_open();
+	disp_setcursortype(DISP_CURSORBLOCK);
+	t_ncol = disp_state.numcols;
+	t_nrow = disp_state.numrows;
+    }
+
+    void t_close()            /* Close terminal at end.       */
+    {
+	disp_close();
+
+	if (!SetConsoleMode(hStdin,fdwSaveOldMode))
+	{   printf("restore console mode\n");
+	    exit(EXIT_FAILURE);
+	}
+    }
+
+    int t_getchar()          /* Get character from keyboard. */
+    {
+	INPUT_RECORD buf;
+	DWORD cNumRead;
+	int c;
+
+	while (1)
+	{
+	    if (lookahead)
+	    {   buf = lookaheadir;
+		lookahead = 0;
+	    }
+	    else if (!ReadConsoleInputA(hStdin,&buf,1,&cNumRead))
+	    {   c = 3;				// ^C
+		goto Lret;
+	    }
+
+	    switch (buf.EventType)
+	    {
+		case MOUSE_EVENT:
+		    mstat_update(&buf.MouseEvent);
+		    continue;
+
+		default:
+		    continue;			// ignore
+
+		case KEY_EVENT:
+		    c = win32_keytran(&buf.KeyEvent);
+		    if (!c)
+			continue;
+		    goto Lret;
+	    }
+	}
+
+    Lret:
+	return c;
+    }
+
+    void t_putchar(int c)          /* Put character to display.    */
+    {
+	disp_putc(c);
+    }
+
+    void t_flush()            /* Flush output buffers.        */
+    {
+	disp_flush();
+    }
+
+    void t_move(int row, int col)         /* Move the cursor, origin 0.   */
+    {
+	disp_move(row, col);
+    }
+
+    void t_eeol()             /* Erase to end of line.        */
+    {
+	disp_eeol();
+    }
+
+    void t_eeop()             /* Erase to end of page.        */
+    {
+	disp_eeop();
+    }
+
+    void t_beep()             /* Beep.                        */
+    {
+	disp_putc(BEL);
+    }
+
+    void t_standout()         /* Start standout mode          */
+    {
+	disp_startstand();
+    }
+
+    void t_standend()         /* End standout mode            */
+    {
+	disp_endstand();
+    }
+
+    void t_scrollup()         /* Scroll the screen up         */
+    {
+    }
+
+    void t_scrolldn()         /* Scroll the screen down       */
+				 /* Note: scrolling routines do  */
+				 /*  not save cursor position.   */
+    {
+    }
+
+    void t_setcursor(int insertmode)
+    {
+	disp_setcursortype(insertmode ? DISP_CURSORBLOCK : DISP_CURSORUL);
+    }
+}
+
+TERM term;
+
+/********************************************
+ */
+
+void updateline(int row,attchar_t[] buffer,attchar_t[] physical)
+{
+    int col;
+    int numcols;
+    CHAR_INFO *psb;
+    CHAR_INFO sbbuf[256];
+    CHAR_INFO *sb;
+    COORD sbsize;
+    static COORD sbcoord;
+    SMALL_RECT sdrect;
+
+    sbsize.X = disp_state.numcols;
+    sbsize.Y = 1;
+    sbcoord.X = 0;
+    sbcoord.Y = 0;
+    sdrect.Left = 0;
+    sdrect.Top = row;
+    sdrect.Right = disp_state.numcols - 1;
+    sdrect.Bottom = row;
+    numcols = disp_state.numcols;
+    sb = sbbuf.ptr;
+    if (numcols > sbbuf.length)
+    {
+	sb = cast(CHAR_INFO *)alloca(numcols * CHAR_INFO.sizeof);
+    }
+    for (col = 0; col < numcols; col++)
+    {
+	sb[col].AsciiChar = buffer[col] & 0xFF;
+	sb[col].Attributes = (buffer[col] >> 8) & 0xFF;
+	//printf("col = %2d, x%2x, '%c'\n",col,sb[col].AsciiChar,sb[col].AsciiChar);
+    }
+    if (!WriteConsoleOutputA(cast(HANDLE)disp_state.handle,sb,sbsize,sbcoord,&sdrect))
+    {
+	// error
+    }
+    physical[] = buffer[];
+}
+
+/*********************************
+ */
+
+extern (C) int msm_init()
+{
+    return GetSystemMetrics(SM_MOUSEPRESENT);
+}
+
+extern (C)
+{
+    void	msm_term() { }
+    void	msm_showcursor() { }
+    void	msm_hidecursor() { }
+}
+
+struct msm_status		// current state of mouse
+{
+    uint row;
+    uint col;
+    int buttons;
+}
+
+msm_status mstat;
+
+/*************************
+ * Fold MOUSE_EVENT into mstat.
+ */
+
+static void mstat_update(MOUSE_EVENT_RECORD *pme)
+{
+    mstat.row = pme.dwMousePosition.Y;
+    mstat.col = pme.dwMousePosition.X;
+    mstat.buttons = pme.dwButtonState & 3;
+}
+
+extern (C) int msm_getstatus(uint *pcol,uint *prow)
+{
+    INPUT_RECORD buf;
+    DWORD cNumRead;
+
+    if (lookahead)
+    {	buf = lookaheadir;
+	cNumRead = 1;
+    }
+    else if (!PeekConsoleInputA(hStdin,&buf,1,&cNumRead))
+	goto Lret;
+
+    if (cNumRead)
+	switch (buf.EventType)
+	{
+	    case MOUSE_EVENT:
+		mstat_update(&buf.MouseEvent);
+	    default:
+		if (lookahead)
+		    lookahead = 0;
+		else
+		    ReadConsoleInputA(hStdin,&buf,1,&cNumRead);	// discard
+		break;
+
+	    case KEY_EVENT:
+		break;
+	}
+
+Lret:
+    *prow = mstat.row;
+    *pcol = mstat.col;
+    return mstat.buttons;
+}
+
+/*************************************
+ * Translate key from WIN32 to IBM PC style.
+ * Returns:
+ *	0 if ignore it
+ */
+
+static uint win32_keytran(KEY_EVENT_RECORD *pkey)
+{   uint c;
+
+    c = 0;
+    if (!pkey.bKeyDown)
+	goto Lret;				// ignore button up events
+    c = pkey.AsciiChar & 0xFF;
+    if (c == 0)
+    {
+	switch (pkey.wVirtualScanCode)
+	{
+	    case 0x1D:				// Ctrl
+	    case 0x38:				// Alt
+	    case 0x2A:				// Left Shift
+	    case 0x36:				// Right Shift
+		break;				// ignore
+	    default:
+		c = (pkey.wVirtualScanCode << 8) & 0xFF00;
+		if (pkey.dwControlKeyState & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
+		{
+		    switch (c)
+		    {   case 0x4700:	c = 0x7700;	break;	// Home
+			case 0x4F00:	c = 0x7500;	break;	// End
+			case 0x4900:	c = 0x8400;	break;	// PgUp
+			case 0x5100:	c = 0x7600;	break;	// PgDn
+		    }
+		}
+		break;
+	}
+    }
+    else if (pkey.dwControlKeyState & (RIGHT_ALT_PRESSED | LEFT_ALT_PRESSED))
+    {
+	c = (pkey.wVirtualScanCode << 8) & 0xFF00;
+    }
+Lret:
+    return c;
+}
+
+/*************************************
+ * Wait for any input (yield to other processes).
+ */
+
+void ttyield()
+{
+    if (!lookahead)
+    {
+	DWORD cNumRead;
+
+	if (!ReadConsoleInputA(hStdin,&lookaheadir,1,&cNumRead))
+	{   printf("readconsoleinput\n");
+	    goto Lret;
+	}
+    }
+    lookahead = 1;
+Lret: ;
+}
+
+/*************************************
+ */
+
+int ttkeysininput()
+{
+    INPUT_RECORD buf;
+    DWORD cNumRead;
+
+    if (lookahead)
+    {	buf = lookaheadir;
+	cNumRead = 1;
+    }
+    else if (!PeekConsoleInputA(hStdin,&buf,1,&cNumRead))
+	goto Lret;
+
+    if (cNumRead)
+    {
+	switch (buf.EventType)
+	{
+	    case MOUSE_EVENT:
+		mstat_update(&buf.MouseEvent);
+	    default:
+	    Ldiscard:
+		if (lookahead)
+		    lookahead = 0;
+		else
+		    ReadConsoleInputA(hStdin,&buf,1,&cNumRead);	// discard
+		cNumRead = 0;
+		break;
+
+	    case KEY_EVENT:
+		if (!win32_keytran(&buf.KeyEvent))
+		    goto Ldiscard;
+		break;
+	}
+    }
+
+Lret:
+    return cNumRead != 0;
+}
+
+extern (C) void popen() { assert(0); }
