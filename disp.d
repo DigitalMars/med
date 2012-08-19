@@ -42,7 +42,7 @@ struct disp_t
     void *handle;
 }
 
-extern disp_t disp_state;
+extern __gshared disp_t disp_state;
 
 int	disp_printf(char *,...);
 int	disp_getmode();

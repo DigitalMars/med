@@ -190,6 +190,7 @@ int backsearch(bool f, int n)
             }
 fail:;
         }
+	assert(0);
 }
 
 /*
@@ -327,7 +328,7 @@ private int replace(bool query)
 		    case '.':		/* change and stop		*/
 			stop = TRUE;
 			break;
-		    case CTRL('G'):	/* abort			*/
+		    case 'G' & 0x1F:	/* abort			*/
 			goto abortreplace;
 		    default:		/* illegal command		*/
 			term.t_beep();

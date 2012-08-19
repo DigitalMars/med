@@ -12,6 +12,7 @@ module mouse;
 
 import disp;
 import std.c.time;
+import core.stdc.time;
 
 import ed;
 import window;
@@ -116,14 +117,13 @@ static void mouse_tocursor(uint* px, uint* py)
 static void mouse_findpos(uint col, uint row, WINDOW** p_wp, LINE** p_lp, int* p_doto)
 {   int r;
     int i;
-    WINDOW *wp;
     LINE *lp;
 
     *p_wp = null;
     *p_lp = null;
     *p_doto = 0;			/* default cases		*/
     r = 0;				/* starting row for window	*/
-    for (wp = wheadp; wp; wp = wp.w_wndp)
+    foreach (wp; windows)
     {
 	if (row <= r + wp.w_ntrows)
 	{
@@ -196,7 +196,7 @@ static void mouse_markdrag(WINDOW* wp, LINE* lp, int doto)
 	wp.w_markp = null;
 	thisclick = clock();
 	if (clicks)
-	{   if (thisclick - lastclick > CLK_TCK/2)
+	{   if (thisclick - lastclick > 500) //CLOCKS_PER_SEC / 2)
 		clicks = 0;
 	}
 	clicks++;

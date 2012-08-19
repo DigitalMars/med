@@ -74,7 +74,7 @@ LINE* line_realloc(LINE* lpold, int used)
  */
 void line_free(LINE* lp)
 {
-	for (WINDOW* wp = wheadp; wp != null; wp = wp.w_wndp)
+	foreach (wp; windows)
 	{
 	    if (wp.w_linep == lp)
 		wp.w_linep = lp.l_fp;
@@ -87,8 +87,9 @@ void line_free(LINE* lp)
 		wp.w_marko = 0;
 	    }
 	}
-	for (BUFFER* bp = bheadp; bp != null; bp = bp.b_bufp)
+	foreach (bp; buffers)
 	{
+assert(bp);
 	    /* If there are windows on this buffer, the dot and mark	*/
 	    /* values are nonsense.					*/
 	    if (bp.b_nwnd == 0)	/* if no windows on this buffer	*/
@@ -118,15 +119,13 @@ void line_free(LINE* lp)
  */
 void line_change(int flag)
 {
-        WINDOW* wp;
-
 	if (curwp.w_markp)			/* if marking		*/
 	    curwp.w_flag |= WFMOVE;		/* so highlighting is updated */
         if ((curbp.b_flag&(BFCHG|BFRDONLY)) == 0) /* First change, so     */
 	{   flag |= WFMODE;			/* update mode lines	*/
 	    curbp.b_flag |= BFCHG;
         }
-        for (wp = wheadp; wp; wp = wp.w_wndp)
+	foreach (wp; windows)
 	{
                 if (wp.w_bufp == curbp)
 		{
@@ -154,7 +153,6 @@ int line_insert(int n, char c)
         LINE   *lp2;
         LINE   *lp3;
         int    doto;
-        WINDOW *wp;
 
 	if (curbp.b_flag & BFRDONLY)		/* if buffer is read-only */
 	    return FALSE;			/* error		*/
@@ -189,7 +187,7 @@ int line_insert(int n, char c)
 	    lp2.l_text[doto .. doto + n] = c;
 
 	/* Update windows       */
-	for (wp = wheadp; wp != null; wp = wp.w_wndp)
+	foreach (wp; windows)
 	{   if (wp.w_linep == lp1)
 		    wp.w_linep = lp2;
 	    if (wp.w_dotp == lp1) {
@@ -240,7 +238,6 @@ int line_newline()
         LINE   *lp1;
         LINE   *lp2;
         int    doto;
-        WINDOW *wp;
 
 	if (curbp.b_flag & BFRDONLY)		/* if buffer is read-only */
 	    return FALSE;			/* error		*/
@@ -256,8 +253,8 @@ int line_newline()
         lp2.l_bp.l_fp = lp2;
         lp2.l_fp = lp1;
 
-        wp = wheadp;                            /* Windows              */
-        while (wp != null) {
+	foreach (wp; windows)
+	{
                 if (wp.w_linep == lp1)
                         wp.w_linep = lp2;
                 if (wp.w_dotp == lp1) {
@@ -272,7 +269,6 @@ int line_newline()
                         else
                                 wp.w_marko -= doto;
                 }
-                wp = wp.w_wndp;
         }       
         line_change(WFHARD);
         return (TRUE);
@@ -289,7 +285,6 @@ bool line_delete(int n, bool kflag)
         LINE*  dotp;
         int    doto;
         int    chunk;
-        WINDOW* wp;
 
 	if (curbp.b_flag & BFRDONLY)		/* if buffer is read-only */
 	    return FALSE;			/* error		*/
@@ -319,8 +314,8 @@ bool line_delete(int n, bool kflag)
 			dotp.l_text.length - chunk - doto);
 		dotp.l_text.length = dotp.l_text.length - chunk;
 
-                wp = wheadp;                    /* Fix windows          */
-                while (wp != null) {
+		foreach (wp; windows)
+		{
                         if (wp.w_dotp==dotp && wp.w_doto>=doto) {
                                 wp.w_doto -= chunk;
                                 if (wp.w_doto < doto)
@@ -331,7 +326,6 @@ bool line_delete(int n, bool kflag)
                                 if (wp.w_marko < doto)
                                         wp.w_marko = doto;
                         }
-                        wp = wp.w_wndp;
                 }
                 n -= chunk;
         }
@@ -371,8 +365,8 @@ bool line_delnewline()
         lp3.l_fp = lp2.l_fp;
         lp3.l_fp.l_bp = lp3;
 
-        auto wp = wheadp;
-        while (wp != null) {
+	foreach (wp; windows)
+	{
                 if (wp.w_linep==lp1 || wp.w_linep==lp2)
                         wp.w_linep = lp3;
                 if (wp.w_dotp == lp1)
@@ -387,7 +381,6 @@ bool line_delnewline()
                         wp.w_markp  = lp3;
                         wp.w_marko += lp1used;
                 }
-                wp = wp.w_wndp;
         }
 
 	delete lp2.l_text;
@@ -404,8 +397,8 @@ struct killbuf_t
     char[] buf;
 }
 
-static killbuf_t killbuffer[4];
-static killbuf_t *kbp = &killbuffer[0];	/* current kill buffer	*/
+__gshared killbuf_t[4] killbuffer;
+__gshared killbuf_t *kbp = &killbuffer[0];	/* current kill buffer	*/
 
 /************************************
  * Set the current kill buffer to i.

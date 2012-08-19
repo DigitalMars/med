@@ -209,7 +209,7 @@ private int region_case(bool flag)
 		for (; loffs < lright; loffs++)
 		{   c = lgetc(linep, loffs);
 		    if (flag ? isupper(c) : islower(c))
-			lputc(linep, loffs, c ^ 0x20);
+			lputc(linep, loffs, cast(char)(c ^ 0x20));
 		}
 		linep = lforw(linep);
 	    }
@@ -224,7 +224,7 @@ private int region_case(bool flag)
 		} else {
 		    c = lgetc(linep, loffs);
 		    if (flag ? isupper(c) : islower(c))
-			lputc(linep, loffs, c ^ 0x20);
+			lputc(linep, loffs, cast(char)(c ^ 0x20));
 		    ++loffs;
 		}
 	    }

@@ -41,8 +41,8 @@ static int lookahead;			// !=0 if data in lookaheadir
 
 struct TERM
 {
-    short   t_nrow;              /* Number of rows.              */
-    short   t_ncol;              /* Number of columns.           */
+    int   t_nrow;              /* Number of rows.              */
+    int   t_ncol;              /* Number of columns.           */
 
     void t_open()             /* Open terminal at the start.  */
     {
@@ -188,14 +188,14 @@ void updateline(int row,attchar_t[] buffer,attchar_t[] physical)
     static COORD sbcoord;
     SMALL_RECT sdrect;
 
-    sbsize.X = disp_state.numcols;
+    sbsize.X = cast(short)disp_state.numcols;
     sbsize.Y = 1;
     sbcoord.X = 0;
     sbcoord.Y = 0;
     sdrect.Left = 0;
-    sdrect.Top = row;
-    sdrect.Right = disp_state.numcols - 1;
-    sdrect.Bottom = row;
+    sdrect.Top = cast(short)row;
+    sdrect.Right = cast(short)(disp_state.numcols - 1);
+    sdrect.Bottom = cast(short)row;
     numcols = disp_state.numcols;
     sb = sbbuf.ptr;
     if (numcols > sbbuf.length)

@@ -61,48 +61,53 @@ int filenext(bool f, int n)
 
 int Dinsertfile(bool f, int n)
 {
-	int s,nline;
-	WINDOW *wp;
-	string fname;
-	string line;
+    string fname;
 
-	if (mlreply("Insert file: ", null, fname) == FALSE)
-		return FALSE;
+    if (mlreply("Insert file: ", null, fname) == FALSE)
+	    return FALSE;
 
-	s = ffropen(fname);		/* open file for reading	*/
-	switch (s)
-	{
-	    case FIOFNF:
-		mlwrite("File not found");
-	    case FIOERR:
-		return FALSE;
-	}
+    try
+    {
+	fname = std.path.expandTilde(fname);
+	auto fp = File(fname);
 	mlwrite("[Reading file]");
-	nline = 0;
-	while ((s = ffgetline(line)) == FIOSUC)
+	int nline = 0;
+	char[] line;
+	size_t s;
+	while ((s = fp.readln(line)) != 0)
 	{
-		foreach(c; line)
-		{
-		    if (line_insert(1,c) == FALSE)
-			return FALSE;
-		}
-		if (random_newline(FALSE,1) == FALSE)
+	    foreach(c; line)
+	    {
+		if (c == '\r' || c == '\n')
+		    break;
+		if (line_insert(1,c) == FALSE)
 		    return FALSE;
-		++nline;
+	    }
+	    if (random_newline(FALSE,1) == FALSE)
+		return FALSE;
+	    ++nline;
 	}
-	ffclose();
-        if (s == FIOEOF) {                      /* Don't zap message!   */
-                if (nline == 1)
-                        mlwrite("[Read 1 line]");
-                else
-                        mlwrite(format("[Read %d lines]", nline));
+	fp.close();
+	if (nline == 1)
+	    mlwrite("[Read 1 line]");
+	else
+	    mlwrite(format("[Read %d lines]", nline));
+	return TRUE;
+    }
+    catch (Exception e)
+    {
+	mlwrite(e.toString());
+	return FALSE;
+    }
+    finally
+    {
+	foreach (wp; windows)
+	{
+	    if (wp.w_bufp == curbp) {
+		wp.w_flag |= WFMODE|WFHARD;
+	    }
         }
-        for (wp=wheadp; wp!=null; wp=wp.w_wndp) {
-                if (wp.w_bufp == curbp) {
-                        wp.w_flag |= WFMODE|WFHARD;
-                }
-        }
-	return s != FIOERR;
+    }
 }
 
 /*
@@ -142,8 +147,6 @@ int filevisit(bool f, int n)
 
 int file_readin(string fname)
 {
-    BUFFER *bp;
-    WINDOW *wp;
     LINE   *lp;
     int    i;
     int    s;
@@ -151,7 +154,7 @@ int file_readin(string fname)
 
     /* If there is an existing buffer with the same file name, simply	*/
     /* switch to it instead of reading the file again.			*/
-    for (bp=bheadp; bp!=null; bp=bp.b_bufp)
+    foreach (bp; buffers)
     {
 	/* Always redo temporary buffers, check for filename match.	*/
 	if ((bp.b_flag&BFTEMP)==0 && fnmatch(bp.b_fname, fname))
@@ -176,7 +179,7 @@ int file_readin(string fname)
 	    else
 	    {
 		/* Set dot to be at place where other window has it	*/
-		for (wp = wheadp; wp != null; wp = wp.w_wndp)
+		foreach (wp; windows)
 		{   
 		    if (wp!=curwp && wp.w_bufp==bp)
 		    {   
@@ -203,6 +206,7 @@ int file_readin(string fname)
     }
 
     bname = makename(fname);                 /* New buffer name.     */
+    BUFFER* bp;
     while ((bp=buffer_find(bname, FALSE, 0)) != null)
     {
 	s = mlreply("Buffer name: ", null, bname);
@@ -239,59 +243,71 @@ int file_readin(string fname)
  */
 int readin(string fname)
 {
-        LINE   *lp1;
-        LINE   *lp2;
-        int    i;
-        WINDOW *wp;
-        BUFFER *bp;
-        int    s;
-        int    nline;
-        string line;
+    auto bp = curbp;                            // Cheap.
+    auto b = buffer_clear(bp);  		// Might be old.
+    if (b != TRUE)
+	    return b;
+    bp.b_flag &= ~(BFTEMP|BFCHG);
+    bp.b_fname = fname;
 
-        bp = curbp;                             /* Cheap.               */
-        if ((s=buffer_clear(bp)) != TRUE)             /* Might be old.        */
-                return (s);
-        bp.b_flag &= ~(BFTEMP|BFCHG);
-        bp.b_fname = fname;
+    /* Determine if file is read-only	*/
+    fname = std.path.expandTilde(fname);
+    if (ffreadonly(fname))			/* is file read-only?	*/
+	    bp.b_flag |= BFRDONLY;
+    else
+	    bp.b_flag &= ~BFRDONLY;
 
-	/* Determine if file is read-only	*/
-	if (ffreadonly(fname))			/* is file read-only?	*/
-		bp.b_flag |= BFRDONLY;
-	else
-		bp.b_flag &= ~BFRDONLY;
-        if ((s=ffropen(fname)) == FIOERR)       /* Hard file open.      */
-	{	mlwrite("[Bad file]");
-                goto Lout;
+    try
+    {
+	if (!std.file.exists(fname))
+	{
+	    mlwrite("[New file]");
+	    return TRUE;
 	}
-        if (s == FIOFNF) {                      /* File not found.      */
-                mlwrite("[New file]");
-                goto Lout;
-        }
-        mlwrite("[Reading file]");
+	auto fp = File(fname);
+	mlwrite("[Reading file]");
+	int nline = 0;
+	char[] line;
+	size_t s;
+	while ((s = fp.readln(line)) != 0)
+	{
+	    if (line.length && line[length - 1] == '\n')
+		line = line[0 .. length - 1];
+	    if (line.length && line[length - 1] == '\r')
+		line = line[0 .. length - 1];
 
-        nline = 0;
-        while ((s=ffgetline(line)) == FIOSUC) {
-                if ((lp1=line_realloc(null,line.length)) == null) {
-                        s = FIOERR;             /* Keep message on the  */
-                        break;                  /* display.             */
-                }
-                lp2 = lback(curbp.b_linep);
-                lp2.l_fp = lp1;
-                lp1.l_fp = curbp.b_linep;
-                lp1.l_bp = lp2;
-                curbp.b_linep.l_bp = lp1;
-		lp1.l_text[] = line[];
-                ++nline;
-        }
-        ffclose();                              /* Ignore errors.       */
-        if (s == FIOEOF) {                      /* Don't zap message!   */
-                if (nline == 1)
-                        mlwrite("[Read 1 line]");
-                else
-                        mlwrite(format("[Read %d lines]", nline));
-        }
-Lout:
-        for (wp=wheadp; wp!=null; wp=wp.w_wndp) {
+	    LINE   *lp1;
+	    LINE   *lp2;
+
+	    if ((lp1=line_realloc(null,line.length)) == null) {
+		    s = FIOERR;             /* Keep message on the  */
+		    break;                  /* display.             */
+	    }
+	    lp2 = lback(curbp.b_linep);
+	    lp2.l_fp = lp1;
+	    lp1.l_fp = curbp.b_linep;
+	    lp1.l_bp = lp2;
+	    curbp.b_linep.l_bp = lp1;
+	    lp1.l_text[] = line[];
+
+	    ++nline;
+	}
+	fp.close();
+	if (nline == 1)
+	    mlwrite("[Read 1 line]");
+	else
+	    mlwrite(format("[Read %d lines]", nline));
+	return TRUE;
+    }
+    catch (Exception e)
+    {
+	mlwrite(e.toString());
+	return FALSE;
+    }
+    finally
+    {
+	foreach (wp; windows)
+	{
                 if (wp.w_bufp == curbp) {
                         wp.w_linep = lforw(curbp.b_linep);
                         wp.w_dotp  = lforw(curbp.b_linep);
@@ -301,7 +317,7 @@ Lout:
                         wp.w_flag |= WFMODE|WFHARD;
                 }
         }
-	return s != FIOERR;			/* FALSE if error	*/
+    }
 }
 
 /*
@@ -355,12 +371,10 @@ int filewrite(bool f, int n)
 
 int fileunmodify(bool f, int n)
 {
-    WINDOW *wp;
-
     curbp.b_flag &= ~BFCHG;
 
     /* Update mode lines.   */
-    for (wp = wheadp; wp != null; wp = wp.w_wndp)
+    foreach (wp; windows)
     {
 	if (wp.w_bufp == curbp)
 	    wp.w_flag |= WFMODE;
@@ -400,13 +414,12 @@ int filesave(bool f, int n)
  */
 int filemodify(bool f, int n)
 {
-        WINDOW *wp;
 	int s = TRUE;
-	BUFFER *oldbp;
 
-	oldbp = curbp;
-	for (curbp = bheadp; curbp != null; curbp = curbp.b_bufp)
+	auto oldbp = curbp;
+	foreach (bp; buffers)
 	{
+		curbp = bp;
 		if((curbp.b_flag&BFCHG) == 0 || /* if no changes	*/
 		   curbp.b_flag & BFTEMP ||	/* if temporary		*/
 		   curbp.b_fname[0] == 0)	/* Must have a name	*/
@@ -428,41 +441,59 @@ int filemodify(bool f, int n)
  */
 int writeout(string fn)
 {
-        int    s;
-        LINE   *lp;
-        int    nline;
+    fn = std.path.expandTilde(fn);
+    /*
+     * Supply backups when writing files.
+     */
+    version (Windows)
+    {
+	auto backupname = std.path.addExt(fn, "bak");
+    }
+    else
+    {
+	auto backupname = join(dirname(fn), ".B" ~ basename(fn));
+    }
 
-	string backupname;
-	/*
-	 * This code has been added to supply backups
-	 * when writing files.
-	 */
-version (Windows)
-{
-	backupname = std.path.addExt(fn, "bak");
-}
-else
-{
-	backupname = join(dirname(fn), ".B" ~ basename(fn));
-}
-	ffunlink( backupname );			/* Remove old backup file */
-	if( ffrename( fn, backupname ) != FIOSUC )
-		return( FALSE );		/* Make new backup file */
+    try
+    {
+	std.file.remove(backupname);	// Remove old backup file
+    }
+    catch
+    {
+    }
 
-        if ((s=ffwopen(fn)) != FIOSUC)          /* Open writes message. */
-                return (FALSE);
+    if (ffrename(fn, backupname) != FIOSUC)
+	    return FALSE;		// Make new backup file
+
+    try
+    {
+	auto f = File(fn, "w");
+
 	if ( ffchmod( fn, backupname ) != FIOSUC ) /* Set protection	*/
+	{	f.close();
 		return( FALSE );
+	}
 
-        lp = lforw(curbp.b_linep);             /* First line.          */
-        nline = 0;                              /* Number of lines.     */
+        auto lp = lforw(curbp.b_linep);             // First line.
+        int nline = 0;                         // Number of lines.
         while (lp != curbp.b_linep) {
-                if ((s=ffputline(lp.l_text[0 .. llength(lp)])) != FIOSUC)
-                        break;
+                f.writeln(lp.l_text[0 .. llength(lp)]);
                 ++nline;
                 lp = lforw(lp);
         }
-	return file_finish(s,nline);
+
+	f.close();
+	if (nline == 1)
+	    mlwrite("[Wrote 1 line]");
+	else
+	    mlwrite(format("[Wrote %d lines]", nline));
+	return TRUE;
+    }
+    catch (Exception e)
+    {
+	mlwrite(e.toString());
+	return FALSE;
+    }
 }
 
 /*
@@ -485,11 +516,10 @@ int filename(bool f, int n)
                 curbp.b_fname = null;
         else
                 curbp.b_fname = fname;
-        auto wp = wheadp;                         /* Update mode lines.   */
-        while (wp != null) {
+	foreach (wp; windows)
+        {       // Update mode lines.
                 if (wp.w_bufp == curbp)
                         wp.w_flag |= WFMODE;
-                wp = wp.w_wndp;
         }
         return (TRUE);
 }
@@ -499,50 +529,38 @@ int filename(bool f, int n)
  */
 
 int file_writeregion(string filename, REGION* region)
-{   int s;
-    LINE   *lp;
-    int    nline;
-    int size;
-    int loffs;
-
-    if ((s=ffwopen(filename)) != FIOSUC)	/* open writes message	*/
-	return (FALSE);
-
-    lp = region.r_linep;		/* First line.          */
-    loffs = region.r_offset;
-    size = region.r_size;
-    nline = 0;				/* Number of lines.     */
-    while (size > 0)
-    {	int nchars;
-
-	nchars = llength(lp) - loffs;
-	if (nchars > size)		/* if last line is not a full line */
-	    nchars = size;
-	if ((s=ffputline(lp.l_text[loffs .. loffs + nchars])) != FIOSUC)
-	    break;
-	size -= nchars + 1;
-	++nline;
-	lp = lforw(lp);
-	loffs = 0;
-    }
-    return file_finish(s,nline);
-}
-
-/************************
- * Finish writing file.
- */
-
-static int file_finish(int s, int nline)
 {
-    if (s == FIOSUC) {                      /* No write error.      */
-	    s = ffclose();
-	    if (s == FIOSUC) {              /* No close error.      */
-		    if (nline == 1)
-			    mlwrite("[Wrote 1 line]");
-		    else
-			    mlwrite(format("[Wrote %d lines]", nline));
-	    }
-    } else                                  /* Ignore close error   */
-	    ffclose();                      /* if a write error.    */
-    return s == FIOSUC;			/* TRUE if success	*/
+    auto lp = region.r_linep;		/* First line.          */
+    auto loffs = region.r_offset;
+    auto size = region.r_size;
+    int nline = 0;				/* Number of lines.     */
+
+    try
+    {
+	filename = std.path.expandTilde(filename);
+	auto f = File(filename, "w");
+	while (size > 0)
+	{
+	    auto nchars = llength(lp) - loffs;
+	    if (nchars > size)		/* if last line is not a full line */
+		nchars = size;
+	    f.writeln(lp.l_text[loffs .. loffs + nchars]);
+	    size -= nchars + 1;
+	    ++nline;
+	    lp = lforw(lp);
+	    loffs = 0;
+	}
+	f.close();
+	if (nline == 1)
+	    mlwrite("[Wrote 1 line]");
+	else
+	    mlwrite(format("[Wrote %d lines]", nline));
+	return TRUE;
+    }
+    catch (Exception e)
+    {
+	mlwrite(e.toString());
+	return FALSE;
+    }
 }
+

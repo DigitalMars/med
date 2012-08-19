@@ -15,6 +15,7 @@
 
 module spawn;
 
+import std.conv;
 import std.stdio;
 import std.file;
 import std.process;
@@ -43,16 +44,16 @@ int spawncli(bool f, int n)
     version (Windows)
     {
         term.t_flush();
-        auto comspec = getenv("COMSPEC");
+        auto comspec = std.c.stdlib.getenv("COMSPEC");
 	string[] args;
 	args ~= "COMMAND.COM";
-        spawnvp(0, toString(comspec), args);
+        spawnvp(0, to!string(comspec), args);
     }
     version (linux)
     {
         term.t_flush();
         term.t_close();                             /* stty to old settings */
-        auto cp = getenv("SHELL");
+        auto cp = std.c.stdlib.getenv("SHELL");
         if (cp && *cp != '\0')
 	    std.c.process.system(cp);
         else
@@ -148,13 +149,8 @@ version (Windows)
     movecursor(term.t_nrow - 2, 0);
     std.process.system(line);
     sgarbf = TRUE;
-    {   FILE *fp;
-
-        if ((fp = fopen(filnam, "r")) == null)
-            return FALSE;
-        else
-            fclose(fp);
-    }
+    if (std.file.exists(filnam) && std.file.isfile(filnam))
+	return FALSE;
 }
 version (linux)
 {

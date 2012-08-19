@@ -24,6 +24,7 @@ module display;
 
 import std.format;
 import std.path;
+import std.c.stdio;
 import std.c.string;
 
 import ed;
@@ -53,9 +54,7 @@ enum VFCHG = 0x0001;                  /* Changed. */
 
 int display_recalc()
 {
-    WINDOW *wp;
-
-    for (wp = wheadp; wp; wp = wp.w_wndp)	/* for each window	*/
+    foreach (wp; windows)
 	wp.w_flag |= WFHARD | WFMODE;
     return TRUE;
 }
@@ -234,7 +233,7 @@ void vtputc(int c, int startcol)
     auto vp = vscreen[vtrow];
 
     if (vtcol - startcol >= term.t_ncol)
-        vp[term.t_ncol - 1] = '+' | config.modeattr;
+        vp[term.t_ncol - 1] = cast(ushort)('+' | config.modeattr);
     else if (c == '\t')
     {
 	auto i = hardtabsize - (vtcol % hardtabsize);
@@ -250,9 +249,9 @@ void vtputc(int c, int startcol)
     else
     {
 	if (vtcol - startcol == 0 && startcol != 0)
-            vp[0] = '+' | config.modeattr;
+            vp[0] = cast(ushort)('+' | config.modeattr);
 	else if (vtcol - startcol >= 0)
-	    vp[vtcol - startcol] = c | attr;
+	    vp[vtcol - startcol] = cast(ushort)(c | attr);
 	vtcol++;
     }
 }
@@ -324,7 +323,7 @@ static void vtputs(const char[] s, int startcol)
 void vteeol(int startcol)
 {
     int col = max(vtcol - startcol, 0);
-    vscreen[vtrow][col .. term.t_ncol] = config.eolattr | ' ';
+    vscreen[vtrow][col .. term.t_ncol] = cast(ushort)(config.eolattr | ' ');
     vtcol = startcol + term.t_ncol;
 }
 
@@ -339,7 +338,6 @@ void vteeol(int startcol)
 void update()
 {
     LINE *lp;
-    WINDOW *wp;
     int c;
     int k;
     int l_first,l_last;
@@ -362,7 +360,7 @@ version (MOUSE)
 	curcol > curwp.w_startcol + term.t_ncol - 2)
 	curwp.w_flag |= WFHARD;
 
-    for (wp = wheadp; wp; wp = wp.w_wndp)	/* for each window	*/
+    foreach (wp; windows)		// for each window
     {
         /* Look at any window with update flags set on. */
         if (wp.w_flag != 0)
@@ -594,7 +592,7 @@ version (MOUSE)
 	{
             vrowflags[i] |= VFCHG;
 	    for (int j = 0; j < term.t_ncol; j++)
-		pscreen[i][j] = config.normattr * 256 + ' ';
+		pscreen[i][j] = cast(ushort)(config.normattr * 256 + ' ');
 	}
 
 version (MOUSE)
@@ -893,7 +891,7 @@ void mlerase()
 {
     auto vp = vscreen[term.t_nrow - 1];
     foreach (inout c; vp[0 .. term.t_ncol])
-	c = config.eolattr | ' ';
+	c = cast(ushort)(config.eolattr | ' ');
     vrowflags[term.t_nrow - 1] |= VFCHG;
     mpresf = FALSE;
 }
@@ -1101,7 +1099,7 @@ int mlreply(string prompt, string init, out string result)
 			buf.length = buf.length + 1;
 			memmove(buf.ptr + dot + 1, buf.ptr + dot, buflen - dot);
 			buflen++;
-			buf[dot++] = c;
+			buf[dot++] = cast(char)c;
 		    }
 		    changes = 1;
 		}
@@ -1158,7 +1156,7 @@ int mlreply(string prompt, string init, out string result)
 		    buf.length = buf.length + 1;
 		    memmove(buf.ptr + dot + 1, buf.ptr + dot, buflen - dot);
 		    buflen++;
-                    buf[dot++] = c;
+                    buf[dot++] = cast(char)c;
 		    changes = 1;
 		}
 		break;

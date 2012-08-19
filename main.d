@@ -64,7 +64,6 @@ int     hasmouse;                       /* TRUE if we have a mouse      */
 BUFFER  *curbp;                         /* Current buffer               */
 WINDOW  *curwp;                         /* Current window               */
 BUFFER  *bheadp;                        /* BUFFER listhead              */
-WINDOW  *wheadp;                        /* WINDOW listhead              */
 BUFFER  *blistp;                        /* Buffer list BUFFER           */
 ushort   kbdm[256] = [CTLX|')'];        /* Macro                        */
 ushort   *kbdmip;                       /* Input  for above             */
@@ -386,7 +385,9 @@ invariant ushort[2][] esc_tab =
 [
         ['.',            0x8025],         /* basic_setmark        */
         ['>',            0x8026],         /* gotoeob              */
+        [ENDKEY,         0x8026],         /* gotoeob              */
         ['<',            0x8027],         /* gotobob              */
+        [HOMEKEY,        0x8027],         /* gotobob              */
         ['8',            0x8028],         /* region_copy          */
         ['9',            0x8029],         /* region_kill          */
         ['B',            0x802A],         /* word_back            */
@@ -502,9 +503,9 @@ int main(string[] args)
                 }
                 if (f != FALSE) {
                         *kbdmip++ = CTRL('U');
-                        *kbdmip++ = n;
+                        *kbdmip++ = cast(ushort)n;
                 }
-                *kbdmip++ = c;
+                *kbdmip++ = cast(ushort)c;
         }
         execute(0, c, f, n);                       /* Do it.               */
     }
@@ -568,21 +569,17 @@ int getarg()
  */
 void edinit(string bname)
 {
-        BUFFER *bp;
-        WINDOW *wp;
-
-        bp = buffer_find(bname, TRUE, 0);             /* First buffer         */
+        auto bp = buffer_find(bname, TRUE, 0);             /* First buffer         */
         blistp = buffer_find("[List]", TRUE, BFTEMP); /* Buffer list buffer   */
-        wp = new WINDOW;                              // First window
+        auto wp = new WINDOW;                              // First window
         if (bp==null || wp==null || blistp==null)
         {       vttidy();
                 exit(1);
         }
         bp.b_nwnd  = 1;                        /* Displayed.           */
         curbp  = bp;                            /* Make this current    */
-        wheadp = wp;
+        windows ~= wp;
         curwp  = wp;
-        wp.w_wndp  = null;                     /* Initialize window    */
         wp.w_bufp  = bp;
         wp.w_linep = bp.b_linep;
         wp.w_dotp  = bp.b_linep;
@@ -625,7 +622,7 @@ int execute(int prefix, int c, bool f, int n)
 		    return (n<0 ? FALSE : TRUE);
 	    }
 	    thisflag = 0;                   /* For the future.      */
-	    status   = insertmode ? line_insert(n,c) : line_overwrite(n,c);
+	    status   = insertmode ? line_insert(n, cast(char)c) : line_overwrite(n, cast(char)c);
 	    lastflag = thisflag;
 	    return (status);
     }
@@ -771,7 +768,7 @@ int ctlxlp(bool f, int n)
         mlwrite("[Start macro]");
         kbdmip = kbdm.ptr;
 
-	for (auto wp = wheadp; wp; wp = wp.w_wndp)
+	foreach (wp; windows)
 	    wp.w_flag |= WFMODE;	/* so highlighting is updated */
 
         return (TRUE);
@@ -790,7 +787,7 @@ int ctlxrp(bool f, int n)
         mlwrite("[End macro]");
         kbdmip = null;
 
-	for (auto wp = wheadp; wp; wp = wp.w_wndp)
+	foreach (wp; windows)
 	    wp.w_flag |= WFMODE;	/* so highlighting is updated */
 
         return (TRUE);

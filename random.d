@@ -85,7 +85,7 @@ int random_showcpos(bool f, int n)
 	col = getcol(curwp.w_dotp,curwp.w_doto); /* Get real column	*/
         ratio = 0;                              /* Ratio before dot.    */
         if (numchars != 0)
-                ratio = (100L*thischar) / numchars;
+                ratio = cast(int)((100L*thischar) / numchars);
         mlwrite(format("row=%s col=%s CH=0x%x .=%s (%s%% of %s) line %s of %s",
                 currow+1, col+1, charatdot, thischar,
 		ratio, numchars, thisline, numlines - 1));
@@ -103,8 +103,8 @@ int random_twiddle(bool f, int n)
 {
         LINE   *dotp;
         int    doto;
-        int    cl;
-        int    cr;
+        char    cl;
+        char    cr;
 
         dotp = curwp.w_dotp;
         doto = curwp.w_doto;
@@ -143,7 +143,7 @@ int random_quote(bool f, int n)
                 } while (s==TRUE && --n);
                 return (s);
         }
-        return (line_insert(n, c));
+        return (line_insert(n, cast(char)c));
 }
 
 /*
@@ -621,7 +621,7 @@ int random_yank(bool f, int n)
 		    }
 		    else
 		    {
-			if (line_insert(1, c) == FALSE)
+			if (line_insert(1, cast(char)c) == FALSE)
 			    goto err;
 		    }
 		    ++i;
@@ -634,7 +634,7 @@ int random_yank(bool f, int n)
 			if (random_newline(FALSE, 1) == FALSE)
 			    goto err;
 		    } else {
-			if (line_insert(1, c) == FALSE)
+			if (line_insert(1, cast(char)c) == FALSE)
 			    goto err;
 		    }
 		    ++i;

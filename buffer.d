@@ -37,16 +37,15 @@ import window;
  * the header line in "b_linep".
  */
 struct  BUFFER {
-        BUFFER* b_bufp;                 /* Link to next BUFFER          */
-        LINE*   b_dotp;                 /* Link to "." LINE structure   */
-        short   b_doto;                 /* Offset of "." in above LINE  */
-        LINE*   b_markp;                /* The same as the above two,   */
-        short   b_marko;                /* but for the "mark"           */
-        LINE*   b_linep;                /* Link to the header LINE      */
-        char    b_nwnd;                 /* Count of windows on buffer   */
-        char    b_flag;                 /* Flags                        */
-        string  b_fname;                /* File name                    */
-        string  b_bname;                /* Buffer name                  */
+        LINE*   b_dotp;                // Link to "." LINE structure
+        uint   b_doto;                 // Offset of "." in above LINE
+        LINE*   b_markp;               // The same as the above two,
+        uint   b_marko;                // but for the "mark"
+        LINE*   b_linep;               // Link to the header LINE
+        uint    b_nwnd;                // Count of windows on buffer
+        ubyte    b_flag;                // Flags
+        string  b_fname;                // File name
+        string  b_bname;                // Buffer name
 }
 
 enum
@@ -57,6 +56,8 @@ enum
     BFNOCR   = 0x08,                   // last line in buffer has no
                                        // trailing CR
 }
+
+__gshared BUFFER*[] buffers;
 
 /*
  * Attach a buffer to a window. The
@@ -84,10 +85,17 @@ int usebuffer(bool f, int n)
 
 int buffer_next(bool f, int n)
 {
-    auto bp = curbp.b_bufp;
-    if (bp == null)
-	bp = bheadp;
-    return buffer_switch(bp);
+    foreach (i, bp; buffers)
+    {
+	if (bp == curbp)
+	{
+	    i = i + 1;
+	    if (i == buffers.length)
+		i = 0;
+	    return buffer_switch(buffers[i]);
+	}
+    }
+    return FALSE;
 }
 
 /***************************
@@ -98,8 +106,6 @@ int buffer_next(bool f, int n)
 
 int buffer_switch(BUFFER* bp)
 {
-    WINDOW *wp;
-
     if (--curbp.b_nwnd == 0) {             /* Last use.            */
 	curbp.b_dotp  = curwp.w_dotp;
 	curbp.b_doto  = curwp.w_doto;
@@ -120,7 +126,7 @@ int buffer_switch(BUFFER* bp)
     else
     {
 	/* Look for the existing window onto buffer bp			*/
-	for (wp = wheadp; wp != null; wp = wp.w_wndp)
+	foreach (wp; windows)
 	{
 	    if (wp!=curwp && wp.w_bufp==bp)
 	    {
@@ -165,9 +171,6 @@ int killbuffer(bool f, int n)
 
 int buffer_remove(BUFFER* bp)
 {
-	BUFFER *bp1;
-        BUFFER *bp2;
-
         if (bp.b_nwnd != 0) {                  /* Error if on screen.  */
                 mlwrite("Buffer is being displayed");
                 return (FALSE);
@@ -175,17 +178,16 @@ int buffer_remove(BUFFER* bp)
         if (!buffer_clear(bp))			/* Blow text away	*/
 	    return FALSE;
         delete bp.b_linep;                     /* Release header line. */
-        bp1 = null;                             /* Find the header.     */
-        bp2 = bheadp;
-        while (bp2 != bp) {
-                bp1 = bp2;
-                bp2 = bp2.b_bufp;
-        }
-        bp2 = bp2.b_bufp;                      /* Next one in chain.   */
-        if (bp1 == null)                        /* Unlink it.           */
-                bheadp = bp2;
-        else
-                bp1.b_bufp = bp2;
+
+	foreach (i, b; buffers)
+	{
+	    if (b == bp)
+	    {
+		buffers[i .. length - 1] = buffers[i + 1 .. length];
+		buffers = buffers[0 .. length - 1];
+		break;
+	    }
+	}
         delete bp;                      /* Release buffer block */
         return (TRUE);
 }
@@ -202,13 +204,13 @@ int buffer_remove(BUFFER* bp)
  */
 int listbuffers(bool f, int n)
 {
-        WINDOW *wp;
         BUFFER *bp;
         int    s;
 
         if ((s=makelist()) != TRUE)
                 return (s);
         if (blistp.b_nwnd == 0) {              /* Not on screen yet.   */
+	        WINDOW *wp;
                 if ((wp=wpopup()) == null)
                         return (FALSE);
                 bp = wp.w_bufp;
@@ -221,8 +223,8 @@ int listbuffers(bool f, int n)
                 wp.w_bufp  = blistp;
                 ++blistp.b_nwnd;
         }
-        wp = wheadp;
-        while (wp != null) {
+	foreach (wp; windows)
+	{
                 if (wp.w_bufp == blistp) {
                         wp.w_linep = lforw(blistp.b_linep);
                         wp.w_dotp  = lforw(blistp.b_linep);
@@ -231,7 +233,6 @@ int listbuffers(bool f, int n)
                         wp.w_marko = 0;
                         wp.w_flag |= WFMODE|WFHARD;
                 }
-                wp = wp.w_wndp;
         }
         return (TRUE);
 }
@@ -246,7 +247,6 @@ int listbuffers(bool f, int n)
  */
 int makelist()
 {
-        BUFFER *bp;
         LINE   *lp;
         int    nbytes;
         int    s;
@@ -262,7 +262,7 @@ int makelist()
         ||  addline("-   ---- ------           ----") == FALSE)
                 return (FALSE);
 	/* For all buffers      */
-        for (bp = bheadp; bp != null; bp = bp.b_bufp)
+	foreach (bp; buffers)
 	{
                 if ((bp.b_flag&BFTEMP) != 0) { /* Skip magic ones.     */
                         continue;
@@ -307,10 +307,10 @@ void buffer_itoa(char[] buf, int width, int num)
 {
         buf[width] = 0;                         /* End of string.       */
         while (num >= 10) {                     /* Conditional digits.  */
-                buf[--width] = (num%10) + '0';
+                buf[--width] = cast(char)((num%10) + '0');
                 num /= 10;
         }
-        buf[--width] = num + '0';               /* Always 1 digit.      */
+        buf[--width] = cast(char)(num + '0');               // Always 1 digit.
         while (width != 0)                      /* Pad with blanks.     */
                 buf[--width] = ' ';
 }
@@ -351,7 +351,7 @@ int addline(string text)
  */
 int anycb()
 {
-    for (BUFFER* bp = bheadp; bp; bp = bp.b_bufp)
+    foreach (bp; buffers)
     {
 	if ((bp.b_flag & (BFTEMP | BFCHG)) == BFCHG)
 	    return TRUE;
@@ -371,9 +371,7 @@ int anycb()
 
 BUFFER *buffer_find(string bname, int cflag, int bflag)
 {
-    BUFFER *bp;
-
-    for (bp = bheadp; bp != null; bp = bp.b_bufp)
+    foreach (bp; buffers)
     {
 	if (fnmatch(bname, bp.b_bname))
 	{   
@@ -388,18 +386,18 @@ BUFFER *buffer_find(string bname, int cflag, int bflag)
     if (cflag != FALSE)
     {
 	auto lp = new LINE;
-	bp = new BUFFER;
-	bp.b_bufp  = bheadp;
-	bheadp = bp;
+	auto bp = new BUFFER;
+	buffers ~= bp;
 	bp.b_dotp  = lp;
-	bp.b_flag  = bflag;
+	bp.b_flag  = cast(ubyte)bflag;
 	bp.b_linep = lp;
 	bp.b_fname = "";
 	bp.b_bname = bname;
 	lp.l_fp = lp;
 	lp.l_bp = lp;
+	return bp;
     }
-    return (bp);
+    return null;
 }
 
 /*

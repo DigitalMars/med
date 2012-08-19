@@ -86,7 +86,7 @@ int word_wrap_line(bool f, int n)
     int i;
     int j;
     int col;
-    int c;
+    char c;
     int inword;
     int lasti;
     LINE* oldp;
@@ -288,7 +288,7 @@ int capword(bool f, int n)
 
 private int word_setcase(bool f, int n, int flag)
 {
-    int    c;
+    char    c;
 
     if (n < 0)
 	return (false);

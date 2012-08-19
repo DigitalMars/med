@@ -34,16 +34,15 @@ import display;
  * character. 
  */
 struct  WINDOW {
-        WINDOW* w_wndp;           /* Next window                  */
         BUFFER* w_bufp;           /* Buffer displayed in window   */
         LINE*   w_linep;          /* Top line in the window       */
         LINE*   w_dotp;           /* Line containing "."          */
         int     w_doto;           /* Byte offset for "."          */
         LINE*   w_markp;          /* Line containing "mark"       */
         int     w_marko;          /* Byte offset for "mark"       */
-        ubyte   w_toprow;         /* Origin 0 top row of window   */
-        ubyte   w_ntrows;         /* # of rows of text in window  */
-        byte    w_force;          /* If NZ, forcing row.          */
+        int     w_toprow;         /* Origin 0 top row of window   */
+        int     w_ntrows;         /* # of rows of text in window  */
+        int     w_force;          /* If NZ, forcing row.          */
         ubyte   w_flag;           /* Flags.                       */
         int     w_startcol;       /* starting column              */
 }
@@ -56,6 +55,8 @@ enum
     WFHARD  = 0x08,                    /* Better do a full display     */
     WFMODE  = 0x10,                    /* Update mode line.            */
 }
+
+__gshared WINDOW*[] windows;
 
 /* !=0 means marking    */
 bool window_marking(WINDOW* wp) { return wp.w_markp != null; }
@@ -100,14 +101,19 @@ int window_refresh(bool f, int n)
  */
 int window_next(bool f, int n)
 {
-    WINDOW *wp;
-
-    if ((wp = curwp.w_wndp) == null)
-        wp = wheadp;
-
-    curwp = wp;
-    curbp = wp.w_bufp;
-    return (TRUE);
+    foreach (i, wp; windows)
+    {
+	if (wp == curwp)
+	{
+	    i = i + 1;
+	    if (i == windows.length)
+		i = 0;
+	    curwp = windows[i];
+	    curbp = curwp.w_bufp;
+	    return TRUE;
+	}
+    }
+    return FALSE;
 }
 
 /*
@@ -117,21 +123,19 @@ int window_next(bool f, int n)
  */
 int window_prev(bool f, int n)
 {
-    WINDOW *wp1;
-    WINDOW *wp2;
-
-    wp1 = wheadp;
-    wp2 = curwp;
-
-    if (wp1 == wp2)
-        wp2 = null;
-
-    while (wp1.w_wndp != wp2)
-        wp1 = wp1.w_wndp;
-
-    curwp = wp1;
-    curbp = wp1.w_bufp;
-    return (TRUE);
+    foreach (i, wp; windows)
+    {
+	if (wp == curwp)
+	{
+	    if (i == 0)
+		i = windows.length;
+	    i--;
+	    curwp = windows[i];
+	    curbp = curwp.w_bufp;
+	    return TRUE;
+	}
+    }
+    return FALSE;
 }
 
 /*
@@ -203,34 +207,24 @@ int window_mvup(bool f, int n)
  */
 int window_only(bool f, int n)
 {
-        WINDOW *wp;
-        LINE   *lp;
-        int    i;
+	foreach (wp; windows)
+	{
+	    if (wp != curwp)
+	    {
+                if (--wp.w_bufp.b_nwnd == 0) {
+                        wp.w_bufp.b_dotp  = wp.w_dotp;
+                        wp.w_bufp.b_doto  = wp.w_doto;
+                        wp.w_bufp.b_markp = wp.w_markp;
+                        wp.w_bufp.b_marko = wp.w_marko;
+                }
+                delete wp;
+	    }
+	}
+	windows = windows[0 .. 1];
+	windows[0] = curwp;
 
-        while (wheadp != curwp) {
-                wp = wheadp;
-                wheadp = wp.w_wndp;
-                if (--wp.w_bufp.b_nwnd == 0) {
-                        wp.w_bufp.b_dotp  = wp.w_dotp;
-                        wp.w_bufp.b_doto  = wp.w_doto;
-                        wp.w_bufp.b_markp = wp.w_markp;
-                        wp.w_bufp.b_marko = wp.w_marko;
-                }
-                delete wp;
-        }
-        while (curwp.w_wndp != null) {
-                wp = curwp.w_wndp;
-                curwp.w_wndp = wp.w_wndp;
-                if (--wp.w_bufp.b_nwnd == 0) {
-                        wp.w_bufp.b_dotp  = wp.w_dotp;
-                        wp.w_bufp.b_doto  = wp.w_doto;
-                        wp.w_bufp.b_markp = wp.w_markp;
-                        wp.w_bufp.b_marko = wp.w_marko;
-                }
-                delete wp;
-        }
-        lp = curwp.w_linep;
-        i  = curwp.w_toprow;
+        auto lp = curwp.w_linep;
+        auto i  = curwp.w_toprow;
         while (i!=0 && lback(lp)!=curbp.b_linep) {
                 --i;
                 lp = lback(lp);
@@ -249,7 +243,6 @@ int window_only(bool f, int n)
  */
 int window_split(bool f, int n)
 {
-        WINDOW *wp;
         LINE   *lp;
         int    ntru;
         int    ntrl;
@@ -261,7 +254,7 @@ int window_split(bool f, int n)
                 mlwrite(format("Cannot split a %d line window", curwp.w_ntrows));
                 return (FALSE);
         }
-	wp = new WINDOW;
+	auto wp = new WINDOW;
         ++curbp.b_nwnd;                        /* Displayed twice.     */
         wp.w_bufp  = curbp;
         wp.w_dotp  = curwp.w_dotp;
@@ -281,22 +274,26 @@ int window_split(bool f, int n)
                 if (ntrd == ntru)               /* Hit mode line.       */
                         lp = lforw(lp);
                 curwp.w_ntrows = ntru;
-                wp.w_wndp = curwp.w_wndp;
-                curwp.w_wndp = wp;
+		// Insert wp after curwp
+		foreach (i, w; windows)
+		{   if (w == curwp)
+		    {
+			windows = windows[0 .. i + 1] ~ wp ~ windows[i + 1 .. length];
+			break;
+		    }
+		}
                 wp.w_toprow = curwp.w_toprow+ntru+1;
                 wp.w_ntrows = ntrl;
         } else {                                /* Old is lower window  */
-                wp1 = null;
-                wp2 = wheadp;
-                while (wp2 != curwp) {
-                        wp1 = wp2;
-                        wp2 = wp2.w_wndp;
-                }
-                if (wp1 == null)
-                        wheadp = wp;
-                else
-                        wp1.w_wndp = wp;
-                wp.w_wndp   = curwp;
+		// Insert wp before curwp
+		foreach (i, w; windows)
+		{   if (w == curwp)
+		    {
+			windows = windows[0 .. i] ~ wp ~ windows[i .. length];
+			break;
+		    }
+		}
+
                 wp.w_toprow = curwp.w_toprow;
                 wp.w_ntrows = ntru;
                 ++ntru;                         /* Mode line.           */
@@ -322,32 +319,47 @@ int window_enlarge(bool f, int n)
 {
         WINDOW *adjwp;
         LINE   *lp;
-        int    i;
+	bool prev;
 
         if (n < 0)
                 return (window_shrink(f, -n));
-        if (wheadp.w_wndp == null) {
+
+        if (windows.length == 1) {
                 mlwrite("Only one window");
                 return (FALSE);
         }
-        if ((adjwp=curwp.w_wndp) == null) {
-                adjwp = wheadp;
-                while (adjwp.w_wndp != curwp)
-                        adjwp = adjwp.w_wndp;
-        }
+
+	foreach (i, wp; windows)
+	{
+	    if (wp == curwp)
+	    {
+		if (i == windows.length - 1)
+		{
+		    adjwp = windows[i - 1];
+		    prev = true;
+		}
+		else
+		{
+		    adjwp = windows[i + 1];
+		    prev = false;
+		}
+		break;
+	    }
+	}
+
         if (adjwp.w_ntrows <= n) {
                 mlwrite("Impossible enlarge change");
                 return (FALSE);
         }
-        if (curwp.w_wndp == adjwp) {           /* Shrink below.        */
+        if (!prev) {           // Shrink below.
                 lp = adjwp.w_linep;
-                for (i=0; i<n && lp!=adjwp.w_bufp.b_linep; ++i)
+                for (int i=0; i<n && lp!=adjwp.w_bufp.b_linep; ++i)
                         lp = lforw(lp);
                 adjwp.w_linep  = lp;
                 adjwp.w_toprow += n;
         } else {                                /* Shrink above.        */
                 lp = curwp.w_linep;
-                for (i=0; i<n && lback(lp)!=curbp.b_linep; ++i)
+                for (int i=0; i<n && lback(lp)!=curbp.b_linep; ++i)
                         lp = lback(lp);
                 curwp.w_linep  = lp;
                 curwp.w_toprow -= n;
@@ -368,32 +380,46 @@ int window_shrink(bool f, int n)
 {
         WINDOW *adjwp;
         LINE   *lp;
-        int    i;
+	bool prev;
 
         if (n < 0)
                 return (window_enlarge(f, -n));
-        if (wheadp.w_wndp == null) {
+        if (windows.length == 1) {
                 mlwrite("Only one window");
                 return (FALSE);
         }
-        if ((adjwp=curwp.w_wndp) == null) {
-                adjwp = wheadp;
-                while (adjwp.w_wndp != curwp)
-                        adjwp = adjwp.w_wndp;
-        }
+
+	foreach (i, wp; windows)
+	{
+	    if (wp == curwp)
+	    {
+		if (i == windows.length - 1)
+		{
+		    adjwp = windows[i - 1];
+		    prev = true;
+		}
+		else
+		{
+		    adjwp = windows[i + 1];
+		    prev = false;
+		}
+		break;
+	    }
+	}
+
         if (curwp.w_ntrows <= n) {
                 mlwrite("Impossible shrink change");
                 return (FALSE);
         }
-        if (curwp.w_wndp == adjwp) {           /* Grow below.          */
+        if (!prev) {           // Grow below.
                 lp = adjwp.w_linep;
-                for (i=0; i<n && lback(lp)!=adjwp.w_bufp.b_linep; ++i)
+                for (int i=0; i<n && lback(lp)!=adjwp.w_bufp.b_linep; ++i)
                         lp = lback(lp);
                 adjwp.w_linep  = lp;
                 adjwp.w_toprow -= n;
         } else {                                /* Grow above.          */
                 lp = curwp.w_linep;
-                for (i=0; i<n && lp!=curbp.b_linep; ++i)
+                for (int i=0; i<n && lp!=curbp.b_linep; ++i)
                         lp = lforw(lp);
                 curwp.w_linep  = lp;
                 curwp.w_toprow += n;
@@ -412,15 +438,13 @@ int window_shrink(bool f, int n)
  */
 WINDOW  *wpopup()
 {
-        WINDOW *wp;
-
-        if (wheadp.w_wndp == null              /* Only 1 window        */
-        && window_split(FALSE, 0) == FALSE)        /* and it won't split   */
-                return (null);
-        wp = wheadp;                            /* Find window to use   */
-        while (wp!=null && wp==curwp)
-                wp = wp.w_wndp;
-        return (wp);
+        if (windows.length == 1              // Only 1 window
+        && window_split(FALSE, 0) == FALSE)        // and it won't split
+                return null;
+        auto wp = windows[0];                            // Find window to use
+	if (wp == curwp)
+	    wp = windows[1];
+        return wp;
 }
 
 /*
@@ -430,20 +454,17 @@ WINDOW  *wpopup()
  */
 int delwind(bool f, int n)
 {
-	WINDOW *delwp;
-	LINE *lp;
-	int i;
+	if (windows.length == 1)
+	    return TRUE;	// Only 1 window
 
-	if( wheadp.w_wndp == null )	return( TRUE );	/* Only 1 window */
-
-	delwp = curwp;
-	if( wheadp == delwp )		/* Pick which window to be in next */
+	auto delwp = curwp;
+	if (windows[0] == delwp)		// Pick which window to be in next
 	{
-		curwp = curwp.w_wndp;
-		wheadp = curwp;
+		curwp = windows[1];
+		windows = windows[1 .. length];
 		curbp = curwp.w_bufp;
-		lp = curwp.w_linep;
-		i  = curwp.w_toprow;
+		auto lp = curwp.w_linep;
+		int i  = curwp.w_toprow;
 		while( i!=0 && lback(lp)!=curbp.b_linep )
 		{
 			i--;
@@ -453,10 +474,15 @@ int delwind(bool f, int n)
 	}
 	else
 	{
-		curwp = wheadp;
-		while( curwp.w_wndp != delwp )
-			curwp = curwp.w_wndp;
-		curwp.w_wndp = delwp.w_wndp;
+		foreach (i, wp; windows)
+		{
+		    if (wp == delwp)
+		    {
+			curwp = windows[i - 1];
+			windows = windows[0 .. i] ~ windows[i + 1 .. length];
+			break;
+		    }
+		}
 		curbp = curwp.w_bufp;
 	}
 

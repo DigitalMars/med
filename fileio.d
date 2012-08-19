@@ -21,6 +21,7 @@ import std.string;
 import std.stdio;
 import std.c.stdio;
 import std.c.stdlib;
+import core.stdc.errno;
 
 version (Windows)
 {
@@ -45,96 +46,6 @@ enum
     FIOERR = 3,                      /* File I/O, error.             */
 }
 
-FILE    *ffp;                           /* File pointer, all functions. */
-
-/*
- * Open a file for reading.
- */
-int ffropen(string fn)
-{
-	fn = std.path.expandTilde(fn);
-        if ((ffp=fopen(toStringz(fn), "r")) == null)
-	    return (getErrno() == ENOENT) ? FIOFNF : FIOERR;
-        return (FIOSUC);
-}
-
-/*
- * Open a file for writing. Return TRUE if all is well, and FALSE on error
- * (cannot create).
- */
-int ffwopen(string fn)
-{
-        if ((ffp=fopen(toStringz(fn), "w")) == null) {
-                mlwrite("Cannot open file for writing");
-                return (FIOERR);
-        }
-        return (FIOSUC);
-}
-
-/*
- * Close a file. Should look at the status in all systems.
- */
-int ffclose()
-{
-        if (fclose(ffp) != ed.FALSE) {
-                mlwrite("Error closing file");
-                return(FIOERR);
-        }
-        return(FIOSUC);
-}
-
-/*
- * Write a line to the already opened file. The "buf" points to the buffer,
- * and the "nbuf" is its length, less the free newline. Return the status.
- * Check only at the newline.
- */
-int ffputline(char[] buf)
-{
-	fwrite(buf.ptr,1,buf.length,ffp);
-
-        fputc('\n', ffp);
-        if (ferror(ffp)) {
-                mlwrite("Write I/O error");
-                return (FIOERR);
-        }
-
-        return (FIOSUC);
-}
-
-/*
- * Read a line from a file, and store the bytes in a buffer.
- * Complain about lines
- * at the end of the file that don't have a newline present. Check for I/O
- * errors too. Return status.
- * *pbuf gets a pointer to the buffer.
- * *pnbytes gets the # of chars read into the buffer.
- */
-int ffgetline(out string pbuf)
-{
-    string buf;
-
-    try
-    {
-	buf = std.stdio.readln(ffp, '\n');
-    }
-    catch (StdioException e)
-    {
-	mlwrite("File read error");
-	return (FIOERR);
-    }
-    if (buf.length == 0)
-	return FIOEOF;
-
-    // Trim trailing CR and LF
-    if (buf[length - 1] == '\n')
-	buf = buf[0 .. length - 1];
-    if (buf.length && buf[length - 1] == '\r')
-	buf = buf[0 .. length - 1];
-
-    pbuf = buf;
-    return FIOSUC;
-}
-
 /***************************
  * Determine if file is read-only.
  */
@@ -157,21 +68,6 @@ bool ffreadonly(string name)
     else
     {
 	return (a & S_IWRITE) == 0;
-    }
-}
-
-/*
- * Delete a file
- */
-void ffunlink(string fn)
-{
-    try
-    {
-	fn = std.path.expandTilde(fn);
-	remove( fn );
-    }
-    catch (Object o)
-    {
     }
 }
 
