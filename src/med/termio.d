@@ -11,6 +11,7 @@ version (Posix)
 
 import core.stdc.stdio;
 import core.sys.posix.termios;
+import core.sys.posix.sys.ioctl;
 
 import ed;
 
@@ -81,7 +82,9 @@ int ttgetc()
 
 int ttkeysininput()
 {
-        return false;
+	int n;
+	ioctl(0, FIONREAD, &n);
+        return n != 0;
 }
 
 /******************************
