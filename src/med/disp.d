@@ -14,6 +14,9 @@
 
 module disp;
 
+version (Windows)
+{
+
 extern (C)
 {
 
@@ -84,6 +87,8 @@ enum
     DISP_CURSORBLOCK	    = 100,
     DISP_CURSORHALF	    = 50,
     DISP_CURSORUL	    = 20,
+}
+
 }
 
 }

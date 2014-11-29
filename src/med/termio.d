@@ -6,6 +6,9 @@
 
 module termio;
 
+version (Posix)
+{
+
 import core.stdc.stdio;
 import core.sys.posix.termios;
 
@@ -86,4 +89,6 @@ int ttkeysininput()
 
 void ttyield()
 {
+}
+
 }
