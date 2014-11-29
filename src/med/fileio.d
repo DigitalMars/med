@@ -54,12 +54,14 @@ enum
 bool ffreadonly(string name)
 {
     uint a;
+    bool exists = true;
     try
     {
 	a = std.file.getAttributes(name);
     }
     catch (Throwable o)
     {
+	exists = false;
     }
 
     version (Win32)
@@ -68,7 +70,7 @@ bool ffreadonly(string name)
     }
     else
     {
-	return (a & S_IWUSR) == 0;
+	return exists && (a & S_IWUSR) == 0;
     }
 }
 
