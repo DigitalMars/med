@@ -16,7 +16,9 @@ import std.c.stdio;
 import std.c.stdlib;
 import std.c.string;
 import std.c.time;
-import std.c.linux.termios;
+import core.sys.posix.termios;
+
+extern (C) void cfmakeraw(in termios*);
 
 termios  ostate;                 /* saved tty state */
 termios  nstate;                 /* values for editor mode */
@@ -36,7 +38,7 @@ extern (C)
     const(char) *tparam (const(char) *ctlstring, char *buffer, int size, int parm1,...);
     char PC;
     short ospeed;
-    int tputs (const(char) *string, int nlines, int (*outfun) (int));
+    int tputs (const(char) *string, int nlines, int function(int) outfun);
 }
 
 enum
@@ -126,8 +128,8 @@ struct TERM
         if (t)
 	    PC = *t;	// set "padding capabilities"
 
-	term.t_ncol = tgetnum("co");
-	term.t_nrow = tgetnum("li");
+	term.t_ncol = cast(short)tgetnum("co");
+	term.t_nrow = cast(short)tgetnum("li");
         CD = tgetstr("cd", &p);
         CM = tgetstr("cm", &p);
         CE = tgetstr("ce", &p);
@@ -248,7 +250,7 @@ struct TERM
 	 * so that future calls to tcapgetc() can return these
 	 * characters is the correct order.
 	 */
-	backc[backlen++] = c;
+	backc[backlen++] = cast(char)c;
 	while( lkp[0].ptr != null )
 	{
 		tmpp = lkp;

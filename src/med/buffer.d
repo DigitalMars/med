@@ -326,7 +326,7 @@ int addline(dstring text)
 {
         LINE   *lp;
 
-        if ((lp=line_realloc(null,text.length)) == null)
+        if ((lp=line_realloc(null, cast(int)text.length)) == null)
                 return (FALSE);
         for (int i=0; i<text.length; ++i)
                 lputc(lp, i, text[i]);

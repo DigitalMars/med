@@ -1,94 +1,98 @@
 #_ linux.mak
 
-DMD=~/cbx/mars/dmd
+DMD=dmd
+MODEL=
+S=src/med
+O=obj
+B=bin
 
-DFLAGS=-g
-LDFLG=-g
+DFLAGS=-g -od$O -I$S -d $(MODEL)
+LDFLG=-g \
+       -L~/cbx/mars/phobos/generated/linux/release/32 \
+       -L~/cbx/mars/phobos/generated/linux/release/64 \
+
 
 .d.o:
 	$(DMD) -c $(DFLAGS) $*
 
-all: med
+all: $B/med
 
-SRC= ed.d basic.d buffer.d display.d file.d fileio.d line.d \
-	random.d region.d search.d spawn.d terminal.d \
-	window.d word.d main.d more.d disprev.d \
-	tcap.d
+SRC= $S/ed.d $S/basic.d $S/buffer.d $S/display.d $S/file.d $S/fileio.d $S/line.d \
+	$S/random.d $S/region.d $S/search.d $S/spawn.d $S/terminal.d \
+	$S/window.d $S/word.d $S/main.d $S/more.d $S/disprev.d \
+	$S/tcap.d \
+	$S/console.d $S/mouse.d
 
-OBJ= ed.o basic.o buffer.o display.o file.o fileio.o line.o \
-	random.o region.o search.o spawn.o terminal.o \
-	window.o word.o main.o more.o disprev.o \
-	tcap.o
 
-SOURCE= $(SRC) win32.mak linux.mak me.html console.d mouse.d
+OBJ= $O/ed.o $O/basic.o $O/buffer.o $O/display.o $O/file.o $O/fileio.o $O/line.o \
+	$O/random.o $O/region.o $O/search.o $O/spawn.o $O/terminal.o \
+	$O/window.o $O/word.o $O/main.o $O/more.o $O/disprev.o $O/tcap.o
 
-med : $(OBJ) linux.mak
-#	gcc $(LDFLG) -o med $(OBJ) -ltermcap
-	cc $(LDFLG)  -o med $(OBJ) -l :libncurses.so.5 -l phobos2 -l pthread -l m
+SOURCE= $(SRC) win32.mak linux.mak me.html
 
-ed.o: ed.d
-	$(DMD) -c $(DFLAGS) $*
+$B/med : $(OBJ) linux.mak
+#	gcc $(LDFLG) -o $B/med $(OBJ) -ltermcap
+#	cc $(LDFLG)  -o $B/med $(OBJ) -l :libncurses.so.5 -l phobos2 -l pthread -l m
+#	gcc $(LDFLG)  -o $B/med $(OBJ) -l :libncurses.so.5 -l libphobos2.a -l pthread -l m -l rt
+	$(DMD) $(DFLAGS) -of$B/med $(OBJ) -Lncurses
 
-basic.o: basic.d
-	$(DMD) -c $(DFLAGS) $*
+$O/ed.o: $S/ed.d
+	$(DMD) -c $(DFLAGS) $S/ed.d
 
-buffer.o: buffer.d
-	$(DMD) -c $(DFLAGS) $*
+$O/basic.o: $S/basic.d
+	$(DMD) -c $(DFLAGS) $S/basic.d
 
-display.o: display.d
-	$(DMD) -c $(DFLAGS) $*
+$O/buffer.o: $S/buffer.d
+	$(DMD) -c $(DFLAGS) $S/buffer.d
 
-file.o: file.d
-	$(DMD) -c $(DFLAGS) $*
+$O/display.o: $S/display.d
+	$(DMD) -c $(DFLAGS) $S/display.d
 
-fileio.o: fileio.d
-	$(DMD) -c $(DFLAGS) $*
+$O/file.o: $S/file.d
+	$(DMD) -c $(DFLAGS) $S/file.d
 
-line.o: line.d
-	$(DMD) -c $(DFLAGS) $*
+$O/fileio.o: $S/fileio.d
+	$(DMD) -c $(DFLAGS) $S/fileio.d
 
-random.o: random.d
-	$(DMD) -c $(DFLAGS) $*
+$O/line.o: $S/line.d
+	$(DMD) -c $(DFLAGS) $S/line.d
 
-region.o: region.d
-	$(DMD) -c $(DFLAGS) $*
+$O/random.o: $S/random.d
+	$(DMD) -c $(DFLAGS) $S/random.d
 
-search.o: search.d
-	$(DMD) -c $(DFLAGS) $*
+$O/region.o: $S/region.d
+	$(DMD) -c $(DFLAGS) $S/region.d
 
-spawn.o: spawn.d
-	$(DMD) -c $(DFLAGS) $*
+$O/search.o: $S/search.d
+	$(DMD) -c $(DFLAGS) $S/search.d
 
-terminal.o: terminal.d
-	$(DMD) -c $(DFLAGS) $*
+$O/spawn.o: $S/spawn.d
+	$(DMD) -c $(DFLAGS) $S/spawn.d
 
-window.o: window.d
-	$(DMD) -c $(DFLAGS) $*
+$O/terminal.o: $S/terminal.d
+	$(DMD) -c $(DFLAGS) $S/terminal.d
 
-word.o: word.d
-	$(DMD) -c $(DFLAGS) $*
+$O/window.o: $S/window.d
+	$(DMD) -c $(DFLAGS) $S/window.d
 
-main.o: main.d
-	$(DMD) -c $(DFLAGS) $*
+$O/word.o: $S/word.d
+	$(DMD) -c $(DFLAGS) $S/word.d
 
-more.o: more.d
-	$(DMD) -c $(DFLAGS) $*
+$O/main.o: $S/main.d
+	$(DMD) -c $(DFLAGS) $S/main.d
 
-disprev.o: disprev.d
-	$(DMD) -c $(DFLAGS) $*
+$O/more.o: $S/more.d
+	$(DMD) -c $(DFLAGS) $S/more.d
 
-tcap.o: tcap.d
-	$(DMD) -c $(DFLAGS) $*
+$O/disprev.o: $S/disprev.d
+	$(DMD) -c $(DFLAGS) $S/disprev.d
+
+$O/tcap.o: $S/tcap.d
+	$(DMD) -c $(DFLAGS) $S/tcap.d
 
 clean:
-	rm $(OBJ)
+	rm $O/*.o
 
 zip : $(SOURCE)
 	rm -f me.zip
 	zip me $(SOURCE)
-
-
-
-
-
-

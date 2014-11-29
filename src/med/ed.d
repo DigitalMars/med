@@ -21,7 +21,7 @@ alias ubyte attr_t;
 
 struct attchar_t
 {
-    dchar  chr;
+    dchar  chr = ' ';
     attr_t attr;
 }
 

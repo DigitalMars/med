@@ -68,7 +68,7 @@ bool ffreadonly(string name)
     }
     else
     {
-	return (a & S_IWRITE) == 0;
+	return (a & S_IWUSR) == 0;
     }
 }
 
@@ -83,7 +83,7 @@ int ffrename(string from, string to)
 	to = std.path.expandTilde(to);
 	version (linux)
 	{
-	    struct_stat buf;
+	    stat_t buf;
 	    if( stat( toStringz(from), &buf ) != -1
 	     && !(buf.st_uid == getuid() && (buf.st_mode & octal!200))
 	     && !(buf.st_gid == getgid() && (buf.st_mode & octal!20))

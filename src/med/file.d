@@ -457,7 +457,7 @@ int writeout(dstring dfn)
     }
     else
     {
-	auto backupname = join(dirname(fn), ".B" ~ basename(fn));
+	auto backupname = buildPath(dirName(fn), ".B" ~ baseName(fn));
     }
 
     try

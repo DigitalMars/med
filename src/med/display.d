@@ -42,7 +42,7 @@ enum SHOWCONTROL = 1;
 char column_mode = FALSE;
 
 // debug=WFDEBUG                       /* Window flag debug. */
-char[] blnk_ln;
+attchar_t[] blnk_ln;
 
 version (Windows)
     alias ushort vchar;
@@ -170,7 +170,6 @@ void vtinit()
     version (linux)
     {
 	blnk_ln = new attchar_t[term.t_ncol];
-	blnk_ln[] = ' ';
     }
 
     foreach (i; 0 .. term.t_nrow)
@@ -337,7 +336,7 @@ static void vtputs(const dchar[] s, int startcol)
  */
 void vteeol(int startcol)
 {
-    int col = max(vtcol - startcol, 0);
+    const col = max(vtcol - startcol, 0);
     vscreen[vtrow][col .. term.t_ncol] = attchar_t(' ', config.eolattr);
     vtcol = startcol + term.t_ncol;
 }
@@ -510,7 +509,7 @@ Lout:
 
                 vrowflags[i] |= VFCHG;	/* assume this line will change */
                 vtmove(i, 0);			/* start at beg of line	*/
-                for (size_t j = 0; j < llength(lp); ++j)
+                for (int j = 0; j < llength(lp); ++j)
 		{
                     vtputc(lgetc(lp, j),wp.w_startcol);
 		}
@@ -532,7 +531,7 @@ Lout:
 				inmark++;
 			    attr = config.normattr;
 			}
-                        for (size_t j = 0; 1; ++j)
+                        for (int j = 0; 1; ++j)
 			{   if (marking)
 			    {	if (column_mode)
 				{
@@ -659,7 +658,7 @@ version (linux)
 				vrowflags[j] &= ~VFCHG;
 			for (int j = l_last; j > l_first; j-- )
 				pscreen[j][] = pscreen[j - 1][];
-			pscreen[l_first][] = ' ';
+			pscreen[l_first][] = attchar_t.init;
 
 			/* Set change flag on last line to get rid of	*/
 			/* bug that caused lines to 'vanish'.		*/
@@ -682,7 +681,7 @@ version (linux)
 				vrowflags[j] &= ~VFCHG;
 			for (int j = l_first; j < l_last; j++ )
 				pscreen[j][] = pscreen[j + 1];
-			pscreen[l_last][] = ' ';
+			pscreen[l_last][] = attchar_t.init;
 
 			/* Set change flag on last line to get rid of	*/
 			/* bug that caused lines to 'vanish'.		*/
@@ -749,9 +748,9 @@ version (linux)
 {
 void updateline(int row, attchar_t[] vline, attchar_t[] pline)
 {
-    char *cp3;
-    char *cp4;
-    char *cp5;
+    attchar_t *cp3;
+    attchar_t *cp4;
+    attchar_t *cp5;
     int nbflag;
     static int tstand = FALSE;		/* TRUE if standout mode is active */
 
@@ -796,7 +795,7 @@ void updateline(int row, attchar_t[] vline, attchar_t[] pline)
             cp5 = cp3;                  /* fewer characters. */
         }
 
-    movecursor(row, cp1-&vline[0]);     /* Go to start of line. */
+    movecursor(row, cast(int)(cp1-&vline[0]));     /* Go to start of line. */
 
     while (cp1 != cp5)                  /* Ordinary. */
     {
@@ -857,13 +856,13 @@ void modeline(WINDOW* wp)
     vtputc(' ', 0);
 
     if (globMatch(bp.b_bname,bp.b_fname) == 0)
-    {	vtputs("-- Buffer: ",0);
+    {	vtputs("-- Buffer: "c,0);
 	vtputs(bp.b_bname,0);
 	vtputc(' ',0);
     }
     if (bp.b_fname.length)            /* File name. */
     {
-	vtputs("-- File: ",0);
+	vtputs("-- File: "c,0);
 	vtputs(bp.b_fname,0);
         vtputc(' ',0);
     }
@@ -971,7 +970,7 @@ int mlreply(string prompt, dstring init, out dstring result)
 
     if (kbdmop != null)
     {
-	size_t len;
+	int len;
 	while (kbdmop[len])
 	    ++len;
 	result = kbdmop[0 .. len].idup;
@@ -987,9 +986,9 @@ int mlreply(string prompt, dstring init, out dstring result)
     mpresf = TRUE;
 
     dchar[] buf;
-    auto promptlen = prompt.length;
+    auto promptlen = cast(int)prompt.length;
     buf = init.dup;
-    buflen = buf.length;
+    buflen = cast(int)buf.length;
     dot = buflen;
 
     for (;;)
@@ -1151,7 +1150,7 @@ int mlreply(string prompt, dstring init, out dstring result)
 		if (history[i])
 		{
 		    buf = history[i].dup;
-		    buflen = buf.length;
+		    buflen = cast(int)buf.length;
 		    dot = buflen;
 		    startcol = 0;
 		    changes = 1;

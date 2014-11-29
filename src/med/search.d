@@ -52,12 +52,13 @@ int forwsearch(bool f, int n)
     int tbo;
     int c;
     int s;
+    dchar p0;
 
     if ((s = readpattern("Search: ",pat)) != TRUE)
         return (s);
     if (pat.length == 0)
 	goto Lnotfound;
-    auto p0 = pat[0];
+    p0 = pat[0];
 
     clp = curwp.w_dotp;		/* get pointer to current line	*/
     cbo = curwp.w_doto;		/* and offset into that line	*/
@@ -419,11 +420,11 @@ enum
 
 static int ifhash(LINE* clp)
 {
-    size_t len;
+    int len;
     int i;
     static dstring[] hash = ["if","elif","else","endif"];
 
-    len = clp.l_text.length;
+    len = cast(int)clp.l_text.length;
     if (len < 3 || lgetc(clp,0) != '#')
 	goto ret0;
     for (i = 1; ; i++)
@@ -433,7 +434,7 @@ static int ifhash(LINE* clp)
 	if (!isSpace(clp.l_text[i]))
 	    break;
     }
-    for (size_t h = 0; h < hash.length; h++)
+    for (int h = 0; h < hash.length; h++)
 	if (len - i >= hash[h].length &&
 	    clp.l_text[i .. i + hash[h].length] == hash[h])
 	    return h + 1;

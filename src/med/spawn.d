@@ -15,14 +15,20 @@
 
 module spawn;
 
+import core.stdc.stdlib;
+
 import std.conv;
 import std.stdio;
 import std.file;
 import std.process;
 import std.string;
-import std.c.stdlib;
 import std.c.time;
 import std.utf;
+
+version(linux)
+{
+    import core.sys.posix.unistd;
+}
 
 import ed;
 import buffer;
@@ -31,6 +37,7 @@ import display;
 import main;
 import file;
 import terminal;
+
 
 
 /*
@@ -56,7 +63,7 @@ int spawncli(bool f, int n)
         term.t_close();                             /* stty to old settings */
         auto cp = std.c.stdlib.getenv("SHELL");
         if (cp && *cp != '\0')
-	    std.c.process.system(cp);
+	    core.stdc.stdlib.system(cp);
         else
 	    std.process.system("exec /bin/sh");
         sleep(2);
@@ -119,6 +126,7 @@ int spawn_pipe(bool f, int n)
 
     static string filnam = "DOS.TMP";
     dstring line; /* command line sent to shell */
+    string sline;
 
     /* get the command to pipe in */
     if ((s = mlreply("DOS:", null, line)) != TRUE)
@@ -143,7 +151,7 @@ int spawn_pipe(bool f, int n)
     if (window_split(FALSE, 1) == FALSE)
         goto fail;
 
-    string sline = toUTF8(line) ~ ">" ~ filnam;
+    sline = toUTF8(line) ~ ">" ~ filnam;
 
 version (Windows)
 {

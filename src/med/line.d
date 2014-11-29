@@ -49,7 +49,7 @@ struct  LINE {
 LINE* lforw(LINE* lp) { return lp.l_fp; }
 LINE* lback(LINE* lp) { return lp.l_bp; }
 dchar lputc(LINE* lp, int n, dchar c) { return lp.l_text[n] = c; }
-int llength(LINE* lp) { return lp.l_text.length; }
+int llength(LINE* lp) { return cast(int)lp.l_text.length; }
 dchar lgetc(LINE* lp, int n) { return lp.l_text[n]; }
 
 
@@ -291,7 +291,7 @@ bool line_delete(int n, bool kflag)
                 doto = curwp.w_doto;
                 if (dotp == curbp.b_linep)     /* Hit end of buffer.   */
                         return (FALSE);
-                chunk = dotp.l_text.length-doto;   /* Size of chunk.       */
+                chunk = cast(int)dotp.l_text.length - doto;   /* Size of chunk.       */
                 if (chunk > n)
                         chunk = n;
                 if (chunk == 0) {               /* End of line, merge.  */
@@ -350,13 +350,13 @@ bool line_delnewline()
 	    return FALSE;			/* error		*/
         lp1 = curwp.w_dotp;
         lp2 = lp1.l_fp;
-	lp1used = lp1.l_text.length;
+	lp1used = cast(int)lp1.l_text.length;
         if (lp2 == curbp.b_linep) {            /* At the buffer end.   */
                 if (lp1used == 0)               /* Blank line.          */
                         line_free(lp1);
                 return (TRUE);
         }
-	lp3 = line_realloc(lp1, lp1used + lp2.l_text.length);
+	lp3 = line_realloc(lp1, lp1used + cast(int)lp2.l_text.length);
 	lp3.l_bp.l_fp = lp3;
 
 	memmove(lp3.l_text.ptr + lp1used, lp2.l_text.ptr, lp2.l_text.length * dchar.sizeof);
