@@ -1,12 +1,12 @@
 #_ linux.mak
 
 DMD=dmd
-MODEL=-m32
+MODEL=
 S=src/med
 O=obj
 B=bin
 
-DFLAGS=-g -od$O -I$S -d $(MODEL)
+DFLAGS=-g -od$O -I$S $(MODEL)
 LDFLG=-g \
        -L~/cbx/mars/phobos/generated/linux/release/32 \
        -L~/cbx/mars/phobos/generated/linux/release/64 \

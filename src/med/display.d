@@ -22,10 +22,11 @@
 
 module display;
 
+import core.stdc.stdio;
+import core.stdc.string;
+
 import std.format;
 import std.path;
-import std.c.stdio;
-import std.c.string;
 
 import ed;
 import line;

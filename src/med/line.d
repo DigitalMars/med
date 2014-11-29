@@ -22,7 +22,8 @@
 
 module line;
 
-import std.c.string;
+import core.stdc.string;
+
 import std.utf;
 
 import ed;

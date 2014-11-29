@@ -92,6 +92,9 @@ int msm_getstatus(uint *pcol,uint *prow)
 	    *pcol = mstat.col;
 	    mstat.state = 0;
 	    return 0;
+
+	default:
+	    assert(0);
     }
 }
 

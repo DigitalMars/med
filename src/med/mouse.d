@@ -11,7 +11,6 @@
 module mouse;
 
 import disp;
-import std.c.time;
 import core.stdc.time;
 
 import ed;

@@ -34,10 +34,11 @@
 
 module main;
 
+import core.stdc.time;
+import core.stdc.stdlib;
+
 import std.string;
 import std.stdio;
-import std.c.time;
-import std.c.stdlib;
 import std.utf;
 
 import ed;

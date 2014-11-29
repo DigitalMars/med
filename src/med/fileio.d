@@ -15,23 +15,25 @@
 
 module fileio;
 
+import core.stdc.stdio;
+import core.stdc.stdlib;
+import core.stdc.errno;
+
 import std.file;
 import std.path;
 import std.string;
 import std.stdio;
-import std.c.stdio;
-import std.c.stdlib;
-import core.stdc.errno;
 import std.conv;
 
 version (Windows)
 {
-    import std.c.windows.windows;
+    import core.sys.windows.windows;
 }
 
 version (linux)
 {
-    import std.c.linux.linux;
+    import core.sys.posix.unistd;
+    import core.sys.posix.sys.stat;
 }
 
 import ed;

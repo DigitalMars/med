@@ -16,13 +16,13 @@
 module spawn;
 
 import core.stdc.stdlib;
+import core.stdc.time;
 
 import std.conv;
 import std.stdio;
 import std.file;
 import std.process;
 import std.string;
-import std.c.time;
 import std.utf;
 
 version(linux)
@@ -52,20 +52,21 @@ int spawncli(bool f, int n)
     version (Windows)
     {
         term.t_flush();
-        auto comspec = std.c.stdlib.getenv("COMSPEC");
+        auto comspec = core.stdc.stdlib.getenv("COMSPEC");
 	string[] args;
+	args ~= to!string(comspec);
 	args ~= "COMMAND.COM";
-        spawnvp(0, to!string(comspec), args);
+        spawnProcess(args);
     }
     version (linux)
     {
         term.t_flush();
         term.t_close();                             /* stty to old settings */
-        auto cp = std.c.stdlib.getenv("SHELL");
+        auto cp = core.stdc.stdlib.getenv("SHELL");
         if (cp && *cp != '\0')
 	    core.stdc.stdlib.system(cp);
         else
-	    std.process.system("exec /bin/sh");
+	    core.stdc.stdlib.system("exec /bin/sh");
         sleep(2);
         term.t_open();
     }
@@ -86,7 +87,7 @@ int spawn(bool f, int n)
     {
         if ((s=mlreply("MS-DOS command: ", null, line)) != TRUE)
                 return (s);
-        std.process.system(toUTF8(line));
+        core.stdc.stdlib.system(toUTF8(line).toStringz());
         while (term.t_getchar() != '\r')     /* Pause.               */
         {
 	}
@@ -100,7 +101,7 @@ int spawn(bool f, int n)
         term.t_putchar('\n');                /* Already have '\r'    */
         term.t_flush();
         term.t_close();                              /* stty to old modes    */
-        std.process.system(toUTF8(line));
+        core.stdc.stdlib.system(toUTF8(line).toStringz());
         sleep(2);
         term.t_open();
         printf("[End]");                        /* Pause.               */
@@ -156,7 +157,7 @@ int spawn_pipe(bool f, int n)
 version (Windows)
 {
     movecursor(term.t_nrow - 2, 0);
-    std.process.system(sline);
+    core.stdc.stdlib.system(sline.toStringz());
     sgarbf = TRUE;
     if (std.file.exists(filnam) && std.file.isFile(filnam))
 	return FALSE;
@@ -166,7 +167,7 @@ version (linux)
     term.t_putchar('\n');                /* Already have '\r'    */
     term.t_flush();
     term.t_close();                              /* stty to old modes    */
-    std.process.system(sline);
+    core.stdc.stdlib.system(sline.toStringz());
     term.t_open();
     term.t_flush();
     sgarbf = TRUE;
@@ -222,14 +223,14 @@ int spawn_filter(bool f, int n)
     version (Windows)
     {
         movecursor(term.t_nrow - 2, 0);
-        std.process.system(toUTF8(line));
+        core.stdc.stdlib.system(toUTF8(line).toStringz());
     }
     version (linux)
     {
         term.t_putchar('\n');                /* Already have '\r'    */
         term.t_flush();
         term.t_close();                              /* stty to old modes    */
-        std.process.system(toUTF8(line));
+        core.stdc.stdlib.system(toUTF8(line).toStringz());
         term.t_open();
         term.t_flush();
     }

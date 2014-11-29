@@ -15,7 +15,7 @@ version (none)
 import ed;
 
 import std.c.stdio;
-import std.c.stdlib;
+import core.stdc.stdlib;
 import std.c.string;
 import std.c.time;
 import core.sys.posix.termios;

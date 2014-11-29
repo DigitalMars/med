@@ -33,7 +33,10 @@ import terminal;
 import display;
 
 version (linux)
-    import std.c.linux.linux;
+{
+    import core.sys.posix.signal;
+    import core.sys.posix.unistd;
+}
 
 private int Dnoask_search = false;	// true for the search again function
 

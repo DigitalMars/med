@@ -11,7 +11,7 @@ B=bin
 
 TARGET=med
 
-DFLAGS=-g -d -Isrc/med
+DFLAGS=-g -Isrc/med
 LFLAGS=-L/map/co
 #DFLAGS=
 #LFLAGS=

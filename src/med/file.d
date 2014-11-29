@@ -17,10 +17,11 @@
 
 module file;
 
+import core.stdc.stdlib;
+
 import std.stdio;
 import std.path;
 import std.string;
-import std.c.stdlib;
 import std.utf;
 
 import ed;
