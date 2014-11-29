@@ -21,7 +21,7 @@ alias ubyte attr_t;
 
 struct attchar_t
 {
-    dchar  chr = ' ';
+    dchar  chr;
     attr_t attr;
 }
 
@@ -38,6 +38,8 @@ enum
     CTRLCH  = 0x1E,                    /* C- prefix,   Control-^       */
     HELPCH  = 0x1F,                    /* Help key,    Control-_       */
 }
+
+enum MOUSEKEY = 0x12345678;
 
 
 enum

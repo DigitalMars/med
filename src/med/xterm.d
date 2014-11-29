@@ -1,47 +1,16 @@
 
+module xterm;
 
-/* This version of microEmacs is based on the public domain C
- * version written by Dave G. Conroy.
- * The D programming language version is written by Walter Bright.
- * http://www.digitalmars.com/d/
- * This program is in the public domain.
- */
-
-
-module tcap;
-
-version (none)
+version (Posix)
 {
+
+import core.stdc.stdio;
+import core.stdc.stdlib;
+import core.stdc.string;
+import core.sys.posix.sys.ioctl;
+
 import ed;
-
-import std.c.stdio;
-import std.c.stdlib;
-import std.c.string;
-import std.c.time;
-import core.sys.posix.termios;
-
-extern (C) void cfmakeraw(in termios*);
-
-termios  ostate;                 /* saved tty state */
-termios  nstate;                 /* values for editor mode */
-
-
-/* Termcap library functions
- * See: http://www.gnu.org/software/termutils/manual/termcap-1.3/html_node/termcap_toc.html
- */
-
-extern (C)
-{
-    int tgetent(char *buffer, const char *termtype);
-    int tgetnum (const char *name);
-    int tgetflag (const char *name);
-    const(char) *tgetstr (const char *name, const(char) **area);
-    const(char) *tgoto (const(char) *cstring, int hpos, int vpos);
-    const(char) *tparam (const(char) *ctlstring, char *buffer, int size, int parm1,...);
-    char PC;
-    short ospeed;
-    int tputs (const(char) *string, int nlines, int function(int) outfun);
-}
+import termio;
 
 enum
 {
@@ -51,10 +20,85 @@ enum
     ESC     = 0x1B,
 }
 
-char tcapbuf[2048];
-static const(char) *p;	/* roving pointer into tcapbuf[]	*/
-const(char)*
-	CM,
+/*********************************
+ */
+
+int msm_init()
+{
+    puts("\x1b[?1000h");
+    return TRUE;
+}
+
+void msm_term()
+{
+    puts("\x1b[?1000l");
+}
+
+void	msm_showcursor() { }
+void	msm_hidecursor() { }
+
+struct msm_status		// current state of mouse
+{
+    int state;
+    uint row;
+    uint col;
+}
+
+__gshared msm_status mstat;
+
+int msm_getstatus(uint *pcol,uint *prow)
+{
+    int c = 0;
+    switch (mstat.state)
+    {
+	case 0:
+	    *prow = mstat.row;
+	    *pcol = mstat.col;
+	    return 0;
+
+	case 1:
+	    *prow = mstat.row;
+	    *pcol = mstat.col;
+	    mstat.state++;
+	    return 1;
+
+	case 2:
+	    c = ttgetc();
+	    if (c == 0x1b)
+	    {   c = ttgetc();
+		if (c == 0x5b)
+		{   c = ttgetc();
+		    if (c == 0x4d)
+		    {   c = ttgetc();
+			if (c == 0x23)
+			{   c = ttgetc();
+			    if (c >= 0x21)
+			    {   mstat.col = c - 0x21;
+				c = ttgetc();
+				if (c >= 0x21)
+				    mstat.row = c - 0x21;
+			    }
+			}
+		    }
+		}
+	    }
+	    *prow = mstat.row;
+	    *pcol = mstat.col;
+	    mstat.state++;
+	    return 1;
+
+	case 3:
+	    *prow = mstat.row;
+	    *pcol = mstat.col;
+	    mstat.state = 0;
+	    return 0;
+    }
+}
+
+
+immutable(char)*
+        PC,
+        CM,
         CL,
         CE,
         UP,
@@ -83,18 +127,17 @@ const(char)*
  * and linked at initialize time.  See tcapgetc() to see how they
  * are used.
  */
+int LONGFINAL(int C) { return C & 0x80; }
+int LONGCHAR(int C)  { return C & 0x7F; }
 
-int LONGFINAL(char C) { return C & 0x80; }
-int LONGCHAR(char C)  { return C & 0x7F; }
-
-struct LONGKEY
-{
-	char key;
+struct LONGKEY {
+	ubyte key;
 	union {
-	  LONGKEY *ptr;
+	  LONGKEY* ptr;
 	  int keyv;
 	}
 }
+
 LONGKEY *lkroot = null;
 
 struct TERM
@@ -103,110 +146,76 @@ struct TERM
     short   t_ncol;              /* Number of columns.           */
     bool    t_canscroll = true;
 
-    void t_open()            /* Open terminal at the start.  */
+    void t_open()
     {
-        auto tv_stype = getenv("TERM");
-        if (tv_stype == null)
+	// Get size of terminal
+	winsize ws;
+	ioctl(1, TIOCGWINSZ, &ws);
+	//printf("Columns: %d\tRows: %d\n", ws.ws_col, ws.ws_row);
+	term.t_ncol = ws.ws_col;
+	term.t_nrow = ws.ws_row;
+
+	CD = "\x1b\x5b\x4a".ptr;
+	CM = "\x1b\x5b\x25\x69\x25\x64\x3b\x25\x64\x48".ptr; // "\x1b"\x1b[%i%d;%dH"
+	CE = "\x1b\x5b\x4b".ptr;
+	UP = "\x1b\x5b\x41".ptr;
+	VB = "\x1b\x5b\x3f\x35\x68\x1b\x5b\x3f\x35\x6c".ptr;
+	KU = "\x1b\x4f\x41".ptr;
+	KD = "\x1b\x4f\x42".ptr;
+	KL = "\x1b\x4f\x44".ptr;
+	KR = "\x1b\x4f\x43".ptr;
+	K1 = "\x1b\x4f\x50".ptr;
+	SO = "\x1b\x5b\x37\x6d".ptr;
+	SE = "\x1b\x5b\x32\x37\x6d".ptr;
+	CS = "\x1b\x5b\x25\x69\x25\x64\x3b\x25\x64\x72".ptr;
+	SR = "\x1b\x4d".ptr;
+	SF = "\x0a".ptr;
+	DO = "\x0a".ptr;
+	AL = "\x1b\x5b\x4c".ptr;
+	DL = "\x1b\x5b\x4d".ptr;
+
+	build_long_keys();
+
+        if ( term.t_ncol < 1 || term.t_nrow < 1 )
         {
-	    puts("environment variable TERM not defined\n");
-	    exit(1);
+                puts("Incomplete termcap entry\n");
+                exit(1);
         }
 
-        char[2048] tcbuf = void;
-        auto success = tgetent(tcbuf.ptr, tv_stype);
-        if (success < 0)
-        {
-	    printf("cannot access termcap database\n");
-	    exit(1);
-        }
-        if (success == 0)
-        {
-	    printf("unknown terminal type %s\n", tv_stype);
-	    exit(1);
-        }
-
-        p = tcapbuf.ptr;
-        auto t = tgetstr("pc", &p);
-        if (t)
-	    PC = *t;	// set "padding capabilities"
-
-	term.t_ncol = cast(short)tgetnum("co");
-	term.t_nrow = cast(short)tgetnum("li");
-        CD = tgetstr("cd", &p);
-        CM = tgetstr("cm", &p);
-        CE = tgetstr("ce", &p);
-        UP = tgetstr("up", &p);
-	//printf("UP=%p,%02x,%02x,%02x '%s'\n\n\n\n",UP,*UP,UP[1],UP[2],UP); fflush(stdout); sleep(1);
-	VB = tgetstr("vb", &p);
-	KU = tgetstr("ku", &p);
-	//printf("KU=%p,%02x,%02x,%02x '%s'\n\n\n\n",KU,*KU,KU[1],KU[2],KU); fflush(stdout); sleep(3);
-	KD = tgetstr("kd", &p);
-	KL = tgetstr("kl", &p);
-	KR = tgetstr("kr", &p);
-	K1 = tgetstr("k1", &p);
-	SO = tgetstr("so", &p);
-	SE = tgetstr("se", &p);
-	CS = tgetstr("cs", &p);
-	SR = tgetstr("sr", &p);
-	SF = tgetstr("sf", &p);
-	DO = tgetstr("do", &p);
-	AL = tgetstr("al", &p);
-	DL = tgetstr("dl", &p);
-	build_long_keys( tv_stype );
-
-        if (CD == null || CM == null || CE == null || UP == null
-	 || term.t_ncol < 1 || term.t_nrow < 1 )
-        {
-	    puts("Incomplete termcap entry\n");
-	    exit(1);
-        }
-
-        if (p >= tcapbuf.ptr + tcapbuf.length)
-        {
-	    puts("Terminal description too big!\n");
-	    exit(1);
-        }
-
-	if (AL && DL)
+	if(AL && DL)
 	{
-	    scroll_type = 0;
+		scroll_type = 0;
 	}
 	else if (CS && SR && (SF || DO))
 	{
-	    scroll_type = 1;
-	    if (!SF)
-		SF = DO;
+		scroll_type = 1;
+		if( !SF ) SF = DO;
 	}
 	else
 	{
-	    t_canscroll = false;
+		assert(0);
+		//term.t_scrollup = null;
+		//term.t_scrolldn = null;
 	}
 
-        /* Adjust output channel        */
-        tcgetattr(1, &ostate);                       /* save old state */
-        tcgetattr(1, &nstate);                       /* get base of new state */
-	cfmakeraw(&nstate);
-        tcsetattr(1, TCSADRAIN, &nstate);      /* set mode */
-
-	if( strcmp(tv_stype,"vt100") == 0 )
-		fputs("\033=",stdout);	/* turn on the keypad	*/
+        ttopen();
     }
 
-    void t_close()            /* Close terminal at end.       */
+    void t_close()
     {
 	if( strcmp(getenv("TERM"),"vt100") == 0 )
-	    fputs("\033[?7h",stdout);	/* turn on autowrap	*/
-
-        tcsetattr(1, TCSADRAIN, &ostate);	// return to original mode
+		fputs("\033[?7h",stdout);	/* turn on autowrap	*/
+	ttclose();
+	msm_term();
     }
 
     int t_getchar()         /* Get character from keyboard. */
     {
 	int c,i;
-	LONGKEY* lkp,tmpp;
+	LONGKEY* lkp, tmpp;
 
 	static int backlen;
-	static char backc[16];
+	static char[16] backc;
 
 	/*
 	 * If there was a previously almost complete LONGKEY sequence
@@ -214,9 +223,6 @@ struct TERM
 	 * were pressed individually.
 	 */
     start:
-	if( backlen )
-		return( backc[--backlen] );
-
 	/*
 	 * Continue following the LONGKEY structure sequence until
 	 * either there is a complete match, or there is a complete
@@ -224,7 +230,10 @@ struct TERM
 	 */
 	lkp = lkroot;
     loop:
-	c = fgetc(stdin);
+	if (backlen)
+	    c = backc[--backlen];
+	else
+	    c = fgetc(stdin);
 	for(i=1; i<=lkp[0].key; i++)
 	{
 	    if( LONGCHAR(lkp[i].key) == c )
@@ -232,19 +241,38 @@ struct TERM
 		//static int x;
 		//printf("\nmatch %d\n",++x); fflush(stdout); sleep(2);
 		if( LONGFINAL(lkp[i].key) )
-		    return( lkp[i].keyv );
+		{
+			c = lkp[i].keyv;
+			if (c == MOUSEKEY)
+			{
+			    if (backlen)
+				c = backc[--backlen];
+			    else
+				c = ttgetc();
+			    mstat.col = c - 0x21;
+			    if (backlen)
+				c = backc[--backlen];
+			    else
+				c = ttgetc();
+			    mstat.row = c - 0x21;
+			    mstat.state = 1;
+			    c = MOUSEKEY;
+			}
+			return c;
+		}
 		lkp = lkp[i].ptr;
 		goto loop;
 	    }
 	}
 
-	/+
-	for(i=1; i<=lkp[0].key; i++)
+	version (none)
 	{
-	  printf("\nLONGCHAR[%d] = x%02x\n",i,lkp[i].key);
+	    for(i=1; i<=lkp[0].key; i++)
+	    {
+	      printf("\nLONGCHAR[%d] = x%02x\n",i,lkp[i].key);
+	    }
+	    printf("no match for x%02x of %d entries\n",c,i); fflush(stdout); sleep(10);
 	}
-	printf("no match for x%02x of %d entries\n",c,i); fflush(stdout); sleep(10);
-	+/
 
 	/*
 	 * Upon a complete failure to match, we fill up the backc[]
@@ -261,7 +289,7 @@ struct TERM
 			if( lkp[i].ptr == tmpp ) break;
 		backc[backlen++] = lkp[i].key;
 	}
-	goto start;
+	return backc[--backlen];
     }
 
     extern (C) static int t_putchar(int c)   /* Put character to display.    */
@@ -276,7 +304,8 @@ struct TERM
 
     void t_move(int row, int col)  /* Move the cursor, origin 0.   */
     {
-        putpad(tgoto(CM, col, row));
+	printf("\x1b[%d;%dH", row + 1, col + 1);
+        //putpad(tgoto(CM, col, row));
     }
 
     void t_eeol()            /* Erase to end of line.        */
@@ -354,30 +383,32 @@ struct TERM
     }
 }
 
-
 TERM term;
 
 static int scroll_type;	/* type of scrolling region (used in tcapscr{up|dn}) */
 
 
-void putpad(const(char)* str)
+void putpad(const(char) *str)
 {
-        tputs(str, 1, &TERM.t_putchar);
+	while (*str)
+	{   ttputc(*str);
+	    str++;
+	}
+        //tputs(str, 1, ttputc);
 }
 
-void putnpad(const(char)* str, int n)
+void putnpad(const char *str, int n)
 {
-        tputs(str, n, &TERM.t_putchar);
+	while (n--)
+	    ttputc(str[n]);
+        //tputs(str, n, ttputc);
 }
 
-static void build_long_keys(const(char)* term )
+void build_long_keys()
 {
-    lkroot = cast(LONGKEY *)malloc(LONGKEY.sizeof);
-    lkroot.key = 0;
-    lkroot.ptr = null;
+	lkroot = cast(LONGKEY *)malloc( LONGKEY.sizeof );
+	lkroot.key = 0;	lkroot.ptr = null;
 
-    version (linux)
-    {
         build_one_long("\033[A", UPKEY);
 	build_one_long("\033[B", DNKEY);
 	build_one_long("\033[C", RTKEY);
@@ -396,12 +427,13 @@ static void build_long_keys(const(char)* term )
 	build_one_long( "\033\x5B\x31\x39\x7E", F8KEY );
 	build_one_long( "\033\x5B\x32\x30\x7E", F9KEY );
 	build_one_long( "\033\x5B\x32\x31\x7E", F10KEY );
+	build_one_long( "\033\x5B\x32\x34\x7E", F12KEY );
 
 
 	build_one_long("\033\x62", ALTB );
 	build_one_long("\033\x63", ALTC );
 	build_one_long("\033\x64", ALTD );
-	build_one_long("\033\x64", ALTE );
+	build_one_long("\033\x65", ALTE );
 	build_one_long("\033\x66", ALTF );
 	build_one_long("\033\x68", ALTH );
 	build_one_long("\033\x6D", ALTM );
@@ -414,65 +446,14 @@ static void build_long_keys(const(char)* term )
 	build_one_long("\033\x5B\x34\x7E", ENDKEY );
 	build_one_long("\033\x5B\x35\x7E", PgUpKEY );
 	build_one_long("\033\x5B\x36\x7E", PgDnKEY );
-    }
-    else
-    {
-	build_one_long( KU, UPKEY );
-	build_one_long( KD, DNKEY );
-	build_one_long( KR, RTKEY );
-	build_one_long( KL, LTKEY );
-	build_one_long( K1, GOLDKEY );
-	build_one_long( tgetstr("kR",&p), SCROLLUPKEY ); /* scroll back */
-	build_one_long( tgetstr("kF",&p), SCROLLDNKEY ); /* scroll forw */
-	build_one_long( tgetstr("kP",&p), PAGEUPKEY ); /* prev page */
-	build_one_long( tgetstr("kN",&p), PAGEDNKEY ); /* next page */
-	if( strcmp(term,"vt100") == 0 )
-	{
-		build_one_long( "\033OQ", PF2KEY );
-		build_one_long( "\033OR", PF3KEY );
-		build_one_long( "\033OS", PF4KEY );
-		build_one_long( "\033Op", F0KEY );
-		build_one_long( "\033Oq", F1KEY );
-		build_one_long( "\033Or", F2KEY );
-		build_one_long( "\033Os", F3KEY );
-		build_one_long( "\033Ot", F4KEY );
-		build_one_long( "\033Ou", F5KEY );
-		build_one_long( "\033Ov", F6KEY );
-		build_one_long( "\033Ow", F7KEY );
-		build_one_long( "\033Ox", F8KEY );
-		build_one_long( "\033Oy", F9KEY );
-		build_one_long( "\033Om", FMINUSKEY );
-		build_one_long( "\033Ol", FCOMMAKEY );
-		build_one_long( "\033On", FDOTKEY );
-		build_one_long( "\033OM", FENTERKEY );
-	}
-	else
-	{
-		build_one_long( tgetstr("k2",&p), PF2KEY );
-		build_one_long( tgetstr("k3",&p), PF3KEY );
-		build_one_long( tgetstr("k4",&p), PF4KEY );
-		build_one_long( tgetstr("k5",&p), F5KEY );
-		build_one_long( tgetstr("k6",&p), F6KEY );
-		build_one_long( tgetstr("k7",&p), F7KEY );
-		build_one_long( tgetstr("k8",&p), F8KEY );
-		build_one_long( tgetstr("k9",&p), F9KEY );
-		build_one_long( "\033Op", F0KEY );
-		build_one_long( "\033Oq", F1KEY );
-		build_one_long( "\033Or", F2KEY );
-		build_one_long( "\033Os", F3KEY );
-		build_one_long( "\033Ot", F4KEY );
-		build_one_long( "\033Om", FMINUSKEY );
-		build_one_long( "\033[229z", FCOMMAKEY );
-		build_one_long( "\033Ol", FCOMMAKEY );
-		build_one_long( "\033OM", FENTERKEY );
-	}
-    }
+
+	build_one_long("\033\x5B\x4d\x20", MOUSEKEY );
 }
 
-static void build_one_long(const(char)* s, int keyval)
+void build_one_long( const(char) *s, int keyval )
 {
 	int i;
-	LONGKEY* lkp,tmpp,tmpq;
+	LONGKEY* lkp, tmpp, tmpq;
 
 	if (!s)
 		return;
@@ -488,8 +469,8 @@ static void build_one_long(const(char)* s, int keyval)
 		}
 		else
 		{
-			tmpp = cast(LONGKEY *)malloc( 
-				LONGKEY.sizeof * ++i );
+			++i;
+			tmpp = cast(LONGKEY *)malloc( LONGKEY.sizeof * i );
 			while( i-- )
 			{
 				tmpp[i].key = lkp[i].key;
@@ -528,12 +509,13 @@ static void build_one_long(const(char)* s, int keyval)
 	}
 }
 
-void tpstr(const(char)* str, int p1, int p2)
+void tpstr( const(char) *str, int p1, int p2 )
 {
-	char[128] buf = '\0';
-	char* pt = buf.ptr;
+	char[128] buf;
+	char *pt = buf.ptr;
 	int pi;
 
+	for(pi=0; pi<128;) buf[pi++] = '\0';
 	pi = p1;
 	while( *str >= '0' && *str <= '9' ) *pt++ = *str++;
 	if( *str == '*' ) *pt++ = *str++;
@@ -588,7 +570,7 @@ debug
 
     int backcheck = 0;
 
-    void dump_one_long( int offset, LONGKEY* lkp, LONGKEY* lkprev )
+    void dump_one_long( int offset, LONGKEY *lkp, LONGKEY *lkprev )
     {
 	int i,j;
 	if( backcheck )
@@ -611,32 +593,4 @@ debug
     }
 }
 
-/**************************
- * Return true if there are unread chars ready in the input.
- */
-
-bool ttkeysininput()
-{
-    return false;
-}
-
-/******************************
- */
-
-void ttyield()
-{
-}
-
-/******************************
- */
-
-int msm_init()
-{
-    return FALSE;	// no mouse support
-}
-
-int mouse_command()
-{
-    return 0;		// no mouse input
-}
 }

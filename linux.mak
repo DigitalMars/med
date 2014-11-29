@@ -1,7 +1,7 @@
 #_ linux.mak
 
 DMD=dmd
-MODEL=
+MODEL=-m32
 S=src/med
 O=obj
 B=bin
@@ -20,21 +20,20 @@ all: $B/med
 SRC= $S/ed.d $S/basic.d $S/buffer.d $S/display.d $S/file.d $S/fileio.d $S/line.d \
 	$S/random.d $S/region.d $S/search.d $S/spawn.d $S/terminal.d \
 	$S/window.d $S/word.d $S/main.d $S/more.d $S/disprev.d \
-	$S/tcap.d \
-	$S/console.d $S/mouse.d
+	$S/termio.d $S/xterm.d \
+	$S/tcap.d $S/console.d $S/mouse.d
 
 
 OBJ= $O/ed.o $O/basic.o $O/buffer.o $O/display.o $O/file.o $O/fileio.o $O/line.o \
 	$O/random.o $O/region.o $O/search.o $O/spawn.o $O/terminal.o \
-	$O/window.o $O/word.o $O/main.o $O/more.o $O/disprev.o $O/tcap.o
+	$O/window.o $O/word.o $O/main.o $O/more.o $O/disprev.o \
+	$O/termio.o  $O/xterm.o \
+	$O/tcap.o $O/console.o $O/mouse.o
 
 SOURCE= $(SRC) win32.mak linux.mak me.html
 
 $B/med : $(OBJ) linux.mak
-#	gcc $(LDFLG) -o $B/med $(OBJ) -ltermcap
-#	cc $(LDFLG)  -o $B/med $(OBJ) -l :libncurses.so.5 -l phobos2 -l pthread -l m
-#	gcc $(LDFLG)  -o $B/med $(OBJ) -l :libncurses.so.5 -l libphobos2.a -l pthread -l m -l rt
-	$(DMD) $(DFLAGS) -of$B/med $(OBJ) -Lncurses
+	$(DMD) $(DFLAGS) -of$B/med $(OBJ)
 
 $O/ed.o: $S/ed.d
 	$(DMD) -c $(DFLAGS) $S/ed.d
@@ -44,6 +43,9 @@ $O/basic.o: $S/basic.d
 
 $O/buffer.o: $S/buffer.d
 	$(DMD) -c $(DFLAGS) $S/buffer.d
+
+$O/console.o: $S/console.d
+	$(DMD) -c $(DFLAGS) $S/console.d
 
 $O/display.o: $S/display.d
 	$(DMD) -c $(DFLAGS) $S/display.d
@@ -56,6 +58,9 @@ $O/fileio.o: $S/fileio.d
 
 $O/line.o: $S/line.d
 	$(DMD) -c $(DFLAGS) $S/line.d
+
+$O/mouse.o: $S/mouse.d
+	$(DMD) -c $(DFLAGS) $S/mouse.d
 
 $O/random.o: $S/random.d
 	$(DMD) -c $(DFLAGS) $S/random.d
@@ -71,6 +76,9 @@ $O/spawn.o: $S/spawn.d
 
 $O/terminal.o: $S/terminal.d
 	$(DMD) -c $(DFLAGS) $S/terminal.d
+
+$O/termio.o: $S/termio.d
+	$(DMD) -c $(DFLAGS) $S/termio.d
 
 $O/window.o: $S/window.d
 	$(DMD) -c $(DFLAGS) $S/window.d
@@ -89,6 +97,9 @@ $O/disprev.o: $S/disprev.d
 
 $O/tcap.o: $S/tcap.d
 	$(DMD) -c $(DFLAGS) $S/tcap.d
+
+$O/xterm.o: $S/xterm.d
+	$(DMD) -c $(DFLAGS) $S/xterm.d
 
 clean:
 	rm $O/*.o

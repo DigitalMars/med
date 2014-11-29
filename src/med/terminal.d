@@ -15,5 +15,7 @@ version (Windows)
 }
 
 version (linux)
-    public import tcap;
-
+{
+    public import termio;
+    public import xterm;
+}

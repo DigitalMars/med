@@ -54,6 +54,7 @@ import spawn;
 import display;
 import terminal;
 import line;
+import mouse;
 
 int     currow;                         /* Working cursor row           */
 int     fillcol;                        /* Current fill column          */

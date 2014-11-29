@@ -14,6 +14,9 @@
 
 module console;
 
+version (Windows)
+{
+
 import std.stdio;
 import std.c.stdlib;
 import std.c.windows.windows;
@@ -390,3 +393,6 @@ Lret:
 }
 
 extern (C) void popen() { assert(0); }
+
+}
+
