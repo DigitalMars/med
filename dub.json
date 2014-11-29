@@ -1,0 +1,12 @@
+{
+    "name": "med",
+    "description": "MicroEmacs written in D",
+    "authors": ["Dave G. Conroy", "Walter Bright"],
+    "homepage": "https://github.com/DigitalMars/med",
+    "license": "public domain",
+    "targetType": "executable",
+    "targetName": "med",
+    "targetPath": "bin",
+    "sourcePaths": ["src/med"],
+    "importPaths": ["src/med"],
+}
