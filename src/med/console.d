@@ -18,8 +18,8 @@ version (Windows)
 {
 
 import std.stdio;
-import std.c.stdlib;
-import std.c.windows.windows;
+import core.stdc.stdlib;
+import core.sys.windows.windows;
 
 import ed;
 import disp;
@@ -278,8 +278,8 @@ extern (C) int msm_getstatus(uint *pcol,uint *prow)
 		    ReadConsoleInputA(hStdin,&buf,1,&cNumRead);	// discard
 		break;
 
-	    case KEY_EVENT:
-		break;
+//	    case KEY_EVENT:
+//		break;
 	}
 
 Lret:
