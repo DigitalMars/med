@@ -21,6 +21,7 @@
 
 module search;
 
+import core.stdc.stdio;
 import std.string;
 import std.ascii;
 import std.uni;
