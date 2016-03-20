@@ -217,8 +217,16 @@ int gotoline(bool f, int n)
 
 	if (mlreply("Goto line: ", null, number) == FALSE)
 		return FALSE;
-	gotobob(f, n);			/* move to beginning of buffer	*/
-	return forwline(f, to!(int)(number) - 1);
+	try
+	{
+	    const num = to!(int)(number);
+	    gotobob(f, n);			/* move to beginning of buffer	*/
+	    return forwline(f, num - 1);
+	}
+	catch
+	{
+	}
+	return FALSE;
 }
 
 /*
