@@ -228,7 +228,7 @@ void vtmove(int row, int col)
  * column overflow is checked.
  * Startcol is the starting column on the screen.
  */
-void vtputc(int c, int startcol)
+void vtputc(int c, int startcol, int tabbase = 0)
 {
     auto vp = vscreen[vtrow];
 
@@ -239,7 +239,7 @@ void vtputc(int c, int startcol)
     }
     else if (c == '\t')
     {
-	auto i = hardtabsize - (vtcol % hardtabsize);
+	auto i = hardtabsize - ((vtcol - tabbase) % hardtabsize);
 	do
             vtputc(config.tabchar,startcol);
 	while (--i);
@@ -319,16 +319,16 @@ int coltodoto(LINE* lp, int col)
  * Write a string to vtputc().
  */
 
-static void vtputs(const char[] s, int startcol)
+static void vtputs(const char[] s, int startcol, int tabbase = 0)
 {
     foreach (dchar c; s)
-	vtputc(c, startcol);
+	vtputc(c, startcol, tabbase);
 }
 
-static void vtputs(const dchar[] s, int startcol)
+static void vtputs(const dchar[] s, int startcol, int tabbase = 0)
 {
     foreach (dchar c; s)
-	vtputc(c, startcol);
+	vtputc(c, startcol, tabbase);
 }
 
 /*
@@ -1004,7 +1004,7 @@ int mlreply(string prompt, dstring init, out dstring result)
 
 	    vtmove(term.t_nrow - 1, 0);
 	    vtputs(prompt,startcol);
-	    vtputs(buf,startcol);
+	    vtputs(buf, startcol, promptlen);
 	    vteeol(startcol);
 	    mlchange();
 	    update();
