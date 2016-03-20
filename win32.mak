@@ -11,7 +11,7 @@ B=bin
 
 TARGET=med
 
-DFLAGS=-g -Isrc/med
+DFLAGS=-g -Isrc/med $(CONF)
 LFLAGS=-L/map/co
 #DFLAGS=
 #LFLAGS=
@@ -126,5 +126,6 @@ zip: tolf win32.mak
 
 
 git: tolf win32.mak
-	\putty\pscp -i c:\.ssh\colossus.ppk $(SRC) walter@mercury:dm/med
+	\putty\pscp -i c:\.ssh\colossus.ppk $(SRC) walter@mercury:dm/med/src/med
+	\putty\pscp -i c:\.ssh\colossus.ppk win32.mak linux.mak me.html walter@mercury:dm/med/
 
