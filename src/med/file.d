@@ -404,7 +404,7 @@ int filesave(bool f, int n)
 
         if ((curbp.b_flag&BFCHG) == 0)         /* Return, no changes.  */
                 return (TRUE);
-        if (curbp.b_fname[0] == 0) {           /* Must have a name.    */
+        if (curbp.b_fname.length == 0) {       /* Must have a name.    */
                 mlwrite("No file name");
                 return (FALSE);
         }
@@ -429,7 +429,7 @@ int filemodify(bool f, int n)
 		curbp = bp;
 		if((curbp.b_flag&BFCHG) == 0 || /* if no changes	*/
 		   curbp.b_flag & BFTEMP ||	/* if temporary		*/
-		   curbp.b_fname[0] == 0)	/* Must have a name	*/
+		   curbp.b_fname.length == 0)	/* Must have a name	*/
 			continue;
 		if((s&=writeout(curbp.b_fname)) == TRUE )
 			fileunmodify(f,n);
