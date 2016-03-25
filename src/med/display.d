@@ -35,6 +35,7 @@ import main;
 import buffer;
 import disprev;
 import terminal;
+import url;
 
 int max(int a, int b) { return a > b ? a : b; }
 
@@ -506,7 +507,14 @@ Lout:
                 vtmove(i, 0);			/* start at beg of line	*/
                 for (int j = 0; j < llength(lp); ++j)
 		{
-                    vtputc(lgetc(lp, j),wp.w_startcol);
+		    if (attr == config.normattr && inURL(lp.l_text[], j))
+		    {
+			attr = config.urlattr;
+			vtputc(lgetc(lp, j),wp.w_startcol);
+			attr = config.normattr;
+		    }
+		    else
+			vtputc(lgetc(lp, j),wp.w_startcol);
 		}
                 vteeol(wp.w_startcol);		/* clear remainder of line */
              }
@@ -545,7 +553,14 @@ Lout:
 			    }
 			    if (j >= llength(lp))
 				break;
-                            vtputc(lgetc(lp, j),wp.w_startcol);
+			    if (attr == config.normattr && inURL(lp.l_text[], j))
+			    {
+				attr = config.urlattr;
+				vtputc(lgetc(lp, j),wp.w_startcol);
+				attr = config.normattr;
+			    }
+			    else
+				vtputc(lgetc(lp, j),wp.w_startcol);
 			}
 			if (inmark == 2)
 			    inmark = 0;

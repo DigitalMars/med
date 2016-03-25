@@ -119,7 +119,7 @@ int inURL(const(char)[] s, size_t index)
 
 inout(char)[] getURL(inout(char)[] s, size_t index)
 {
-printf("\ngetURL() '%.*s' \n", cast(int)s.length, s.ptr);
+    //printf("\ngetURL() '%.*s' \n", cast(int)s.length, s.ptr);
     for (size_t i = 0; i <= index; ++i)
     {
 	size_t j = isURL(s[i .. s.length]);
