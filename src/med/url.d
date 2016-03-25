@@ -100,7 +100,7 @@ int inURL(const(char)[] s, size_t index)
 	end = index + 1;
     for (i = 0; i < end; ++i)
     {
-	size_t j = isURL(s[i .. s.length - i]);
+	size_t j = isURL(s[i .. s.length]);
 	if (j)
 	{
 	    if (i <= index && index < i + j)

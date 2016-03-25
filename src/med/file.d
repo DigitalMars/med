@@ -294,7 +294,7 @@ int readin(string dfname)
 	    curbp.b_linep.l_bp = lp1;
 	    if (first && line.length >= 3 && line[0] == 0xEF && line[1] == 0xBB && line[2] == 0xBF)
 		line = line[3..$];	// skip BOM
-	    lp1.l_text = line[];
+	    lp1.l_text = line[].dup;
 
 	    first = false;
 	    ++nline;
