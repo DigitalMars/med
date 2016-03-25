@@ -438,5 +438,39 @@ char[] getClipboard()
     return s; 
 }
 
+/***********************
+ * Open browser on help file.
+ */
+
+int help(bool f, int n)
+{
+    printf("\nhelp \n");
+    char[MAX_PATH + 1] resolved_name = void;
+    if (GetModuleFileNameA(NULL, resolved_name.ptr, MAX_PATH + 1))
+    {
+	size_t len = strlen(resolved_name.ptr);
+	size_t i;
+	for (i = len; i; --i)
+	{
+	    if (resolved_name[i] == '/' ||
+		resolved_name[i] == '\\' ||
+		resolved_name[i] == ':')
+	    {
+		++i;
+		break;
+	    }
+	}
+	immutable(char)[7] doc = "me.html";
+	if (i + doc.sizeof <= MAX_PATH)
+	{
+	    import std.process;
+	    memcpy(resolved_name.ptr + i, doc.ptr, doc.sizeof);
+    printf("\nhelp2 '%.*s'\n", cast(int)(i + doc.sizeof), resolved_name.ptr);
+	    browse(cast(string)resolved_name[0 .. i + doc.sizeof]);
+	}
+    }
+    return ed.FALSE;
+}
+
 }
 

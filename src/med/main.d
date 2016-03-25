@@ -357,6 +357,7 @@ immutable KEYTAB[]  keytab =
 	{0x8045,	 &Dcppcomment},
 	{0x8046,	 &random_hardtab},
 	{0x8047,	 &word_wrap_line},
+	{0x8048,         &help},
 ];
 
 /* Translation table from 2 key sequence to single value        */
@@ -401,6 +402,7 @@ immutable ushort[2][] esc_tab =
         ['I',            0x8024],         /* random_opttab        */
 	['J',		 0x803E],		// Dundelline
         ['L',            0x802E],         /* misc_lower           */
+        ['M',            0x8048],         // help
         ['N',            0x8019],         /* window_mvdn          */
         ['P',            0x801B],         /* window_mvup          */
         ['Q',            0x802F],         /* queryreplacestring   */
@@ -858,7 +860,7 @@ int ctrlg(bool f, int n)
 {
         term.t_beep();
         if (kbdmip != null) {
-                kbdm[0] = cast(char)CMD_ENDMACRO;
+                kbdm[0] = CMD_ENDMACRO;
                 kbdmip  = null;
         }
         return ABORT;
