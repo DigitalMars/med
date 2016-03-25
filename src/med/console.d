@@ -274,14 +274,17 @@ extern (C) int msm_getstatus(uint *pcol,uint *prow)
 	    case MOUSE_EVENT:
 		mstat_update(&buf.MouseEvent);
 	    default:
+	    Ldiscard:
 		if (lookahead)
 		    lookahead = 0;
 		else
 		    ReadConsoleInputA(hStdin,&buf,1,&cNumRead);	// discard
 		break;
 
-//	    case KEY_EVENT:
-//		break;
+	    case KEY_EVENT:
+		if (mstat.buttons & 3)
+		    goto Ldiscard;
+		break;
 	}
 
 Lret:
