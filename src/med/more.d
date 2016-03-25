@@ -20,6 +20,7 @@ import core.stdc.stdio;
 
 import std.ascii;
 import std.uni;
+import std.process;
 
 import ed;
 import main;
@@ -33,6 +34,7 @@ import word;
 import basic;
 import terminal;
 import display;
+import url;
 
 version (linux)
 {
@@ -320,3 +322,19 @@ int Dcppcomment(bool f, int n)
 err:
 	return false;
 }
+
+/************************************
+ * Open browser on URL.
+ */
+int openBrowser(bool f, int n)
+{
+    LINE* dotp = curwp.w_dotp;
+    auto s = getURL(dotp.l_text[0 .. llength(dotp)], curwp.w_doto);
+    if (s)
+    {
+	browse(cast(string)s);
+	return TRUE;
+    }
+    return FALSE;
+}
+

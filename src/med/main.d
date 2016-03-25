@@ -358,6 +358,7 @@ immutable KEYTAB[]  keytab =
 	{0x8046,	 &random_hardtab},
 	{0x8047,	 &word_wrap_line},
 	{0x8048,         &help},
+	{0x8049,         &openBrowser},
 ];
 
 /* Translation table from 2 key sequence to single value        */
@@ -397,6 +398,7 @@ immutable ushort[2][] esc_tab =
         ['B',            0x802A],         /* word_back            */
         ['C',            0x802B],         /* capword              */
         ['D',            0x802C],         /* delfword             */
+        ['E',            0x8049],         // openBrowser
         ['F',            0x802D],         /* word_forw            */
         ['H',            0x8023],         /* delbword             */
         ['I',            0x8024],         /* random_opttab        */
