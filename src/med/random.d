@@ -103,8 +103,8 @@ int random_twiddle(bool f, int n)
 {
         LINE   *dotp;
         int    doto;
-        dchar    cl;
-        dchar    cr;
+        char    cl;
+        char    cr;
 
         dotp = curwp.w_dotp;
         doto = curwp.w_doto;
@@ -507,7 +507,7 @@ int random_undelchar(bool f, int n)
 {
 	if (undelch == '\n')
 	    return random_newline(f, n);
-	return line_insert(n,undelch);
+	return line_insert(n,cast(char)undelch);
 }
 
 /*
@@ -591,6 +591,7 @@ int random_yank(bool f, int n)
 
         if (n < 0)
 	    goto err;
+        kill_fromClipboard();
         while (n--)
 	{
 	    i = 0;
@@ -600,7 +601,10 @@ int random_yank(bool f, int n)
 		col = getcol(curwp.w_dotp,curwp.w_doto);
 		while ((c=kill_remove(i)) >= 0)
 		{
-		    if (c == '\n')
+		    if (c == '\r')
+		    {
+		    }
+		    else if (c == '\n')
 		    {	int nspaces;
 
 			if (curwp.w_dotp == curbp.b_linep)
@@ -630,7 +634,10 @@ int random_yank(bool f, int n)
 	    else
 		while ((c=kill_remove(i)) >= 0)
 		{
-		    if (c == '\n') {
+		    if (c == '\r')
+		    {
+		    }
+		    else if (c == '\n') {
 			if (random_newline(FALSE, 1) == FALSE)
 			    goto err;
 		    } else {

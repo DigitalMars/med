@@ -274,9 +274,9 @@ int getcol(LINE *dotp, int doto)
     return getcol2(dotp.l_text, doto);
 }
 
-int getcol2(dchar[] dotp, int doto)
+int getcol2(char[] dotp, int doto)
 {   int curcol,i;
-    dchar c;
+    char c;
 
     curcol = 0;
     i = 0;
@@ -321,13 +321,7 @@ int coltodoto(LINE* lp, int col)
 
 static void vtputs(const char[] s, int startcol, int tabbase = 0)
 {
-    foreach (dchar c; s)
-	vtputc(c, startcol, tabbase);
-}
-
-static void vtputs(const dchar[] s, int startcol, int tabbase = 0)
-{
-    foreach (dchar c; s)
+    foreach (char c; s)
 	vtputc(c, startcol, tabbase);
 }
 
@@ -919,7 +913,7 @@ void mlerase()
  */
 int mlyesno(string prompt)
 {
-    dstring buf;
+    string buf;
 
     for (;;)
     {
@@ -945,7 +939,7 @@ int mlyesno(string prompt)
  */
 
 const HISTORY_MAX = 10;
-dstring history[HISTORY_MAX];
+string history[HISTORY_MAX];
 int history_top;
 
 int HDEC(int hi)	{ return (hi == 0) ? HISTORY_MAX - 1 : hi - 1; }
@@ -958,7 +952,7 @@ int HINC(int hi)	{ return (hi == HISTORY_MAX - 1) ? 0 : hi + 1; }
  * lets macros run at full speed. The reply is always terminated by a carriage
  * return. Handle erase, kill, and abort keys.
  */
-int mlreply(string prompt, dstring init, out dstring result)
+int mlreply(string prompt, string init, out string result)
 {
     int dot;		// insertion point in buffer
     int buflen;		// number of characters in buffer
@@ -972,10 +966,10 @@ int mlreply(string prompt, dstring init, out dstring result)
     if (kbdmop != null)
     {
 	int len;
-	while (kbdmop[len])
+	while ((cast(char*)kbdmop)[len])
 	    ++len;
-	result = kbdmop[0 .. len].idup;
-	kbdmop += len + 1;
+	result = (cast(char*)kbdmop)[0 .. len].idup;
+	kbdmop = cast(dchar*)(cast(char*)kbdmop + len + 1);
 	return (len != 0);
     }
 
@@ -986,7 +980,7 @@ int mlreply(string prompt, dstring init, out dstring result)
 
     mpresf = TRUE;
 
-    dchar[] buf;
+    char[] buf;
     auto promptlen = cast(int)prompt.length;
     buf = init.dup;
     buflen = cast(int)buf.length;

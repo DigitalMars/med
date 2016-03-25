@@ -53,7 +53,7 @@ int forwsearch(bool f, int n)
     int tbo;
     int c;
     int s;
-    dchar p0;
+    char p0;
 
     if ((s = readpattern("Search: ",pat)) != TRUE)
         return (s);
@@ -126,8 +126,8 @@ int backsearch(bool f, int n)
     LINE *tlp;
     int tbo;
     int c;
-    immutable(dchar) *epp;
-    immutable(dchar) *pp;
+    immutable(char) *epp;
+    immutable(char) *pp;
     int s;
 
     if ((s = readpattern("Reverse search: ",pat)) != TRUE)
@@ -250,7 +250,7 @@ private int replace(bool query)
     int    retval;
     LINE*  dotpsave;
     int dotosave;
-    dstring withpat;
+    string withpat;
     int stop;
 
     if ((s = readpattern("Replace: ", pat)) != TRUE)
@@ -389,7 +389,7 @@ L1:
  * and there is no old pattern, it is an error. Display the old pattern, in the
  * style of Jeff Lomicka. There is some do-it-yourself control expansion.
  */
-private int readpattern(string prompt, ref dstring pat)
+private int readpattern(string prompt, ref string pat)
 {
     if( Dnoask_search )
 	return( pat.length != 0 );
@@ -423,7 +423,7 @@ static int ifhash(LINE* clp)
 {
     int len;
     int i;
-    static dstring[] hash = ["if","elif","else","endif"];
+    static string[] hash = ["if","elif","else","endif"];
 
     len = cast(int)clp.l_text.length;
     if (len < 3 || lgetc(clp,0) != '#')
@@ -456,7 +456,7 @@ int search_paren(bool f, int n)
     int cbo;
     int len;
     int i;
-    dchar chinc,chdec,ch;
+    char chinc,chdec,ch;
     int count;
     int forward;
     int h;

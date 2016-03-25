@@ -19,7 +19,9 @@ version (Windows)
 
 import std.stdio;
 import core.stdc.stdlib;
+import core.stdc.string;
 import core.sys.windows.windows;
+import core.sys.windows.winuser;
 
 import ed;
 import disp;
@@ -393,6 +395,48 @@ Lret:
 }
 
 extern (C) void popen() { assert(0); }
+
+void setClipboard(const(char)[] s)
+{
+    if (OpenClipboard(null))
+    {
+	EmptyClipboard();
+
+	HGLOBAL hmem = GlobalAlloc(GMEM_MOVEABLE, (s.length + 1) * char.sizeof);
+	if (hmem)
+	{
+	    auto p = cast(char*)GlobalLock(hmem);
+	    memcpy(p, s.ptr, s.length * char.sizeof);
+	    p[s.length] = 0;
+	    GlobalUnlock(hmem);
+
+	    SetClipboardData(CF_TEXT, hmem);
+	}
+	CloseClipboard();
+    }
+}
+
+char[] getClipboard()
+{
+    char[] s = null;
+    if (IsClipboardFormatAvailable(CF_TEXT) &&
+        OpenClipboard(null))
+    { 
+	HANDLE h = GetClipboardData(CF_TEXT);	// CF_UNICODETEXT is UTF-16
+	if (h)
+	{   
+	    auto p = cast(char*)GlobalLock(h); 
+	    if (p)
+	    {
+		size_t length = strlen(p);
+		s = p[0 .. length].dup;
+	    }
+	    GlobalUnlock(h);
+	} 
+	CloseClipboard();
+    }
+    return s; 
+}
 
 }
 

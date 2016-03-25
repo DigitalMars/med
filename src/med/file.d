@@ -48,7 +48,7 @@ int filenext(bool f, int n)
 		return FALSE;
 	if (gargi < gargs.length)	/* if more files on command line */
 	{
-		s = readin(toUTF32(gargs[gargi]));
+		s = readin(gargs[gargi]);
 		gargi++;
 	}
 	else				/* get file name from user	*/
@@ -63,7 +63,7 @@ int filenext(bool f, int n)
 
 int Dinsertfile(bool f, int n)
 {
-    dstring fnamed;
+    string fnamed;
 
     if (mlreply("Insert file: ", null, fnamed) == FALSE)
 	    return FALSE;
@@ -79,7 +79,7 @@ int Dinsertfile(bool f, int n)
 	size_t s;
 	while ((s = fp.readln(line)) != 0)
 	{
-	    foreach(dchar c; line)
+	    foreach(char c; line)
 	    {
 		if (c == '\r' || c == '\n')
 		    break;
@@ -123,7 +123,7 @@ int Dinsertfile(bool f, int n)
 int fileread(bool f, int n)
 {
         int    s;
-        dstring fname;
+        string fname;
 
         if ((s=mlreply("Read file: ", null, fname)) != TRUE)
                 return (s);
@@ -141,19 +141,19 @@ int fileread(bool f, int n)
  */
 int filevisit(bool f, int n)
 {
-        dstring fname;
+        string fname;
 
         return	mlreply("Visit file: ", null, fname) &&
 		window_split(f,n) &&
 		file_readin(fname);
 }
 
-int file_readin(dstring fname)
+int file_readin(string fname)
 {
     LINE   *lp;
     int    i;
     int    s;
-    dstring bname;
+    string bname;
 
     /* If there is an existing buffer with the same file name, simply	*/
     /* switch to it instead of reading the file again.			*/
@@ -244,7 +244,7 @@ int file_readin(dstring fname)
  * to read in a file specified on the command line as
  * an argument.
  */
-int readin(dstring dfname)
+int readin(string dfname)
 {
     auto bp = curbp;                            // Cheap.
     auto b = buffer_clear(bp);  		// Might be old.
@@ -294,7 +294,7 @@ int readin(dstring dfname)
 	    curbp.b_linep.l_bp = lp1;
 	    if (first && line.length >= 3 && line[0] == 0xEF && line[1] == 0xBB && line[2] == 0xBF)
 		line = line[3..$];	// skip BOM
-	    lp1.l_text = cast(dchar[])toUTF32(line[]);
+	    lp1.l_text = line[];
 
 	    first = false;
 	    ++nline;
@@ -334,7 +334,7 @@ int readin(dstring dfname)
  * I suppose that this information could be put in
  * a better place than a line of code.
  */
-dstring makename(dstring fname)
+string makename(string fname)
 {
 	return fname;
 }
@@ -351,7 +351,7 @@ dstring makename(dstring fname)
 int filewrite(bool f, int n)
 {
     int    s;
-    dstring fname;
+    string fname;
 
     if ((s=mlreply("Write file: ", null, fname)) != TRUE)
 	return (s);
@@ -446,7 +446,7 @@ int filemodify(bool f, int n)
  * a macro for this. Most of the grief is error
  * checking of some sort.
  */
-int writeout(dstring dfn)
+int writeout(string dfn)
 {
     auto fn = std.path.expandTilde(toUTF8(dfn));
     /*
@@ -515,7 +515,7 @@ int writeout(dstring dfn)
 int filename(bool f, int n)
 {
         int    s;
-        dstring fname;
+        string fname;
 
         if ((s=mlreply("New File Name: ", null, fname)) == ABORT)
                 return (s);
@@ -535,7 +535,7 @@ int filename(bool f, int n)
  * Write region out to file.
  */
 
-int file_writeregion(dstring dfilename, REGION* region)
+int file_writeregion(string dfilename, REGION* region)
 {
     auto lp = region.r_linep;		/* First line.          */
     auto loffs = region.r_offset;

@@ -97,6 +97,7 @@ int region_kill(bool f, int n)
 	}
 	else
 	    s = line_delete(region.r_size, TRUE);
+	kill_toClipboard();
 	return s;
 err:
 	return FALSE;
@@ -164,6 +165,7 @@ int region_copy(bool f, int n)
 			region.r_size -= i;
                 }
         }
+	kill_toClipboard();
         return (TRUE);
 
 err:	return FALSE;

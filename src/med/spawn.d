@@ -82,7 +82,7 @@ int spawncli(bool f, int n)
 int spawn(bool f, int n)
 {
     int    s;
-    dstring line;
+    string line;
     version (Windows)
     {
         if ((s=mlreply("MS-DOS command: ", null, line)) != TRUE)
@@ -123,10 +123,10 @@ int spawn_pipe(bool f, int n)
     int    s; 	       /* return status from CLI */
     WINDOW *wp;        /* pointer to new window */
     BUFFER *bp;        /* pointer to buffer to zot */
-    static dstring bname = "[DOS]";
+    static string bname = "[DOS]";
 
     static string filnam = "DOS.TMP";
-    dstring line; /* command line sent to shell */
+    string line; /* command line sent to shell */
     string sline;
 
     /* get the command to pipe in */
@@ -174,7 +174,7 @@ version (linux)
 }
 
     /* and read the stuff in */
-    if (file_readin(toUTF32(filnam)) == FALSE)
+    if (file_readin(filnam) == FALSE)
         return(FALSE);
 
     /* and get rid of the temporary file */
@@ -193,12 +193,12 @@ int spawn_filter(bool f, int n)
 {
         int    s;      /* return status from CLI */
         BUFFER *bp;    /* pointer to buffer to zot */
-        dstring line;      /* command line to send to shell */
-        dstring tmpnam;    /* place to store real file name */
-        dstring bname1 = "fltinp";
+        string line;      /* command line to send to shell */
+        string tmpnam;    /* place to store real file name */
+        string bname1 = "fltinp";
 
-        dstring filnam1 = "fltinp";
-        dstring filnam2 = "fltout";
+        string filnam1 = "fltinp";
+        string filnam2 = "fltout";
 
         if (curbp.b_flag & BFRDONLY)   /* if buffer is read-only       */
             return FALSE;               /* fail                         */

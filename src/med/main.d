@@ -71,7 +71,7 @@ BUFFER  *blistp;                        /* Buffer list BUFFER           */
 dchar   kbdm[256] = [CTLX|')'];         /* Macro                        */
 dchar   *kbdmip;                        /* Input  for above             */
 dchar   *kbdmop;                        /* Output for above             */
-dstring pat;                            /* search pattern               */
+string  pat;                            /* search pattern               */
 ubyte   insertmode = 1;                 /* insert/overwrite mode        */
 string  progname;                       /* this program name            */
 
@@ -467,18 +467,18 @@ int main(string[] args)
 {
     bool   f;
     int    n;
-    dstring bname;
+    string bname;
 
     hasmouse = msm_init();                  /* initialize mouse     */
     progname = args[0];                     /* remember program name */
     bname = "main";                         /* Work out the name of */
     if (args.length > 1)                    /* the default buffer.  */
-	    bname = makename(toUTF32(args[1]));
+	    bname = makename(args[1]);
     vtinit();                               /* Displays.            */
     edinit(bname);                          /* Buffers, windows.    */
     if (args.length > 1) {
 	    update();                       /* You have to update   */
-	    readin(toUTF32(args[1]));       /* in case "[New file]" */
+	    readin(args[1]);                /* in case "[New file]" */
     }
     else
 	mlwrite("[No file]");
@@ -570,7 +570,7 @@ int getarg()
  * as an argument, because the main routine may have been told to read in a
  * file by default, and we want the buffer name to be right.
  */
-void edinit(dstring bname)
+void edinit(string bname)
 {
         auto bp = buffer_find(bname, TRUE, 0);             /* First buffer         */
         blistp = buffer_find("[List]", TRUE, BFTEMP); /* Buffer list buffer   */
@@ -858,7 +858,7 @@ int ctrlg(bool f, int n)
 {
         term.t_beep();
         if (kbdmip != null) {
-                kbdm[0] = CMD_ENDMACRO;
+                kbdm[0] = cast(char)CMD_ENDMACRO;
                 kbdmip  = null;
         }
         return ABORT;

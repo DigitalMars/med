@@ -44,8 +44,8 @@ struct  BUFFER {
         LINE*   b_linep;               // Link to the header LINE
         uint    b_nwnd;                // Count of windows on buffer
         ubyte    b_flag;               // Flags
-        dstring  b_fname;              // File name
-        dstring  b_bname;               // Buffer name
+        string  b_fname;              // File name
+        string  b_bname;               // Buffer name
 }
 
 enum
@@ -67,7 +67,7 @@ __gshared BUFFER*[] buffers;
  */
 int usebuffer(bool f, int n)
 {
-    dstring bufn;
+    string bufn;
 
     auto s = mlreply("Use buffer: ", null, bufn);
     if (s != TRUE)
@@ -153,7 +153,7 @@ int killbuffer(bool f, int n)
 {
 	BUFFER *bp;
         int    s;
-        dstring bufn;
+        string bufn;
 
         if ((s=mlreply("Kill buffer: ", null, bufn)) != TRUE)
                 return (s);
@@ -251,8 +251,8 @@ int makelist()
         int    nbytes;
         int    s;
         int    type;
-        dchar  b[6+1];
-        dchar  line[128];
+        char  b[6+1];
+        char  line[128];
 
         blistp.b_flag &= ~BFCHG;               /* Don't complain!      */
         if ((s=buffer_clear(blistp)) != TRUE)         /* Blow old text away   */
@@ -303,7 +303,7 @@ int makelist()
         return (TRUE);                          /* All done             */
 }
 
-void buffer_itoa(dchar[] buf, int width, int num)
+void buffer_itoa(char[] buf, int width, int num)
 {
         buf[width] = 0;                         /* End of string.       */
         while (num >= 10) {                     /* Conditional digits.  */
@@ -322,7 +322,7 @@ void buffer_itoa(dchar[] buf, int width, int num)
  * on the end. Return TRUE if it worked and
  * FALSE if you ran out of room.
  */
-int addline(dstring text)
+int addline(string text)
 {
         LINE   *lp;
 
@@ -369,7 +369,7 @@ int anycb()
  * If bflag specifies a TEMP buffer, then a TEMP buffer can be selected.
  */
 
-BUFFER *buffer_find(dstring bname, int cflag, int bflag)
+BUFFER *buffer_find(string bname, int cflag, int bflag)
 {
     foreach (bp; buffers)
     {
