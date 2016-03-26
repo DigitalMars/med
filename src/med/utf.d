@@ -18,7 +18,7 @@
  * Returns:
  *      decoded character
  */
-dchar decodeUTF8(string s, ref size_t index)
+dchar decodeUTF8(const(char)[] s, ref size_t index)
 {
     const i = index;
     const c = s[i];
@@ -95,7 +95,7 @@ bool isValidDchar(dchar c)
  * Backup in string. The reverse of decodeUTF8().
  */
 
-dchar decodeUTF8back(string s, ref size_t index)
+dchar decodeUTF8back(const(char)[] s, ref size_t index)
 {
     const i = index;
     if (!i)

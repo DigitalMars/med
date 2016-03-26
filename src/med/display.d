@@ -36,6 +36,7 @@ import buffer;
 import disprev;
 import terminal;
 import url;
+import utf;
 
 int max(int a, int b) { return a > b ? a : b; }
 
@@ -229,7 +230,12 @@ void vtmove(int row, int col)
  * column overflow is checked.
  * Startcol is the starting column on the screen.
  */
-void vtputc(int c, int startcol, int tabbase = 0)
+void vtputc(dchar c, int startcol, int tabbase = 0)
+{
+    vtputc(c, startcol, tabbase, attr);
+}
+
+void vtputc(dchar c, int startcol, int tabbase, attr_t attr)
 {
     auto vp = vscreen[vtrow];
 
@@ -242,13 +248,13 @@ void vtputc(int c, int startcol, int tabbase = 0)
     {
 	auto i = hardtabsize - ((vtcol - tabbase) % hardtabsize);
 	do
-            vtputc(config.tabchar,startcol);
+            vtputc(config.tabchar, startcol, tabbase, attr);
 	while (--i);
     }
     else if (SHOWCONTROL && (c < 0x20 || c == 0x7F))
     {
-        vtputc('^',startcol);
-        vtputc(c ^ 0x40,startcol);
+        vtputc('^',startcol, tabbase, attr);
+        vtputc(c ^ 0x40,startcol, tabbase, attr);
     }
     else
     {
@@ -259,7 +265,7 @@ void vtputc(int c, int startcol, int tabbase = 0)
 	}
 	else if (vtcol - startcol >= 0)
 	{
-	    vp[vtcol - startcol].chr = cast(char)c;
+	    vp[vtcol - startcol].chr = c;
 	    vp[vtcol - startcol].attr = attr;
 	}
 	vtcol++;
@@ -275,17 +281,13 @@ int getcol(LINE *dotp, int doto)
     return getcol2(dotp.l_text, doto);
 }
 
-int getcol2(char[] dotp, int doto)
-{   int curcol,i;
-    char c;
-
-    curcol = 0;
-    i = 0;
-
+int getcol2(const(char)[] dotp, int doto)
+{
+    int curcol = 0;
+    size_t i = 0;
     while (i < doto)
     {
-	c = dotp[i] & 0xFF;
-	i++;
+	const c = decodeUTF8(dotp, i);
 
 	if (c == '\t')
 	{
@@ -310,10 +312,15 @@ int getcol2(char[] dotp, int doto)
 
 int coltodoto(LINE* lp, int col)
 {
-    foreach (i; 0 .. llength(lp))
+    size_t len = llength(lp);
+    size_t i = 0;
+    while (i < len)
+    {
 	if (getcol(lp,i) >= col)
 	    return i;
-    return llength(lp);
+	decodeUTF8(lp.l_text, i);
+    }
+    return i;
 }
 
 /***********************
@@ -322,8 +329,11 @@ int coltodoto(LINE* lp, int col)
 
 static void vtputs(const char[] s, int startcol, int tabbase = 0)
 {
-    foreach (char c; s)
+    for (size_t i = 0; i < s.length; )
+    {
+	dchar c = decodeUTF8(s, i);
 	vtputc(c, startcol, tabbase);
+    }
 }
 
 /*
@@ -348,7 +358,6 @@ void vteeol(int startcol)
 void update()
 {
     LINE *lp;
-    int c;
     int k;
     int l_first,l_last;
     int scroll_done_flag;
@@ -505,17 +514,17 @@ Lout:
 
                 vrowflags[i] |= VFCHG;	/* assume this line will change */
                 vtmove(i, 0);			/* start at beg of line	*/
-                for (int j = 0; j < llength(lp); ++j)
+
+		for (size_t j = 0; j < llength(lp); )
 		{
-		    if (attr == config.normattr && inURL(lp.l_text[], j))
-		    {
-			attr = config.urlattr;
-			vtputc(lgetc(lp, j),wp.w_startcol);
-			attr = config.normattr;
-		    }
+		    auto b = inURL(lp.l_text[], j);
+		    dchar c = decodeUTF8(lp.l_text, j);
+		    if (attr == config.normattr && b)
+			vtputc(c, wp.w_startcol, 0, config.urlattr);
 		    else
-			vtputc(lgetc(lp, j),wp.w_startcol);
+			vtputc(c, wp.w_startcol);
 		}
+
                 vteeol(wp.w_startcol);		/* clear remainder of line */
              }
              else if ((wp.w_flag & (WFEDIT | WFHARD)) != 0 ||
@@ -534,7 +543,8 @@ Lout:
 				inmark++;
 			    attr = config.normattr;
 			}
-                        for (int j = 0; 1; ++j)
+
+                        for (size_t j = 0; 1; )
 			{   if (marking)
 			    {	if (column_mode)
 				{
@@ -553,14 +563,13 @@ Lout:
 			    }
 			    if (j >= llength(lp))
 				break;
-			    if (attr == config.normattr && inURL(lp.l_text[], j))
-			    {
-				attr = config.urlattr;
-				vtputc(lgetc(lp, j),wp.w_startcol);
-				attr = config.normattr;
-			    }
+
+			    auto b = inURL(lp.l_text[], j);
+			    dchar c = decodeUTF8(lp.l_text, j);
+			    if (attr == config.normattr && b)
+				vtputc(c, wp.w_startcol, 0, config.urlattr);
 			    else
-				vtputc(lgetc(lp, j),wp.w_startcol);
+				vtputc(c, wp.w_startcol);
 			}
 			if (inmark == 2)
 			    inmark = 0;
