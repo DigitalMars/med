@@ -22,6 +22,7 @@ import buffer;
 import line;
 import main;
 import terminal;
+import xterm;
 import display;
 
 /*

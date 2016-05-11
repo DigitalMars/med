@@ -168,4 +168,3 @@ char[] toUTF8(return out char[4] buf, dchar c) nothrow @nogc @safe
         return buf[0 .. 4];
     }
 }
-

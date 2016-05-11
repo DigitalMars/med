@@ -31,7 +31,7 @@ struct disp_t
     ubyte mode;
     ubyte inited;
     ubyte ega;
-    ubyte reserved[3];
+    ubyte[3] reserved;
     short nowrap;
 
     union

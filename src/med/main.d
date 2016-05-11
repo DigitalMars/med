@@ -54,6 +54,9 @@ import word;
 import spawn;
 import display;
 import terminal;
+import termio;
+import xterm;
+import console;
 import line;
 import mouse;
 
@@ -68,7 +71,7 @@ BUFFER  *curbp;                         /* Current buffer               */
 WINDOW  *curwp;                         /* Current window               */
 BUFFER  *bheadp;                        /* BUFFER listhead              */
 BUFFER  *blistp;                        /* Buffer list BUFFER           */
-dchar   kbdm[256] = [CTLX|')'];         /* Macro                        */
+dchar[256] kbdm = [CTLX|')'];         /* Macro                        */
 dchar   *kbdmip;                        /* Input  for above             */
 dchar   *kbdmop;                        /* Output for above             */
 string  pat;                            /* search pattern               */
@@ -208,6 +211,8 @@ struct KEYTAB {
     int function(bool, int) k_fp; /* Routine to handle it         */
 }
 
+version(Windows)
+{
 immutable KEYTAB[]  keytab =
 [
         /* Definitions common to all versions   */
@@ -360,6 +365,159 @@ immutable KEYTAB[]  keytab =
 	{0x8048,         &help},
 	{0x8049,         &openBrowser},
 ];
+} else {
+immutable KEYTAB[]  keytab =
+[
+        /* Definitions common to all versions   */
+       { CTRL('@'),              &ctrlg}, /*basic_setmark*/
+       { CTRL('A'),              &gotobol},
+       { CTRL('B'),              &backchar},
+       { CTRL('C'),              &quit},
+       { CTRL('D'),              &random_forwdel},
+       { CTRL('E'),              &gotoeol},
+       { CTRL('F'),              &forwchar},
+       { CTRL('G'),              &ctrlg},
+       { CTRL('H'),              &random_backdel},
+       { CTRL('I'),              &random_tab},
+       { CTRL('J'),              &Ddelline},
+       { CTRL('K'),              &random_kill},
+       { CTRL('L'),              &window_refresh},
+       { CTRL('M'),              &random_newline},
+       { CTRL('N'),              &forwline},
+       { CTRL('O'),              &random_openline},
+       { CTRL('P'),              &backline},
+       { CTRL('Q'),              &random_quote},   /* Often unreachable    */
+       { CTRL('R'),              &backsearch},
+       { CTRL('S'),              &forwsearch},     /* Often unreachable    */
+       { CTRL('T'),              &random_twiddle},
+       { CTRL('V'),              &forwpage},
+       { CTRL('W'),              &search_paren},
+       { CTRL('Y'),              &random_yank},
+       { 0x7F,                   &random_backdel},
+/+
+        /* Unused definitions from original microEMACS */
+       { CTRL('C'),              &spawncli},       /* Run CLI in subjob.   */
+       { CTRL('J'),              &random_indent},
+       { CTRL('W'),              &region_kill},
+       { CTRL('Z'),              &quickexit},      /* quick save and exit  */
++/
+       { CTRL('Z'),              &spawncli},      /* Run CLI in subjob.   */
+       { F2KEY,                  &Dsearchagain},
+       { F3KEY,                  &search_paren},
+       { F4KEY,                  &Dsearch},
+       { F5KEY,                  &basic_nextline},
+       { F6KEY,                  &window_next},
+       { F7KEY,                  &basic_setmark},
+       { F8KEY,                  &region_copy},
+       { F9KEY,                  &region_kill},
+       { F10KEY,                 &random_yank},
+	{F11KEY,		 &ctlxe},
+	{F12KEY,		 &macrotoggle},
+        {AltF1KEY,               &display_norm_bg},
+        {AltF2KEY,               &display_norm_fg},
+        {AltF3KEY,               &display_mode_bg},
+        {AltF5KEY,               &display_mark_fg},
+        {AltF6KEY,               &display_mark_bg},
+        {AltF4KEY,               &display_mode_fg},
+        {AltF7KEY,               &display_eol_bg},
+        {AltF9KEY,               &random_decindent},
+        {AltF10KEY,              &random_incindent},
+        {ALTB,                   &buffer_next},
+        {ALTC,                   &main_saveconfig},
+	{ALTX,			 &normexit},
+        {ALTZ,                   &spawn_pipe},
+        {RTKEY,                  &forwchar},
+        {LTKEY,                  &backchar},
+        {DNKEY,                  &forwline},
+        {UPKEY,                  &backline},
+        {InsKEY,                 &toggleinsert},
+        {DelKEY,                 &random_forwdel},
+        {PgUpKEY,                &backpage},
+        {PgDnKEY,                &forwpage},
+        {HOMEKEY,                &window_mvup},
+        {ENDKEY,                 &window_mvdn},
+        {CtrlRTKEY,              &word_forw},
+        {CtrlLFKEY,              &word_back},
+        {CtrlHome,               &gotobob},
+        {CtrlEnd,                &gotoeob},
+
+        /* Commands with a special key value    */
+        {0x8001,         &spawn_pipe},
+        {0x8002,         &spawn_filter},
+        {0x8003,         &random_showcpos},
+        {0x8004,         &ctlxlp},
+        {CMD_ENDMACRO,   &ctlxrp},
+        {0x8006,         &random_decindent},
+        {0x8007,         &random_incindent},
+        {0x8008,         &window_only},
+        {0x8009,         &removemark},
+        {0x800A,         &spawn.spawn},         /* Run 1 command.       */
+        {0x800B,         &window_split},
+        {0x800C,         &usebuffer},
+        {0x800D,         &delwind},
+        {0x800E,         &ctlxe},
+        {0x800F,         &random_setfillcol},
+        {0x8010,         &buffer.killbuffer},
+        {0x8011,         &window_next},
+        {0x8012,         &window_prev},
+        {0x8013,         &random_quote},
+        {0x8014,         &buffer_next},
+        {0x8015,         &window_enlarge},
+        {0x8016,         &listbuffers},
+        {0x8017,         &filename},
+        {0x8018,         &filemodify},
+        {0x8019,         &window_mvdn},
+        {0x801A,         &random_deblank},
+        {0x801B,         &window_mvup},
+        {0x801C,         &fileread},
+        {0x801D,         &filesave},       /* Often unreachable    */
+        {0x801E,         &window_reposition},
+        {0x801F,         &filevisit},
+        {0x8020,         &filewrite},
+        {0x8021,         &swapmark},
+        {0x8022,         &window_shrink},
+
+        {0x8023,         &delbword},
+        {0x8024,         &random_opttab},
+        {0x8025,         &basic_setmark},
+        {0x8026,         &gotoeob},
+        {0x8027,         &gotobob},
+        {0x8028,         &region_copy},
+        {0x8029,         &region_kill},
+        {0x802A,         &word_back},
+        {0x802B,         &capword},
+        {0x802C,         &delfword},
+        {0x802D,         &word_forw},
+        {0x802E,         &misc_lower},
+        {0x802F,         &queryreplacestring},
+        {0x8030,         &replacestring},
+        {0x8031,         &misc_upper},
+        {0x8032,         &backpage},
+        {0x8033,         &word_select},
+        {0x8034,         &Dadvance},
+        {0x8035,         &Dbackup},
+        {0x8036,         &random_deblank},
+
+        {0x8037,         &Dinsertdate},
+        {0x8038,         &Dinsertfile},
+        {0x8039,         &gotoline},
+        {0x803A,         &fileunmodify},
+        {0x803B,         &filenext},
+        {0x803C,         &quit},
+        {0x803D,         &normexit},
+        {0x803E,         &Dundelline},
+        {0x803F,         &Dsearch},
+        {0x8040,         &Dundelword},
+        {0x8041,         &random_undelchar},
+        {0x8042,         &random_openline},
+        {0x8043,         &random_kill},
+        {0x8044,         &region_togglemode},
+	{0x8045,	 &Dcppcomment},
+	{0x8046,	 &random_hardtab},
+	{0x8047,	 &word_wrap_line},
+	{0x8049,         &openBrowser},
+];
+}
 
 /* Translation table from 2 key sequence to single value        */
 immutable ushort[2][] altf_tab =
@@ -386,6 +544,7 @@ immutable ushort[2][] altf_tab =
         [InsKEY,         0x8042],         /* random_openline      */
 ];
 
+version (Windows) {
 immutable ushort[2][] esc_tab =
 [
         ['.',            0x8025],         /* basic_setmark        */
@@ -418,6 +577,39 @@ immutable ushort[2][] esc_tab =
         [DNKEY,          0x8034],         // Dadvance
         [UPKEY,          0x8035],         // Dbackup
 ];
+} else {
+  immutable ushort[2][] esc_tab =
+[
+        ['.',            0x8025],         /* basic_setmark        */
+        ['>',            0x8026],         /* gotoeob              */
+        [ENDKEY,         0x8026],         /* gotoeob              */
+        ['<',            0x8027],         /* gotobob              */
+        [HOMEKEY,        0x8027],         /* gotobob              */
+        ['8',            0x8028],         /* region_copy          */
+        ['9',            0x8029],         /* region_kill          */
+        ['B',            0x802A],         /* word_back            */
+        ['C',            0x802B],         /* capword              */
+        ['D',            0x802C],         /* delfword             */
+        ['E',            0x8049],         // openBrowser
+        ['F',            0x802D],         /* word_forw            */
+        ['H',            0x8023],         /* delbword             */
+        ['I',            0x8024],         /* random_opttab        */
+	['J',		 0x803E],		// Dundelline
+        ['L',            0x802E],         /* misc_lower           */
+        ['N',            0x8019],         /* window_mvdn          */
+        ['P',            0x801B],         /* window_mvup          */
+        ['Q',            0x802F],         /* queryreplacestring   */
+        ['R',            0x8030],         /* replacestring        */
+        ['T',            0x8044],         /* region_togglemode    */
+        ['U',            0x8031],         /* misc_upper           */
+        ['V',            0x8032],         /* backpage             */
+        ['W',            0x8033],         /* word_select          */
+        ['X',            0x8021],         /* swapmark             */
+        ['Z',            0x8022],         /* window_shrink        */
+        [DNKEY,          0x8034],         // Dadvance
+        [UPKEY,          0x8035],         // Dbackup
+];
+}
 
 immutable ushort[2][] ctlx_tab =
 [
@@ -454,7 +646,7 @@ struct CMDTAB
     immutable ushort[2][]  kt;    /* which translation table              */
 };
 
-CMDTAB cmdtab[] =
+CMDTAB[] cmdtab =
 [
     {   CTLX,   ctlx_tab },
     {   META,   esc_tab  },
@@ -516,7 +708,6 @@ int main(string[] args)
         }
         execute(0, c, f, n);                       /* Do it.               */
     }
-    return 0;
 }
 
 /******************************
@@ -593,7 +784,7 @@ void edinit(string bname)
         wp.w_ntrows = term.t_nrow-2;           /* -1 for mode line, -1 for minibuffer  */
         wp.w_flag  = WFMODE|WFHARD;            /* Full.                */
 }
-        
+
 /*
  * This is the general command execution routine. It handles the fake binding
  * of all the keys to "self-insert". It also clears out the "thisflag" word,
@@ -903,4 +1094,3 @@ int toggleinsert(bool f, int n)
     term.t_setcursor(insertmode);
     return true;
 }
-

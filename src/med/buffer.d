@@ -251,8 +251,8 @@ int makelist()
         int    nbytes;
         int    s;
         int    type;
-        char  b[6+1];
-        char  line[128];
+        char[6+1] b;
+        char[128] line;
 
         blistp.b_flag &= ~BFCHG;               /* Don't complain!      */
         if ((s=buffer_clear(blistp)) != TRUE)         /* Blow old text away   */

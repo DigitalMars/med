@@ -72,6 +72,7 @@ bool ffreadonly(string name)
     }
     else
     {
+      import core.sys.posix.sys.stat;
 	return exists && (a & S_IWUSR) == 0;
     }
 }

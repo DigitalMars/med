@@ -23,6 +23,7 @@ import window;
 import random;
 import line;
 import terminal;
+import xterm;
 import region;
 import basic;
 import display;

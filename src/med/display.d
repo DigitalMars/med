@@ -34,7 +34,10 @@ import window;
 import main;
 import buffer;
 import disprev;
+import console;
+import termio;
 import terminal;
+import xterm;
 import url;
 import utf;
 
@@ -313,12 +316,13 @@ int getcol2(const(char)[] dotp, int doto)
 int coltodoto(LINE* lp, int col)
 {
     size_t len = llength(lp);
-    size_t i = 0;
+    int i = 0;
     while (i < len)
     {
-	if (getcol(lp,i) >= col)
+	if (getcol(lp, i) >= col)
 	    return i;
-	decodeUTF8(lp.l_text, i);
+	ulong j = i;
+	decodeUTF8(lp.l_text, j);
     }
     return i;
 }
@@ -589,7 +593,7 @@ else
             wp.w_flag  = 0;
             wp.w_force = 0;
 }
-        } /* if any update flags on */           
+        } /* if any update flags on */
 debug (WFDEBUG)
 {
         modeline(wp);
@@ -963,7 +967,7 @@ int mlyesno(string prompt)
  */
 
 const HISTORY_MAX = 10;
-string history[HISTORY_MAX];
+string[HISTORY_MAX] history;
 int history_top;
 
 int HDEC(int hi)	{ return (hi == 0) ? HISTORY_MAX - 1 : hi - 1; }
@@ -1182,7 +1186,8 @@ int mlreply(string prompt, string init, out string result)
 	    //case InsKEY:
 	    case 0x11:			/* ^Q, quote next		*/
 	        c = term.t_getchar();
-            default:
+	        goto default;
+	    default:
 		if (c < 0 || c >= 0x7F)
 		{   // Error
 		    ctrlg(FALSE, 0);

@@ -19,6 +19,7 @@ import line;
 import main;
 import terminal;
 import display;
+import xterm;
 import word;
 
 //#include	<msmouse.h>
