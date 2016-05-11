@@ -22,6 +22,7 @@ import core.stdc.stdlib;
 import std.stdio;
 import std.path;
 import std.string;
+import std.file;
 import std.utf;
 
 import ed;
@@ -164,7 +165,7 @@ int file_readin(string fname)
 	{
 	    /* If the current buffer now becomes undisplayed		*/
 	    if (--curbp.b_nwnd == 0)
-	    {   
+	    {
 		curbp.b_dotp  = curwp.w_dotp;
 		curbp.b_doto  = curwp.w_doto;
 		curbp.b_markp = curwp.w_markp;
@@ -173,7 +174,7 @@ int file_readin(string fname)
 	    curbp = bp;
 	    curwp.w_bufp  = bp;
 	    if (bp.b_nwnd++ == 0)	/* if buffer not already displayed */
-	    {   
+	    {
 		curwp.w_dotp  = bp.b_dotp;
 		curwp.w_doto  = bp.b_doto;
 		curwp.w_markp = bp.b_markp;
@@ -183,9 +184,9 @@ int file_readin(string fname)
 	    {
 		/* Set dot to be at place where other window has it	*/
 		foreach (wp; windows)
-		{   
+		{
 		    if (wp!=curwp && wp.w_bufp==bp)
-		    {   
+		    {
 			curwp.w_dotp  = wp.w_dotp;
 			curwp.w_doto  = wp.w_doto;
 			curwp.w_markp = wp.w_markp;
@@ -570,4 +571,3 @@ int file_writeregion(string dfilename, REGION* region)
 	return FALSE;
     }
 }
-

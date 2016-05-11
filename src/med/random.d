@@ -25,6 +25,7 @@ import region;
 import display;
 import basic;
 import terminal;
+import xterm;
 
 int     tabsize;                        /* Tab size (0: use real tabs)  */
 

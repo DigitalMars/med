@@ -153,7 +153,9 @@ struct TERM
     {
 	// Get size of terminal
 	winsize ws;
+	import core.sys.posix.sys.ioctl;
 	ioctl(1, TIOCGWINSZ, &ws);
+
 	//printf("Columns: %d\tRows: %d\n", ws.ws_col, ws.ws_row);
 	term.t_ncol = ws.ws_col;
 	term.t_nrow = ws.ws_row;

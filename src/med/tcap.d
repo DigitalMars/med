@@ -51,7 +51,7 @@ enum
     ESC     = 0x1B,
 }
 
-char tcapbuf[2048];
+char[2048] tcapbuf;
 static const(char) *p;	/* roving pointer into tcapbuf[]	*/
 const(char)*
 	CM,
@@ -206,7 +206,7 @@ struct TERM
 	LONGKEY* lkp,tmpp;
 
 	static int backlen;
-	static char backc[16];
+	static char[16] backc;
 
 	/*
 	 * If there was a previously almost complete LONGKEY sequence
@@ -488,7 +488,7 @@ static void build_one_long(const(char)* s, int keyval)
 		}
 		else
 		{
-			tmpp = cast(LONGKEY *)malloc( 
+			tmpp = cast(LONGKEY *)malloc(
 				LONGKEY.sizeof * ++i );
 			while( i-- )
 			{

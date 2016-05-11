@@ -34,6 +34,7 @@ import main;
 import buffer;
 import basic;
 import terminal;
+import xterm;
 
 enum CASESENSITIVE = true;	/* TRUE means case sensitive		*/
 
@@ -203,16 +204,17 @@ fail:;
 
 bool eq(int bc, int pc)
 {
-    if (CASESENSITIVE)
+    static if (CASESENSITIVE)
 	return bc == pc;
-
-    if (bc>='a' && bc<='z')
+    else {
+      if (bc>='a' && bc<='z')
         bc -= 0x20;
 
-    if (pc>='a' && pc<='z')
+      if (pc>='a' && pc<='z')
         pc -= 0x20;
 
-    return (bc == pc);
+      return (bc == pc);
+    }
 }
 
 /*********************************
@@ -325,6 +327,7 @@ private int replace(bool query)
 		    /*case 'R':*/	/* enter recursive edit		*/
 		    case '!':		/* change rest w/o asking	*/
 			query = FALSE;
+			goto case;
 			/* FALL-THROUGH */
 		    case ' ':		/* change and continue to next	*/
 			break;

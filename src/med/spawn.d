@@ -37,6 +37,7 @@ import display;
 import main;
 import file;
 import terminal;
+import xterm;
 
 
 
@@ -102,6 +103,7 @@ int spawn(bool f, int n)
         term.t_flush();
         term.t_close();                              /* stty to old modes    */
         core.stdc.stdlib.system(toUTF8(line).toStringz());
+        import core.sys.posix.unistd;
         sleep(2);
         term.t_open();
         printf("[End]");                        /* Pause.               */
@@ -135,7 +137,7 @@ int spawn_pipe(bool f, int n)
 
     /* get rid of the command output buffer if it exists */
     if ((bp=buffer_find(bname, FALSE, BFTEMP)) != null) /* if buffer exists */
-    {   
+    {
         /* If buffer is displayed, try to move it off screen            */
         /* (can't remove an on-screen buffer)                           */
         if (bp.b_nwnd)                 /* if buffer is displayed       */
@@ -256,5 +258,3 @@ ret:
         remove(toUTF8(filnam2));
         return s;
 }
-
-

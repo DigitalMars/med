@@ -84,7 +84,7 @@ int ttkeysininput()
 {
 	int n;
 	ioctl(0, FIONREAD, &n);
-        return n != 0;
+	return n != 0;
 }
 
 /******************************
