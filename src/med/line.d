@@ -53,6 +53,19 @@ char lputc(LINE* lp, int n, char c) { return lp.l_text[n] = c; }
 int llength(LINE* lp) { return cast(int)lp.l_text.length; }
 char lgetc(LINE* lp, int n) { return lp.l_text[n]; }
 
+bool empty(LINE* lp, int n) { return lp == curbp.b_linep; }
+int  front(LINE* lp, int n) { return n == llength(lp) ? '\n' : lgetc(lp, n); }
+
+void popFront(ref LINE* lp, ref int n)
+{
+    if (n < llength(lp))
+        n += 1;
+    else
+    {
+	lp = lforw(lp);
+	n = 0;
+    }
+}
 
 /*
  * This routine allocates a block of memory large enough to hold a LINE

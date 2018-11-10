@@ -22,6 +22,7 @@
 module search;
 
 import core.stdc.stdio;
+import core.stdc.ctype;
 import std.string;
 import std.ascii;
 import std.uni;
@@ -39,6 +40,14 @@ enum CASESENSITIVE = true;	/* TRUE means case sensitive		*/
 
 int Dnoask_search;
 
+/* Returns:
+ *	true if word character
+ */
+bool isWordChar(char c)
+{
+    return isalnum(c) || c == '_';
+}
+
 /*
  * Search forward. Get a search string from the user, and search, beginning at
  * ".", for the string. If found, reset the "." to be just after the match
@@ -46,57 +55,69 @@ int Dnoask_search;
  */
 int forwsearch(bool f, int n)
 {
-    LINE* clp;
-    int cbo;
-    int len;
-    LINE* tlp;
-    int tbo;
-    int c;
     int s;
-    char p0;
-
     if ((s = readpattern("Search: ",pat)) != TRUE)
         return (s);
-    if (pat.length == 0)
-	goto Lnotfound;
-    p0 = pat[0];
 
-    clp = curwp.w_dotp;		/* get pointer to current line	*/
-    cbo = curwp.w_doto;		/* and offset into that line	*/
-
-    len = llength(clp);
-    while (clp != curbp.b_linep)	/* while not end of buffer	*/
+    static bool notFound()
     {
-	while (cbo < len)
-	    if (eq(lgetc(clp,cbo++),p0))
-		goto match1;
-	cbo = 0;
-	clp = lforw(clp);
-	len = llength(clp);
-	if (!eq('\n',p0))
-		continue;
+	mlwrite("Not found");
+	return FALSE;
+    }
 
-    match1:
+    bool word;
+    string pattern = pat;	// pattern to match
+    if (pattern.length == 0)
+	return notFound();
+    word = pattern[0] == ('D' & 0x1F);  // ^D means only match words
+    if (word)
+    {
+	pattern = pattern[1 .. $];
+	if (pattern.length == 0)
+	    return notFound();
+    }
+
+    char p0 = pattern[0];		// first char to match
+
+    LINE* clp = curwp.w_dotp;		/* get pointer to current line	*/
+    int cbo = curwp.w_doto;		/* and offset into that line	*/
+
+    char lastc;
+
+again:
+    while (!empty(clp, cbo))		/* while not end of buffer	*/
+    {
+	int c = front(clp, cbo);
+	popFront(clp, cbo);
+	if (!eq(c, p0))
 	{
-            tlp = clp;
-            tbo = cbo;			/* remember where start of pattern */
+	    lastc = cast(char)c;
+	    continue;
+	}
+	if (word && lastc != lastc.init && isWordChar(lastc))
+	    continue;
+	lastc = cast(char)c;
 
-	    foreach (pc; pat[1 .. $])
+	{
+            LINE* tlp = clp;
+            int tbo = cbo;			/* remember where start of pattern */
+
+	    foreach (pc; pattern[1 .. $])
 	    {
-                if (tlp == curbp.b_linep)	/* if reached end of buffer */
-                    goto fail;
+		if (empty(tlp, tbo))
+		    continue again;
+		c = front(tlp, tbo);
+		popFront(tlp, tbo);
 
-                if (tbo == llength(tlp))
-                    {
-                    tlp = lforw(tlp);
-                    tbo = 0;
-                    c = '\n';
-                    }
-                else
-                    c = lgetc(tlp, tbo++);
+		lastc = cast(char)c;
 
                 if (!eq(c, pc))
-                    goto fail;
+                    continue again;
+	    }
+
+	    if (word && !empty(tlp, tbo) && isWordChar(cast(char)front(tlp, tbo)))
+	    {
+		continue again;
 	    }
 
 	    /* We've found it. It starts at clp,cbo and ends before tlp,tbo */
@@ -105,12 +126,9 @@ int forwsearch(bool f, int n)
             curwp.w_flag |= WFMOVE;
             return (TRUE);
 	}
-fail:;
     }
 
-Lnotfound:
-    mlwrite("Not found");
-    return (FALSE);
+    return notFound();
 }
 
 /*
