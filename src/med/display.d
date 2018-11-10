@@ -22,6 +22,7 @@
 
 module display;
 
+import core.stdc.stdarg;
 import core.stdc.stdio;
 import core.stdc.string;
 
@@ -866,7 +867,7 @@ void modeline(WINDOW* wp)
     else
         vtputc('-',0);
 
-    if (kbdmip)
+    if (kbdmip)                  // if inputting a macro
         vtputc('M',0);
     else
         vtputc(' ',0);
@@ -1218,6 +1219,35 @@ void mlwrite(string buffer)
     vtmove(term.t_nrow - 1, 0);
     attr = config.normattr;
     vtputs(buffer,0);
+
+    savecol = vtcol;
+    vteeol(0);
+    vtcol = savecol;
+    mlchange();
+    mpresf = TRUE;
+}
+
+extern (C) void mlwrite(const(char)* fmt, ...)
+{
+    int c;
+    char[200+1] buffer = void;
+    char *p;
+    va_list ap;
+    int savecol;
+
+    va_start(ap, fmt);
+    auto n = vsnprintf(buffer.ptr, buffer.length, fmt, ap);
+    va_end(ap);
+
+    // http://www.cplusplus.com/reference/cstdio/vsnprintf/
+    if (n <= 0)
+	n = 0;
+    else if (n >= buffer.length)
+	n = buffer.length - 1;
+
+    vtmove(term.t_nrow - 1, 0);
+    attr = config.normattr;
+    vtputs(buffer[0 .. n],0,0);
 
     savecol = vtcol;
     vteeol(0);

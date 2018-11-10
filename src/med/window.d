@@ -251,7 +251,7 @@ int window_split(bool f, int n)
         WINDOW *wp2;
 
         if (curwp.w_ntrows < 3) {
-                mlwrite(format("Cannot split a %d line window", curwp.w_ntrows));
+                mlwrite("Cannot split a %d line window", curwp.w_ntrows);
                 return (FALSE);
         }
 	auto wp = new WINDOW;

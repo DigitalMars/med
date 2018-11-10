@@ -48,9 +48,9 @@ int random_setfillcol(bool f, int n)
 int random_showcpos(bool f, int n)
 {
         LINE   *clp;
-	long   numchars;
-	int    cbo;
-	long   thischar;
+	int     numchars;
+	int     cbo;
+	int    thischar;
 	int    charatdot;
 	int    ratio;
 	int    col;
@@ -85,10 +85,10 @@ int random_showcpos(bool f, int n)
 	col = getcol(curwp.w_dotp,curwp.w_doto); /* Get real column	*/
         ratio = 0;                              /* Ratio before dot.    */
         if (numchars != 0)
-                ratio = cast(int)((100L*thischar) / numchars);
-        mlwrite(format("row=%s col=%s CH=0x%x .=%s (%s%% of %s) line %s of %s",
+                ratio = cast(int)((100*thischar) / numchars);
+        mlwrite("row=%d col=%d CH=0x%x .=%d (%d%% of %d) line %d of %d",
                 currow+1, col+1, charatdot, thischar,
-		ratio, numchars, thisline, numlines - 1));
+		ratio, numchars, thisline, numlines - 1);
         return (TRUE);
 }
 

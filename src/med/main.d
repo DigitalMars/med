@@ -555,7 +555,7 @@ int getarg()
             }
             n = 10*n + c - '0';
         }
-        mlwrite(format("Arg: %d", (mflag >=0) ? n : (n ? -n : -1)));
+        mlwrite("Arg: %d", (mflag >=0) ? n : (n ? -n : -1));
     }
     /*
      * Make arguments preceded by a minus sign negative and change

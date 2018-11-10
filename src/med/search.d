@@ -374,7 +374,7 @@ abortreplace:
     curwp.w_dotp = dotpsave;
     curwp.w_doto = dotosave;		/* back to original position	*/
     curwp.w_flag |= WFMOVE;
-    mlwrite(format("%d replacements done",numreplacements));
+    mlwrite("%d replacements done", numreplacements);
     return retval;
 
 L1:

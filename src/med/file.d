@@ -95,7 +95,7 @@ int Dinsertfile(bool f, int n)
 	if (nline == 1)
 	    mlwrite("[Read 1 line]");
 	else
-	    mlwrite(format("[Read %d lines]", nline));
+	    mlwrite("[Read %d lines]", nline);
 	return TRUE;
     }
     catch (Exception e)
@@ -304,7 +304,7 @@ int readin(string dfname)
 	if (nline == 1)
 	    mlwrite("[Read 1 line]");
 	else
-	    mlwrite(format("[Read %d lines]", nline));
+	    mlwrite("[Read %d lines]", nline);
 	return TRUE;
     }
     catch (Exception e)
@@ -494,7 +494,7 @@ int writeout(string dfn)
 	if (nline == 1)
 	    mlwrite("[Wrote 1 line]");
 	else
-	    mlwrite(format("[Wrote %d lines]", nline));
+	    mlwrite("[Wrote %d lines]", nline);
 	return TRUE;
     }
     catch (Exception e)
@@ -562,7 +562,7 @@ int file_writeregion(string dfilename, REGION* region)
 	if (nline == 1)
 	    mlwrite("[Wrote 1 line]");
 	else
-	    mlwrite(format("[Wrote %d lines]", nline));
+	    mlwrite("[Wrote %d lines]", nline);
 	return TRUE;
     }
     catch (Exception e)
