@@ -67,6 +67,19 @@ void popFront(ref LINE* lp, ref int n)
     }
 }
 
+bool atFront(LINE* lp, int n) { return n == 0 && lback(lp) == curbp.b_linep; }
+
+void popBack(ref LINE* lp, ref int n)
+{
+    if (n)
+	n -= 1;
+    else
+    {
+	lp = lback(lp);
+	n = llength(lp);
+    }
+}
+
 /*
  * This routine allocates a block of memory large enough to hold a LINE
  * containing "used" characters. The block is always rounded up a bit. Return

@@ -139,79 +139,50 @@ again:
  */
 int backsearch(bool f, int n)
 {
-    LINE *clp;
-    int cbo;
-    LINE *tlp;
-    int tbo;
-    int c;
-    immutable(char) *epp;
-    immutable(char) *pp;
     int s;
-
     if ((s = readpattern("Reverse search: ",pat)) != TRUE)
         return (s);
 
-    for (epp = &pat[0]; epp[1] != 0; ++epp)
-    {
-    }
+    immutable(char)* epp = &pat[$ - 1];
 
-    clp = curwp.w_dotp;
-    cbo = curwp.w_doto;
+    LINE* clp = curwp.w_dotp;
+    int cbo = curwp.w_doto;
 
+again:
     for (;;)
-        {
-        if (cbo == 0)
-            {
-            clp = lback(clp);
-
-            if (clp == curbp.b_linep)
-                {
-                mlwrite("Not found");
-                return (FALSE);
-                }
-
-            cbo = llength(clp)+1;
-            }
-
-        if (--cbo == llength(clp))
-            c = '\n';
-        else
-            c = lgetc(clp, cbo);
+    {
+	if (atFront(clp, cbo))
+	{
+	    mlwrite("Not found");
+	    return (FALSE);
+	}
+	popBack(clp, cbo);
+	int c = front(clp, cbo);
 
         if (eq(c, *epp))
-            {
-            tlp = clp;
-            tbo = cbo;
-            pp  = epp;
+	{
+            LINE* tlp = clp;
+            int tbo = cbo;
+            auto pp  = epp;
 
             while (pp != &pat[0])
-                {
-                if (tbo == 0)
-                    {
-                    tlp = lback(tlp);
-                    if (tlp == curbp.b_linep)
-                        goto fail;
-
-                    tbo = llength(tlp)+1;
-                    }
-
-                if (--tbo == llength(tlp))
-                    c = '\n';
-                else
-                    c = lgetc(tlp, tbo);
+	    {
+		if (atFront(tlp, tbo))
+		    continue again;
+		popBack(tlp, tbo);
+		c = front(tlp, tbo);
 
                 if (!eq(c, *--pp))
-                    goto fail;
-                }
+                    continue again;
+	    }
 
             curwp.w_dotp  = tlp;
             curwp.w_doto  = tbo;
             curwp.w_flag |= WFMOVE;
             return (TRUE);
-            }
-fail:;
-        }
-	assert(0);
+	}
+    }
+    assert(0);
 }
 
 /*
