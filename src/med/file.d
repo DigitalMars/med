@@ -23,6 +23,7 @@ import std.stdio;
 import std.path;
 import std.string;
 import std.utf;
+import std.file;
 
 import ed;
 import main;
@@ -465,7 +466,7 @@ int writeout(string dfn)
     {
 	std.file.remove(backupname);	// Remove old backup file
     }
-    catch
+    catch (Throwable o)
     {
     }
 

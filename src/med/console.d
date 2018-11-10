@@ -187,7 +187,7 @@ void updateline(int row,attchar_t[] buffer,attchar_t[] physical)
     int col;
     int numcols;
     CHAR_INFO *psb;
-    CHAR_INFO sbbuf[256];
+    CHAR_INFO[256] sbbuf;
     CHAR_INFO *sb;
     COORD sbsize;
     static COORD sbcoord;
@@ -281,6 +281,8 @@ extern (C) int msm_getstatus(uint *pcol,uint *prow)
 	{
 	    case MOUSE_EVENT:
 		mstat_update(&buf.MouseEvent);
+		goto default;
+
 	    default:
 	    Ldiscard:
 		if (lookahead)
@@ -385,6 +387,8 @@ int ttkeysininput()
 	{
 	    case MOUSE_EVENT:
 		mstat_update(&buf.MouseEvent);
+		goto default;
+
 	    default:
 	    Ldiscard:
 		if (lookahead)

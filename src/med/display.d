@@ -963,7 +963,7 @@ int mlyesno(string prompt)
  */
 
 const HISTORY_MAX = 10;
-string history[HISTORY_MAX];
+string[HISTORY_MAX] history;
 int history_top;
 
 int HDEC(int hi)	{ return (hi == 0) ? HISTORY_MAX - 1 : hi - 1; }
@@ -1182,6 +1182,8 @@ int mlreply(string prompt, string init, out string result)
 	    //case InsKEY:
 	    case 0x11:			/* ^Q, quote next		*/
 	        c = term.t_getchar();
+		goto default;
+
             default:
 		if (c < 0 || c >= 0x7F)
 		{   // Error

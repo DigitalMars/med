@@ -51,7 +51,7 @@ enum
     ESC     = 0x1B,
 }
 
-char tcapbuf[2048];
+char[2048] tcapbuf;
 static const(char) *p;	/* roving pointer into tcapbuf[]	*/
 const(char)*
 	CM,
@@ -205,8 +205,8 @@ struct TERM
 	int c,i;
 	LONGKEY* lkp,tmpp;
 
-	static int backlen;
-	static char backc[16];
+	__gshared int backlen;
+	__gshared char[16] backc;
 
 	/*
 	 * If there was a previously almost complete LONGKEY sequence

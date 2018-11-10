@@ -325,7 +325,8 @@ private int replace(bool query)
 		    /*case 'R':*/	/* enter recursive edit		*/
 		    case '!':		/* change rest w/o asking	*/
 			query = FALSE;
-			/* FALL-THROUGH */
+			goto case;
+
 		    case ' ':		/* change and continue to next	*/
 			break;
 		    case '.':		/* change and stop		*/

@@ -179,8 +179,12 @@ int forwline(bool f, int n)
 
 int basic_nextline(bool f, int n)
 {
-    return (curwp.w_doto == 0 || gotobol(FALSE,1)) &&
-	(lastflag &= ~CFCPCN, forwline(f,n));
+    if (curwp.w_doto == 0 || gotobol(FALSE,1))
+    {
+	lastflag &= ~CFCPCN;
+	return forwline(f,n);
+    }
+    return FALSE;
 }
 
 /*
@@ -223,7 +227,7 @@ int gotoline(bool f, int n)
 	    gotobob(f, n);			/* move to beginning of buffer	*/
 	    return forwline(f, num - 1);
 	}
-	catch
+	catch (Throwable o)
 	{
 	}
 	return FALSE;

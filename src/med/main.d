@@ -68,7 +68,7 @@ BUFFER  *curbp;                         /* Current buffer               */
 WINDOW  *curwp;                         /* Current window               */
 BUFFER  *bheadp;                        /* BUFFER listhead              */
 BUFFER  *blistp;                        /* Buffer list BUFFER           */
-dchar   kbdm[256] = [CTLX|')'];         /* Macro                        */
+dchar[256] kbdm = [CTLX|')'];           /* Macro                        */
 dchar   *kbdmip;                        /* Input  for above             */
 dchar   *kbdmop;                        /* Output for above             */
 string  pat;                            /* search pattern               */
@@ -454,7 +454,7 @@ struct CMDTAB
     immutable ushort[2][]  kt;    /* which translation table              */
 };
 
-CMDTAB cmdtab[] =
+CMDTAB[3] cmdtab =
 [
     {   CTLX,   ctlx_tab },
     {   META,   esc_tab  },
