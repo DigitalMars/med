@@ -273,8 +273,19 @@ private int replace(bool query)
 
     if ((s = readpattern("Replace: ", pat)) != TRUE)
 	return (s);			/* must have search pattern	*/
-    if (pat.length == 0)
+
+    bool word;
+    string pattern = pat;	// pattern to match
+    if (pattern.length == 0)
 	return FALSE;
+    word = pattern[0] == ('D' & 0x1F);  // ^D means only match words
+    if (word)
+    {
+	pattern = pattern[1 .. $];
+	if (pattern.length == 0)
+	    return FALSE;
+    }
+
     readpattern ("With: ", withpat);	/* replacement pattern can be null */
 
     stop = FALSE;
@@ -284,43 +295,49 @@ private int replace(bool query)
     dotosave = curwp.w_doto;		/* save original position	*/
     clp = curwp.w_dotp;			/* get pointer to current line	 */
     cbo = curwp.w_doto;			/* and offset into that line	 */
-    auto p0 = pat[0];
 
-    while (clp != curbp . b_linep)	/* while not end of buffer	 */
+    auto p0 = pattern[0];
+
+    char lastc;
+
+again:
+    while (!empty(clp, cbo))		/* while not end of buffer	 */
     {
 	/* Compute c, the character at the current position		 */
-	if (cbo >= llength (clp))	/* if at end of line		 */
-	{
-	    clp = lforw (clp);
-	    cbo = 0;
-	    c = '\n';			/* then current char is a newline */
-	}
-	else
-	    c = lgetc (clp, cbo++);	/* else get char from line	 */
+	c = front(clp, cbo);
+	popFront(clp, cbo);
 
-	if (eq (c, p0))			/* if char matches start of pattern */
+	if (!eq(c, p0))
+	{
+	    lastc = cast(char)c;
+	    continue;
+	}
+	if (word && lastc != lastc.init && isWordChar(lastc))
+	    continue;
+	lastc = cast(char)c;
+
 	{
 	    tlp = clp;
 	    tbo = cbo;			/* remember where start of pattern */
 	    int i = 1;
 
-	    foreach (pc; pat[1 .. $])
+	    foreach (pc; pattern[1 .. $])
 	    {
-		if (tlp == curbp . b_linep)/* if reached end of buffer */
-		    goto fail;
+		if (empty(tlp, tbo))
+		    continue again;
+		c = front(tlp, tbo);
+		popFront(tlp, tbo);
 
-		if (tbo == llength (tlp))
-		{
-		    tlp = lforw (tlp);
-		    tbo = 0;
-		    c = '\n';
-		}
-		else
-		    c = lgetc (tlp, tbo++);
+		lastc = cast(char)c;
 
-		if (!eq (c, pc))
-		    goto fail;
+		if (!eq(c, pc))
+		    continue again;
 		i++;
+	    }
+
+	    if (word && !empty(tlp, tbo) && isWordChar(cast(char)front(tlp, tbo)))
+	    {
+		continue again;
 	    }
 
 	    /* We've found it. It starts before clp,cbo and ends	*/
@@ -339,7 +356,8 @@ private int replace(bool query)
 		switch (getkey())
 		{
 		    case 'n':		/* don't change, but continue	*/
-			goto fail;
+			continue again;
+
 		    /*case 'R':*/	/* enter recursive edit		*/
 		    case '!':		/* change rest w/o asking	*/
 			query = FALSE;
@@ -385,7 +403,6 @@ private int replace(bool query)
 	    if (stop)
 		break;
 	}
-fail:	;
     }
 
 abortreplace:
