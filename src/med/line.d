@@ -80,6 +80,12 @@ void popBack(ref LINE* lp, ref int n)
     }
 }
 
+int peekBack(LINE* lp, int n)
+{
+    popBack(lp, n);
+    return front(lp, n);
+}
+
 /*
  * This routine allocates a block of memory large enough to hold a LINE
  * containing "used" characters. The block is always rounded up a bit. Return

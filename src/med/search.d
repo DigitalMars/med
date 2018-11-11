@@ -37,6 +37,7 @@ import basic;
 import terminal;
 
 enum CASESENSITIVE = true;	/* TRUE means case sensitive		*/
+enum WORDPREFIX = 'D' & 0x1F;	// prefix to trigger word search
 
 int Dnoask_search;
 
@@ -69,7 +70,7 @@ int forwsearch(bool f, int n)
     string pattern = pat;	// pattern to match
     if (pattern.length == 0)
 	return notFound();
-    word = pattern[0] == ('D' & 0x1F);  // ^D means only match words
+    word = pattern[0] == WORDPREFIX;  // ^D means only match words
     if (word)
     {
 	pattern = pattern[1 .. $];
@@ -143,7 +144,25 @@ int backsearch(bool f, int n)
     if ((s = readpattern("Reverse search: ",pat)) != TRUE)
         return (s);
 
-    immutable(char)* epp = &pat[$ - 1];
+    static bool notFound()
+    {
+	mlwrite("Not found");
+	return FALSE;
+    }
+
+    bool word;
+    string pattern = pat;	// pattern to match
+    if (pattern.length == 0)
+	return notFound();
+    word = pattern[0] == WORDPREFIX;  // ^D means only match words
+    if (word)
+    {
+	pattern = pattern[1 .. $];
+	if (pattern.length == 0)
+	    return notFound();
+    }
+
+    immutable(char)* epp = &pattern[$ - 1];
 
     LINE* clp = curwp.w_dotp;
     int cbo = curwp.w_doto;
@@ -152,10 +171,14 @@ again:
     for (;;)
     {
 	if (atFront(clp, cbo))
+	    return notFound();
+
+        if (word && !empty(clp, cbo) && isWordChar(cast(char)front(clp, cbo)))
 	{
-	    mlwrite("Not found");
-	    return (FALSE);
+	    popBack(clp, cbo);
+	    continue;
 	}
+
 	popBack(clp, cbo);
 	int c = front(clp, cbo);
 
@@ -165,7 +188,7 @@ again:
             int tbo = cbo;
             auto pp  = epp;
 
-            while (pp != &pat[0])
+            while (pp != &pattern[0])
 	    {
 		if (atFront(tlp, tbo))
 		    continue again;
@@ -174,6 +197,11 @@ again:
 
                 if (!eq(c, *--pp))
                     continue again;
+	    }
+
+	    if (word && !atFront(tlp, tbo) && isWordChar(cast(char)peekBack(tlp, tbo)))
+	    {
+		continue again;
 	    }
 
             curwp.w_dotp  = tlp;
@@ -249,7 +277,7 @@ private int replace(bool query)
     string pattern = pat;	// pattern to match
     if (pattern.length == 0)
 	return FALSE;
-    word = pattern[0] == ('D' & 0x1F);  // ^D means only match words
+    word = pattern[0] == WORDPREFIX;  // ^D means only match words
     if (word)
     {
 	pattern = pattern[1 .. $];
