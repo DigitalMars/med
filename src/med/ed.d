@@ -140,6 +140,7 @@ struct CONFIG
     attr_t markattr;          /* for selected text            */
     char tabchar;             /* char to use for tab display  */
     attr_t urlattr;	      // for URLs
+    attr_t searchattr;	      // for search matches
 }
 
 /**************

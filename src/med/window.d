@@ -58,6 +58,8 @@ enum
 
 __gshared WINDOW*[] windows;
 
+__gshared WINDOW* winSearchPat;		// the window with highlighted search results
+
 /* !=0 means marking    */
 bool window_marking(WINDOW* wp) { return wp.w_markp != null; }
 
@@ -217,6 +219,8 @@ int window_only(bool f, int n)
                         wp.w_bufp.b_markp = wp.w_markp;
                         wp.w_bufp.b_marko = wp.w_marko;
                 }
+		if (winSearchPat == wp)
+		    winSearchPat = null;
                 delete wp;
 	    }
 	}
@@ -495,6 +499,8 @@ int delwind(bool f, int n)
 	delwp.w_bufp.b_marko = delwp.w_marko;
 	delwp.w_bufp.b_nwnd--;
 
+	if (winSearchPat == delwp)
+	    winSearchPat = null;
 	delete delwp;
 
 	return( TRUE );

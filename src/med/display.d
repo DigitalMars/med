@@ -35,6 +35,7 @@ import window;
 import main;
 import buffer;
 import disprev;
+import search;
 import terminal;
 import url;
 import utf;
@@ -519,9 +520,10 @@ Lout:
 		for (size_t j = 0; j < llength(lp); )
 		{
 		    auto b = inURL(lp.l_text[], j);
+		    auto s = inSearch(lp.l_text[], j);
 		    dchar c = decodeUTF8(lp.l_text, j);
-		    if (attr == config.normattr && b)
-			vtputc(c, wp.w_startcol, 0, config.urlattr);
+		    if (attr == config.normattr && (b || s))
+			vtputc(c, wp.w_startcol, 0, s ? config.searchattr : config.urlattr);
 		    else
 			vtputc(c, wp.w_startcol);
 		}
@@ -566,9 +568,10 @@ Lout:
 				break;
 
 			    auto b = inURL(lp.l_text[], j);
+			    auto s = inSearch(lp.l_text[], j);
 			    dchar c = decodeUTF8(lp.l_text, j);
-			    if (attr == config.normattr && b)
-				vtputc(c, wp.w_startcol, 0, config.urlattr);
+			    if (attr == config.normattr && (b || s))
+				vtputc(c, wp.w_startcol, 0, s ? config.searchattr : config.urlattr);
 			    else
 				vtputc(c, wp.w_startcol);
 			}

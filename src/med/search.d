@@ -56,6 +56,12 @@ bool isWordChar(char c)
  */
 int forwsearch(bool f, int n)
 {
+    if (winSearchPat)
+    {
+	winSearchPat.w_flag |= WFHARD;
+	winSearchPat = null;
+    }
+
     int s;
     if ((s = readpattern("Search: ",pat)) != TRUE)
         return (s);
@@ -125,6 +131,8 @@ again:
             curwp.w_dotp  = tlp;
             curwp.w_doto  = tbo;
             curwp.w_flag |= WFMOVE;
+            curwp.w_flag |= WFHARD;
+	    winSearchPat = curwp;
             return (TRUE);
 	}
     }
@@ -140,6 +148,12 @@ again:
  */
 int backsearch(bool f, int n)
 {
+    if (winSearchPat)
+    {
+	winSearchPat.w_flag |= WFHARD;
+	winSearchPat = null;
+    }
+
     int s;
     if ((s = readpattern("Reverse search: ",pat)) != TRUE)
         return (s);
@@ -207,6 +221,8 @@ again:
             curwp.w_dotp  = tlp;
             curwp.w_doto  = tbo;
             curwp.w_flag |= WFMOVE;
+            curwp.w_flag |= WFHARD;
+	    winSearchPat = curwp;
             return (TRUE);
 	}
     }
@@ -270,6 +286,12 @@ private int replace(bool query)
     string withpat;
     int stop;
 
+    if (winSearchPat)
+    {
+	winSearchPat.w_flag |= WFHARD;
+	winSearchPat = null;
+    }
+
     if ((s = readpattern("Replace: ", pat)) != TRUE)
 	return (s);			/* must have search pattern	*/
 
@@ -294,6 +316,10 @@ private int replace(bool query)
     dotosave = curwp.w_doto;		/* save original position	*/
     clp = curwp.w_dotp;			/* get pointer to current line	 */
     cbo = curwp.w_doto;			/* and offset into that line	 */
+
+    curwp.w_flag |= WFHARD;		// repaint window with matches
+    winSearchPat = curwp;
+    update();
 
     auto p0 = pattern[0];
 
@@ -430,7 +456,6 @@ private int readpattern(string prompt, ref string pat)
 	return( pat.length != 0 );
     auto tpat = pat;
     auto s = mlreply(prompt, pat, tpat);
-
     if (s == TRUE)                      /* Specified */
         pat = tpat;
     else if (s == FALSE && pat.length != 0)         /* CR, but old one */
@@ -605,3 +630,73 @@ int search_paren(bool f, int n)
     mlwrite("Not found");
     return (FALSE);
 }
+
+/****************************************************
+ * Determine if index is in a URL or not.
+ */
+
+bool inSearch(const(char)[] s, size_t index)
+{
+    if (curwp != winSearchPat || pat.length == 0)
+	return false;
+
+    string pattern = pat;
+    bool word = pattern[0] == WORDPREFIX;
+    if (word)
+    {
+	pattern = pattern[1 .. $];
+	if (pattern.length == 0)
+	    return false;
+    }
+
+    char p0 = pattern[0];		// first char to match
+
+    char lastc;
+
+again:
+    for (int i = 0; i <= s.length;)
+    {
+	char front(int i) { return i < s.length ? s[i] : '\n'; }
+
+	if (index < i)
+	    break;
+
+	char c = front(i);
+	++i;
+
+	if (!eq(c, p0))
+	{
+	    lastc = cast(char)c;
+	    continue;
+	}
+	if (word && lastc != lastc.init && isWordChar(lastc))
+	    continue;
+	lastc = c;
+
+	{
+	    foreach (pc; pattern[1 .. $])
+	    {
+		if (i > s.length)
+		    break again;
+
+		char c2 = front(i);
+		++i;
+
+		lastc = c2;
+
+                if (!eq(c2, pc))
+                    continue again;
+	    }
+
+	    if (word && i <= s.length && isWordChar(front(i)))
+	    {
+		continue again;
+	    }
+
+	    return index < i;
+	}
+    }
+
+    return false;
+}
+

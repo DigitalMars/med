@@ -871,7 +871,7 @@ int ctrlg(bool f, int n)
 version (Windows)
 {
     CONFIG config =
-    {	// mode, norm, eol, mark, tab
+    {	// mode, norm, eol, mark, tab, url, search
 	//0x74,0x02,0x07,0x24,
 	//0x34,0x7F,0x78,0x3B,
 	//0x34,0x0E,0x0E,0x3B,
@@ -879,13 +879,14 @@ version (Windows)
 	//0x34,0xF0,0xF0,0x3B,
 	0x3E,0xF0,0xF0,0x3B,
         ' '/*0xAF*/,
-	0xF9,
+	0xF9,	// url
+	0xE1,	// search
     };
 }
 else
 {
     enum STANDATTR = 0x80;	/* Standout mode bit flag, or'ed in */
-    CONFIG config = {STANDATTR,0,0,STANDATTR,' '};
+    CONFIG config = {STANDATTR,0,0,STANDATTR,' ',0,STANDATTR};
 }
 
 
