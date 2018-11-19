@@ -693,7 +693,8 @@ again:
 		continue again;
 	    }
 
-	    return index < i;
+	    if (index < i)
+		return true;
 	}
     }
 
