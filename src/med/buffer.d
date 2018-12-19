@@ -44,8 +44,29 @@ struct  BUFFER {
         LINE*   b_linep;               // Link to the header LINE
         uint    b_nwnd;                // Count of windows on buffer
         ubyte    b_flag;               // Flags
-        string  b_fname;              // File name
+        string  b_fname;               // File name
         string  b_bname;               // Buffer name
+    Language b_lang = Language.text;   // for color syntax highlighting
+
+    /**********************************
+     * Set filename associated with buffer.
+     * Determine the language based on the filename.
+     */
+    void setFilename(string fname)
+    {
+	if (filenameCmp(b_fname, fname))
+	{
+	    const lang = (filenameCmp(extension(fname), ".d") == 0 ||
+			  filenameCmp(extension(fname), ".di") == 0)
+			? Language.D
+			: Language.text;
+	    if (b_lang != lang)
+	    {
+		b_lang = lang;
+	    }
+	}
+	b_fname = fname;
+    }
 }
 
 enum
@@ -55,6 +76,12 @@ enum
     BFRDONLY = 0x04,                   // Buffer is read only
     BFNOCR   = 0x08,                   // last line in buffer has no
                                        // trailing CR
+}
+
+enum Language
+{
+    text,	// plain text
+    D,		// D programming language
 }
 
 __gshared BUFFER*[] buffers;

@@ -890,6 +890,10 @@ void modeline(WINDOW* wp)
         vtputc(' ',0);
     }
 
+    vtputs("- ", 0);
+    vtputs(bp.b_lang == Language.D ? "D " : "text ", 0);
+    vtputc('-', 0);
+
 debug (WFDEBUG)
 {
     vtputc('-',0);

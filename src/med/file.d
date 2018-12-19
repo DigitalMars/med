@@ -252,7 +252,7 @@ int readin(string dfname)
     if (b != TRUE)
 	    return b;
     bp.b_flag &= ~(BFTEMP|BFCHG);
-    bp.b_fname = dfname;
+    bp.setFilename(dfname);
 
     /* Determine if file is read-only	*/
     auto fname = std.path.expandTilde(toUTF8(dfname));
@@ -366,7 +366,7 @@ int filewrite(bool f, int n)
     else
     {
         if ((s=writeout(fname)) == TRUE) {
-	    curbp.b_fname = fname;
+	    curbp.setFilename(fname);
 	    fileunmodify(f,n);
         }
     }
@@ -520,10 +520,7 @@ int filename(bool f, int n)
 
         if ((s=mlreply("New File Name: ", null, fname)) == ABORT)
                 return (s);
-        if (s == FALSE)
-                curbp.b_fname = null;
-        else
-                curbp.b_fname = fname;
+	curbp.setFilename( s == FALSE ? null : fname);
 	foreach (wp; windows)
         {       // Update mode lines.
                 if (wp.w_bufp == curbp)
