@@ -128,6 +128,23 @@ enum
     DSPECBUF,      /* maximum number of temp buffers */
 }
 
+/*
+ * State of the syntax highlighting
+ */
+enum Syntax
+{
+    normal,
+    keyword,
+    string,
+    comment,
+}
+
+struct SyntaxState
+{
+    Syntax syntax = Syntax.normal;
+    int nest;		// nest level for nested comments like /+ /+ +/ +/
+}
+
 /********************************
  * All configuration parameters are stored in this struct.
  */
@@ -141,6 +158,11 @@ struct CONFIG
     char tabchar;             /* char to use for tab display  */
     attr_t urlattr;	      // for URLs
     attr_t searchattr;	      // for search matches
+
+    // for syntax highlighting
+    attr_t keyword;
+    attr_t string;
+    attr_t comment;
 }
 
 /**************

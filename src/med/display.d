@@ -24,6 +24,7 @@ module display;
 
 import core.stdc.stdarg;
 import core.stdc.stdio;
+import core.stdc.stdlib;
 import core.stdc.string;
 
 import std.format;
@@ -36,6 +37,7 @@ import main;
 import buffer;
 import disprev;
 import search;
+import syntaxd;
 import terminal;
 import url;
 import utf;
@@ -369,6 +371,8 @@ void update()
 version (MOUSE)
     char hidden;
 
+    __gshared attr_t[] lineAttr;
+
     if (ttkeysininput())		/* if more user input		*/
 	return;				/* skip updating till caught up	*/
 
@@ -383,6 +387,8 @@ version (MOUSE)
 
     foreach (wp; windows)		// for each window
     {
+	bool highlight = (wp.w_bufp.b_lang == Language.D);
+
         /* Look at any window with update flags set on. */
         if (wp.w_flag != 0)
 	{   char marking = wp.w_markp != null;
@@ -505,40 +511,46 @@ Lout:
             lp = wp.w_linep;		/* line of top of window	  */
             int i = wp.w_toprow;	/* display row # of top of window */
 
-	    if ((wp.w_flag & (WFFORCE | WFEDIT | WFHARD | WFMOVE)) == WFEDIT)
-            {	/* Only need to update the line that the cursor is on	*/
+             if ((wp.w_flag & (WFEDIT | WFHARD)) != 0 ||
+	          marking && wp.w_flag & WFMOVE)
+	     {
+		const oneLine = (wp.w_flag & (WFFORCE | WFEDIT | WFHARD | WFMOVE)) == WFEDIT;
 
-		/* Determine row number and line pointer for cursor line */
-                while (lp != wp.w_dotp)
-                {   ++i;
-                    lp = lforw(lp);
-                }
-
-                vrowflags[i] |= VFCHG;	/* assume this line will change */
-                vtmove(i, 0);			/* start at beg of line	*/
-
-		for (size_t j = 0; j < llength(lp); )
+		if (oneLine)
 		{
-		    auto b = inURL(lp.l_text[], j);
-		    auto s = inSearch(lp.l_text[], j);
-		    dchar c = decodeUTF8(lp.l_text, j);
-		    if (attr == config.normattr && (b || s))
-			vtputc(c, wp.w_startcol, 0, s ? config.searchattr : config.urlattr);
-		    else
-			vtputc(c, wp.w_startcol);
+		    /* Determine row number and line pointer for cursor line */
+		    while (lp != wp.w_dotp)
+		    {   ++i;
+			lp = lforw(lp);
+		    }
 		}
 
-                vteeol(wp.w_startcol);		/* clear remainder of line */
-             }
-             else if ((wp.w_flag & (WFEDIT | WFHARD)) != 0 ||
-		      marking && wp.w_flag & WFMOVE)
-	     {	/* update every line in the window	*/
+		/* update every line in the window	*/
                 while (i < wp.w_toprow+wp.w_ntrows)
                 {
+		    bool nextLine = !oneLine;
                     vrowflags[i] |= VFCHG;
                     vtmove(i, 0);
                     if (lp != wp.w_bufp.b_linep) /* if not end of buffer */
                     {
+			if (highlight)
+			{
+			    if (lineAttr.length < lp.l_text.length)
+			    {
+				size_t newlen = (lp.l_text.length * 3) / 2;
+				attr_t* p = cast(attr_t*)realloc(lineAttr.ptr, newlen);
+				assert(p);
+				lineAttr = p[0 .. newlen];
+			    }
+			    const nextState = syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr);
+			    auto lpn = lforw(lp);
+	                    if (lpn != wp.w_bufp.b_linep) /* if not end of buffer */
+			    {
+				nextLine |= lpn.syntaxState != nextState;
+				lpn.syntaxState = nextState;
+			    }
+			}
+
 			if (marking && column_mode)
 			{   if (wp.w_markp == lp)
 				inmark++;
@@ -567,16 +579,20 @@ Lout:
 			    if (j >= llength(lp))
 				break;
 
+			    const cattr = (highlight && attr == config.normattr) ? lineAttr[j] : attr;
+
 			    auto b = inURL(lp.l_text[], j);
 			    auto s = inSearch(lp.l_text[], j);
 			    dchar c = decodeUTF8(lp.l_text, j);
 			    if (attr == config.normattr && (b || s))
 				vtputc(c, wp.w_startcol, 0, s ? config.searchattr : config.urlattr);
 			    else
-				vtputc(c, wp.w_startcol);
+				vtputc(c, wp.w_startcol, 0, cattr);
 			}
 			if (inmark == 2)
 			    inmark = 0;
+			if (!nextLine)
+			    break;
                         lp = lforw(lp);
                     }
                     vteeol(wp.w_startcol);
