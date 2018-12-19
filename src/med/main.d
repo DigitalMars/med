@@ -882,9 +882,9 @@ version (Windows)
 	0xF9,	// url
 	0xE1,	// search
 
-	0xF3, // keyword
-	0xF4, // string
-	0xF2, // comment
+	0xF9, //0xF3, // keyword
+	0xFC, //0xF4, // string
+	0xF8, //0xF2, // comment
     };
 }
 else
