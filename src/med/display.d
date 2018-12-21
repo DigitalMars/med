@@ -593,12 +593,12 @@ Lout:
 			}
 			if (inmark == 2)
 			    inmark = 0;
+			if (!nextLine)
+			    break;
                         lp = lforw(lp);
                     }
                     vteeol(wp.w_startcol);
                     ++i;
-		    if (!nextLine)
-			break;
                 }
             }
 debug (WFDEBUG)
