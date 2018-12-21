@@ -18,17 +18,17 @@ LDFLG=-g \
 all: $B/med
 
 SRC= $S/ed.d $S/basic.d $S/buffer.d $S/display.d $S/file.d $S/fileio.d $S/line.d \
-	$S/random.d $S/region.d $S/search.d $S/spawn.d $S/terminal.d \
+	$S/random.d $S/region.d $S/search.d $S/spawn.d $S/syntaxd.d $S/terminal.d \
 	$S/window.d $S/word.d $S/main.d $S/more.d $S/disprev.d \
 	$S/termio.d $S/xterm.d \
 	$S/tcap.d $S/console.d $S/mouse.d $S/disp.d $S/url.d $S/utf.d
 
 
 OBJ= $O/ed.o $O/basic.o $O/buffer.o $O/display.o $O/file.o $O/fileio.o $O/line.o \
-	$O/random.o $O/region.o $O/search.o $O/spawn.o $O/terminal.o \
+	$O/random.o $O/region.o $O/search.o $O/spawn.o $O/syntaxd.o $O/terminal.o \
 	$O/window.o $O/word.o $O/main.o $O/more.o $O/disprev.o \
 	$O/termio.o  $O/xterm.o \
-	$O/tcap.o $O/console.o $O/mouse.o $O/disp.o $O/url.o $O/utf.d
+	$O/tcap.o $O/console.o $O/mouse.o $O/disp.o $O/url.o $O/utf.o
 
 SOURCE= $(SRC) win32.mak linux.mak me.html
 
@@ -76,6 +76,9 @@ $O/search.o: $S/search.d
 
 $O/spawn.o: $S/spawn.d
 	$(DMD) -c $(DFLAGS) $S/spawn.d
+
+$O/syntaxd.o: $S/syntaxd.d
+	$(DMD) -c $(DFLAGS) $S/syntaxd.d
 
 $O/terminal.o: $S/terminal.d
 	$(DMD) -c $(DFLAGS) $S/terminal.d

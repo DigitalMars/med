@@ -544,7 +544,7 @@ Lout:
 				assert(p);
 				lineAttr = p[0 .. newlen];
 			    }
-			    const nextState = syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr);
+				const nextState = syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr);
 			    auto lpn = lforw(lp);
 	                    if (lpn != wp.w_bufp.b_linep) /* if not end of buffer */
 			    {
