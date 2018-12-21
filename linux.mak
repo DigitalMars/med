@@ -86,6 +86,9 @@ $O/termio.o: $S/termio.d
 $O/url.o: $S/url.d
 	$(DMD) -c $(DFLAGS) $S/url.d
 
+$O/utf.o: $S/utf.d
+	$(DMD) -c $(DFLAGS) $S/utf.d
+
 $O/window.o: $S/window.d
 	$(DMD) -c $(DFLAGS) $S/window.d
 

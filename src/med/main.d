@@ -56,6 +56,7 @@ import display;
 import terminal;
 import line;
 import mouse;
+import console;                         // help
 
 int     currow;                         /* Working cursor row           */
 int     fillcol;                        /* Current fill column          */

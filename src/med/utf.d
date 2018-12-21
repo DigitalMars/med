@@ -1,4 +1,4 @@
-
+module utf;
 
 /* This version of microEmacs is based on the public domain C
  * version written by Dave G. Conroy.
