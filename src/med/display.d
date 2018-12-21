@@ -318,15 +318,15 @@ int coltodoto(LINE* lp, int col)
 {
     size_t len = llength(lp);
     size_t i = 0;
-	int ii = 0;
+    int ii = 0;
     while (i < len)
     {
 		ii = cast(int) i;
 		if (getcol(lp, ii) >= col)
-	    	return ii;
+			return ii;
 	decodeUTF8(lp.l_text, i);
     }
-    return ii;
+	return ii;
 }
 
 /***********************
