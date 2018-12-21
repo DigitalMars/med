@@ -14,17 +14,16 @@
 
 module console;
 
-import std.stdio;
-import core.stdc.stdlib;
-import core.stdc.string;
-
-import ed;
-import disp;
 
 version (Windows)
 {
+import std.stdio;
+import core.stdc.stdlib;
+import core.stdc.string;
 import core.sys.windows.windows;
 import core.sys.windows.winuser;
+import ed;
+import disp;
 
 enum BEL = 0x07;                    /* BEL character.               */
 enum ESC = 0x1B;                    /* ESC character.               */
