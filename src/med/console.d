@@ -14,22 +14,20 @@
 
 module console;
 
-version (Windows)
-{
-
 import std.stdio;
 import core.stdc.stdlib;
 import core.stdc.string;
-import core.sys.windows.windows;
-import core.sys.windows.winuser;
 
 import ed;
 import disp;
 
+version (Windows)
+{
+import core.sys.windows.windows;
+import core.sys.windows.winuser;
 
 enum BEL = 0x07;                    /* BEL character.               */
 enum ESC = 0x1B;                    /* ESC character.               */
-
 
 static HANDLE hStdin;			// console input handle
 static DWORD fdwSaveOldMode;
@@ -487,5 +485,4 @@ int help(bool f, int n)
     return ed.FALSE;
 }
 
-}
-
+} // Windows version
