@@ -137,6 +137,7 @@ enum Syntax
     keyword,
     string,
     comment,
+    singleString,
 }
 
 struct SyntaxState

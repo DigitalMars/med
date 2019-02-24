@@ -34,12 +34,14 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
     switch (syntaxState.syntax)
     {
 	case Syntax.string:
+	case Syntax.singleString:
 	{
+	    const quote = (syntaxState.syntax == Syntax.string) ? '"' : '\'';
 	    const istart = i;
 	    bool escape;
 	    while (i < text.length)
 	    {
-		if (text[i] == '"' && !escape)
+		if (text[i] == quote && !escape)
 		{
 		    ++i;
 		    attr[istart .. i] = config.string;
@@ -52,7 +54,7 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
 		++i;
 	    }
 	    attr[istart .. i] = config.string;
-	    return SyntaxState(Syntax.string);
+	    return SyntaxState(syntaxState.syntax);
 	}
 
 	case Syntax.comment:
@@ -197,13 +199,14 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
 	    }
 
 	    case '"':
+	    case '\'':
 	    {
 		const istart = i;
 		bool escape;
 		++i;
 		while (i < text.length)
 		{
-		    if (text[i] == '"' && !escape)
+		    if (text[i] == c && !escape)
 		    {
 			++i;
 			attr[istart .. i] = config.string;
@@ -216,7 +219,7 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
 		    ++i;
 		}
 		attr[istart .. i] = config.string;
-		return SyntaxState(Syntax.string);
+		return SyntaxState(c == '"' ? Syntax.string : Syntax.singleString);
 	    }
 
 	    default:
@@ -233,6 +236,7 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
 		break;
 
 	    case Syntax.string:
+	    case Syntax.singleString:
 		break;
 
 	    case Syntax.comment:
