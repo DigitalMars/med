@@ -35,6 +35,7 @@ import basic;
 import terminal;
 import display;
 import url;
+import utf;
 
 version (linux)
 {
@@ -334,6 +335,76 @@ int openBrowser(bool f, int n)
     {
 	browse(cast(string)s);
 	return TRUE;
+    }
+    return FALSE;
+}
+
+/***************************
+ * Look up current character in the replacement table,
+ * and replace it with the next character in the table.
+ * Returns:
+ *	TRUE = success
+ *	FALSE = failure
+ */
+
+int scrollUnicode(bool f, int n)
+{
+    /* Mapping table of one character to the next in each entry
+     */
+    __gshared immutable string[] table =
+    [
+	"a\&auml;\&agrave;\&aacute;\&acirc;\&atilde;\&aring;\&aelig;\&alpha;\&ordf;",
+	"e\&egrave;\&eacute;\&ecirc;\&euml;\&epsilon;\&eta;",
+        "i\&igrave;\&iacute;\&icirc;\&iuml;\&iota;",
+        "o\&ograve;\&oacute;\&ocirc;\&otilde;\&ouml;\&oslash;\&omicron;\&oelig;",
+        "u\&ugrave;\&uacute;\&ucirc;\&uuml;\&mu;\&upsilon;",
+
+	"A\&Agrave;\&Aacute;\&Acirc;\&Atilde;\&Auml;\&Aring;\&AElig;\&Alpha;\&forall;",
+	"E\&Egrave;\&Eacute;\&Ecirc;\&Euml;\&Epsilon;\&exist;\&isin;\&notin;\&ni;",
+	"I\&Igrave;\&Iacute;\&Icirc;\&Iuml;\&Iota;\&int;",
+	"O\&Ograve;\&Oacute;\&Ocirc;\&Ouml;\&Omicron;",
+	"U\&Ugrave;\&Uacute;\&Ucirc;\&Uuml;\&cap;\&cup;\&sub;\&sup;\&nsub;",
+
+	"c\&ccedil;\&copy;",
+	"C\&Ccedil;",
+
+	"$\&euro;\&cent;\&pound;\&curren;\&yen;",
+	"\"\&ldquo;\&rdquo;\&bdquo;\&laquo;\&raquo;",
+	"'\&lsquo;\&rsquo;\&sbquo;\&acute;",
+	"-\&ndash;\&mdash;\&macr;\&oline;\&minus;",
+	"~\&tilde;\&sim;\&cong;\&asymp;",
+	"!\&iexcl;",
+    ];
+
+    LINE* dotp = curwp.w_dotp;
+    auto s = dotp.l_text[0 .. llength(dotp)];
+    size_t index = curwp.w_doto;
+
+    size_t i = index;
+    dchar dc = decodeUTF8(s, i);
+    foreach (entry; table)
+    {
+	for (size_t j = 0; j < entry.length; )
+	{
+	    dchar dr = decodeUTF8(entry, j);
+	    if (dr == dc)
+	    {
+		if (j == entry.length)
+		    j = 0;
+		size_t k = j;
+		decodeUTF8(entry, k);
+
+		/* Replace s[index .. i] with entry[j .. k]
+		 */
+		line_delete(i - index, FALSE);
+		foreach (char c; entry[j .. k])
+		    line_insert(1, c);
+		backchar(f, k - j);
+		line_change(WFEDIT);
+
+		return TRUE;
+	    }
+	}
     }
     return FALSE;
 }

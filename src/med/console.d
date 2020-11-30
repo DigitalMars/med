@@ -305,17 +305,24 @@ Lret:
 
 /*************************************
  * Translate key from WIN32 to IBM PC style.
+ * Params:
+ *	pkey = pointer to key data
  * Returns:
  *	0 if ignore it
+ * References:
+ *      https://github.com/dlang/druntime/blob/master/src/core/sys/windows/wincon.d
  */
 
 static uint win32_keytran(KEY_EVENT_RECORD *pkey)
-{   uint c;
-
-    c = 0;
+{
     if (!pkey.bKeyDown)
-	goto Lret;				// ignore button up events
-    c = pkey.UnicodeChar;
+	return 0;				// ignore button up events
+    uint c = pkey.UnicodeChar;
+/+
+    printf("RepeatCount %x VirtualKeyCode %x VirtualScanCode %x UnicodeChar %x AsciiChar %x ControlKeyState %x\n",
+	pkey.wRepeatCount, pkey.wVirtualKeyCode, pkey.wVirtualScanCode, pkey.UnicodeChar, pkey.AsciiChar,
+	pkey.dwControlKeyState);
++/
     if (c == 0)
     {
 	switch (pkey.wVirtualScanCode)
@@ -329,11 +336,12 @@ static uint win32_keytran(KEY_EVENT_RECORD *pkey)
 		c = (pkey.wVirtualScanCode << 8) & 0xFF00;
 		if (pkey.dwControlKeyState & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
 		{
-		    final switch (c)
+		    switch (c)
 		    {   case 0x4700:	c = 0x7700;	break;	// Home
 			case 0x4F00:	c = 0x7500;	break;	// End
 			case 0x4900:	c = 0x8400;	break;	// PgUp
 			case 0x5100:	c = 0x7600;	break;	// PgDn
+			default:	c = 0;		break;
 		    }
 		}
 		break;

@@ -359,6 +359,7 @@ immutable KEYTAB[]  keytab =
 	{0x8047,	 &word_wrap_line},
 	{0x8048,         &help},
 	{0x8049,         &openBrowser},
+	{0x804A,         &scrollUnicode},
 ];
 
 /* Translation table from 2 key sequence to single value        */
@@ -444,6 +445,7 @@ immutable ushort[2][] ctlx_tab =
         ['P',            0x8012],	// window_prev
         ['Q',            0x8013],	// random_quote
         ['T',            0x801E],       // window_reposition
+        ['U',            0x804A],	// scrollUnicode
         ['W',            0x8014],	// buffer_next
         ['Z',            0x8015],	// window_enlarge
 	['/',		 0x8045],	// Dcppcomment
@@ -465,7 +467,7 @@ CMDTAB[3] cmdtab =
 string[] gargs;
 int gargi;
 
-int c;
+private int c;
 
 int main(string[] args)
 {
