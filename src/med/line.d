@@ -42,10 +42,10 @@ import random;
  * additions will include update hints, and a list of marks into the line.
  */
 struct  LINE {
-        LINE *l_fp;             /* Link to the next line        */
-        LINE *l_bp;             /* Link to the previous line    */
-	SyntaxState syntaxState; // state at the beginning of the line
-        char[] l_text;         /* A bunch of characters.       */
+        LINE *l_fp;              /* Link to the next line              */
+        LINE *l_bp;              /* Link to the previous line          */
+	    SyntaxState syntaxState; /* state at the beginning of the line */
+        char[] l_text;           /* A bunch of characters.             */
 }
 
 LINE* lforw(LINE* lp) { return lp.l_fp; }

@@ -596,4 +596,14 @@ debug
     }
 }
 
+import std.process: spawnProcess;
+
+int help(bool f, int n)
+{
+	printf("\nhelp \n");
+	auto dmdPid = spawnProcess(["xdg-open", "me.html"]);
+
+	return ed.FALSE;
 }
+
+} // Posix version

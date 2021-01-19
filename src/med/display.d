@@ -318,13 +318,15 @@ int coltodoto(LINE* lp, int col)
 {
     size_t len = llength(lp);
     size_t i = 0;
+    int ii = 0;
     while (i < len)
     {
-	if (getcol(lp,i) >= col)
-	    return i;
+		ii = cast(int) i;
+		if (getcol(lp, ii) >= col)
+			return ii;
 	decodeUTF8(lp.l_text, i);
     }
-    return i;
+	return ii;
 }
 
 /***********************
@@ -542,7 +544,7 @@ Lout:
 				assert(p);
 				lineAttr = p[0 .. newlen];
 			    }
-			    const nextState = syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr);
+				const nextState = syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr);
 			    auto lpn = lforw(lp);
 	                    if (lpn != wp.w_bufp.b_linep) /* if not end of buffer */
 			    {
@@ -591,12 +593,12 @@ Lout:
 			}
 			if (inmark == 2)
 			    inmark = 0;
+			if (!nextLine)
+			    break;
                         lp = lforw(lp);
                     }
                     vteeol(wp.w_startcol);
                     ++i;
-		    if (!nextLine)
-			break;
                 }
             }
 debug (WFDEBUG)
