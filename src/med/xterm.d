@@ -412,14 +412,18 @@ void build_long_keys()
 	lkroot = cast(LONGKEY *)malloc( LONGKEY.sizeof );
 	lkroot.key = 0;	lkroot.ptr = null;
 
+	// Bash:
+	// for x in {1..12}; do echo -n "F$x "; tput kf$x | cat -A; echo; done
         build_one_long("\033[A", UPKEY);
 	build_one_long("\033[B", DNKEY);
 	build_one_long("\033[C", RTKEY);
 	build_one_long("\033[D", LTKEY);
+	//		    $   O   P
 	build_one_long( "\033\x4F\x50", F1KEY );
 	build_one_long( "\033\x4F\x51", F2KEY );
 	build_one_long( "\033\x4F\x52", F3KEY );
 	build_one_long( "\033\x4F\x53", F4KEY );
+        //                  $   [   1   1   ~
 	build_one_long( "\033\x5B\x31\x31\x7E", F1KEY );
 	build_one_long( "\033\x5B\x31\x32\x7E", F2KEY );
 	build_one_long( "\033\x5B\x31\x33\x7E", F3KEY );
@@ -430,6 +434,7 @@ void build_long_keys()
 	build_one_long( "\033\x5B\x31\x39\x7E", F8KEY );
 	build_one_long( "\033\x5B\x32\x30\x7E", F9KEY );
 	build_one_long( "\033\x5B\x32\x31\x7E", F10KEY );
+	build_one_long( "\033\x5B\x32\x33\x7E", F11KEY );
 	build_one_long( "\033\x5B\x32\x34\x7E", F12KEY );
 
 
