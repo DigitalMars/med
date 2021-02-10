@@ -309,6 +309,21 @@ struct TERM
 	    putpad( SE );
     }
 
+    void setColorBright(bool bright)
+    {
+	//fprintf(_fp, "\033[%dm", bright);
+    }
+
+    void setColor(Color color)
+    {
+	//fprintf(_fp, "\033[%d;%dm", color & Color.bright ? 1 : 0, 30 + (color & ~Color.bright));
+    }
+
+    void resetColor()
+    {
+	//fputs("\033[m", _fp);
+    }
+
     void t_scrollup(int first, int last)   /* Scroll the screen up         */
     {
 	if (scroll_type)

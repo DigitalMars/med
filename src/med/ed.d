@@ -166,6 +166,28 @@ struct CONFIG
     attr_t comment;
 }
 
+enum Color : attr_t
+{
+    black         = 0,
+    red           = 1,
+    green         = 2,
+    blue          = 4,
+    yellow        = red | green,
+    magenta       = red | blue,
+    cyan          = green | blue,
+    lightGray     = red | green | blue,
+    bright        = 8,
+    darkGray      = bright | black,
+    brightRed     = bright | red,
+    brightGreen   = bright | green,
+    brightBlue    = bright | blue,
+    brightYellow  = bright | yellow,
+    brightMagenta = bright | magenta,
+    brightCyan    = bright | cyan,
+    white         = bright | lightGray,
+}
+
+
 /**************
  * George M. Jones      {cbosgd,ihnp4}!osu-eddie!george
  * Work Phone:          george@ohio-state.csnet

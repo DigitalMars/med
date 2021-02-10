@@ -791,7 +791,6 @@ void updateline(int row, attchar_t[] vline, attchar_t[] pline)
     attchar_t *cp4;
     attchar_t *cp5;
     int nbflag;
-    static int tstand = FALSE;		/* TRUE if standout mode is active */
 
     auto cp1 = &vline[0];                    /* Compute left match.  */
     auto cp2 = &pline[0];
@@ -836,12 +835,24 @@ void updateline(int row, attchar_t[] vline, attchar_t[] pline)
 
     movecursor(row, cast(int)(cp1-&vline[0]));     /* Go to start of line. */
 
+    __gshared attr_t tstand = 0;	// != 0 if standout mode is active
     while (cp1 != cp5)                  /* Ordinary. */
     {
-	if( cp1.attr & STANDATTR )
-	{	if( !tstand ) {	term.t_standout(); tstand = TRUE;	} }
-	else
-	{	if(  tstand ) {	term.t_standend(); tstand = FALSE;	} }
+	if (cp1.attr != tstand)
+	{
+	    if (cp1.attr)
+	    {
+		//term.t_standout();
+		term.setColor(cast(Color)cp1.attr);
+		tstand = cp1.attr;
+	    }
+	    else
+	    {
+		//term.t_standend();
+		term.resetColor();
+		tstand = 0;
+	    }
+	}
         term.t_putchar(cp1.chr);
         ++ttcol;
         *cp2++ = *cp1++;
@@ -854,8 +865,9 @@ void updateline(int row, attchar_t[] vline, attchar_t[] pline)
             *cp2++ = *cp1++;
         }
 	if( tstand )
-	{	term.t_standend();
-		tstand = FALSE;
+	{	//term.t_standend();
+		term.resetColor();
+		tstand = 0;
 	}
 }
 }

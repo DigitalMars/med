@@ -890,10 +890,37 @@ version (Windows)
 	0xF8, //0xF2, // comment
     };
 }
+else version (linux)
+{
+    CONFIG config =
+    {
+	((Color.cyan) << 4) | (Color.bright | Color.yellow),	// mode
+	0, 		// norm
+	0,		// eol
+	(Color.cyan << 4) | (Color.bright | Color.cyan),	// mark
+	' ',		// tab
+	Color.blue,	// url
+	(Color.yellow << 4) | Color.black,	// search
+	Color.blue,		// keyword
+	Color.red,		// string
+	Color.magenta,		// comment
+    };
+}
 else
 {
-    enum STANDATTR = 0x80;	/* Standout mode bit flag, or'ed in */
-    CONFIG config = {STANDATTR,0,0,STANDATTR,' ',0,STANDATTR};
+    CONFIG config =
+    {
+	Color.bright,	// mode
+	0, 		// norm
+	0,		// eol
+	Color.bright,	// mark
+	' ',		// tab
+	0,		// url
+	Color.yellow,	// search
+	0,		// keyword
+	0,		// string
+	0,		// comment
+    };
 }
 
 
