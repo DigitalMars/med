@@ -24,6 +24,7 @@ import line;
 import main;
 import window;
 import display;
+import console;
 
 /*********************************
  * Move the cursor to the

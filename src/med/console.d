@@ -496,4 +496,19 @@ int help(bool f, int n)
 }
 
 }
+else
+{
+
+import ed;
+
+/***********************
+ * Open browser on help file.
+ */
+
+int help(bool f, int n)
+{
+    return ed.FALSE;
+}
+
+}
 
