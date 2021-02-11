@@ -168,23 +168,40 @@ struct CONFIG
 
 enum Color : attr_t
 {
+    // text colors
     black         = 0,
     red           = 1,
     green         = 2,
-    blue          = 4,
     yellow        = red | green,
-    magenta       = red | blue,
+    blue          = 4,
+    magenta       = red | blue,		// purple
     cyan          = green | blue,
     lightGray     = red | green | blue,
-    bright        = 8,
-    darkGray      = bright | black,
-    brightRed     = bright | red,
-    brightGreen   = bright | green,
-    brightBlue    = bright | blue,
-    brightYellow  = bright | yellow,
-    brightMagenta = bright | magenta,
-    brightCyan    = bright | cyan,
-    white         = bright | lightGray,
+
+    darkGray      = bold | black,
+    lightRed      = bold | red,
+    lightGreen    = bold | green,
+    lightBlue     = bold | blue,
+    lightYellow   = bold | yellow,
+    lightMagenta  = bold | magenta,
+    lightCyan     = bold | cyan,
+    white         = bold | lightGray,
+
+    // background text colors
+    bgBlack       = black     << 4,
+    bgRed         = red       << 4,
+    bgGreen       = green     << 4,
+    bgYellow      = yellow    << 4,
+    bgBlue        = blue      << 4,
+    bgMagenta     = magenta   << 4,
+    bgCyan        = cyan      << 4,
+    bgGray        = lightGray << 4,
+
+    bgMask        = 0x70,
+
+    bold          = 8,  // bold only modifies text color by lightening it
+    underline     = 0x80,
+    reverse       = white,
 }
 
 

@@ -35,6 +35,9 @@ SOURCE= $(SRC) win32.mak linux.mak me.html
 $B/med : $(OBJ) linux.mak
 	$(DMD) $(DFLAGS) -of$B/med $(OBJ)
 
+ansicolors : $S/ansicolors.d
+	$(DMD) $(DFLAGS) -of$B/ansicolors $S/ansicolors.d
+
 $O/ed.o: $S/ed.d
 	$(DMD) -c $(DFLAGS) $S/ed.d
 

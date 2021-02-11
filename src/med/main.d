@@ -890,20 +890,21 @@ version (Windows)
 	0xF8, //0xF2, // comment
     };
 }
-else version (linux)
+else version (Posix)
 {
     CONFIG config =
     {
-	((Color.cyan) << 4) | (Color.bright | Color.yellow),	// mode
-	0, 		// norm
-	0,		// eol
-	(Color.cyan << 4) | (Color.bright | Color.cyan),	// mark
-	' ',		// tab
-	Color.blue,	// url
-	(Color.yellow << 4) | Color.black,	// search
-	Color.blue,		// keyword
-	Color.red,		// string
-	Color.magenta,		// comment
+	Color.bgCyan | Color.lightYellow,	// mode
+	Color.black,	// norm
+	Color.black,	// eol
+	Color.reverse,	// mark
+	' ',				// tab
+	Color.underline | Color.blue,	// url
+	Color.bgYellow | Color.black,	// search
+
+	Color.blue,	// keyword
+	Color.red,	// string
+	Color.magenta,	// comment
     };
 }
 else

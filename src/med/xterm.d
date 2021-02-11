@@ -346,14 +346,30 @@ struct TERM
 	fprintf(stdout, "\033[%dm", bright);
     }
 
+    // Escape sequences:
+    // https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+    // https://opensource.com/article/19/9/linux-terminal-colors
     void setColor(Color color)
     {
-	uint fg = color & 0x0F;
-	uint bg = (color & 0xF0) >> 4;
-	if (bg)
-	    fprintf(stdout, "\033[%d;%dm", bg & Color.bright ? 1 : 0, 40 + (bg & ~cast(int)Color.bright));
-	if (fg)
-	    fprintf(stdout, "\033[%d;%dm", fg & Color.bright ? 1 : 0, 30 + (fg & ~cast(int)Color.bright));
+	with (Color)
+	{
+	    resetColor();
+	    if (color == reverse)
+	    {
+		fprintf(stdout, "\033[7m");
+		return;
+	    }
+	    if (color & bold)
+		fprintf(stdout, "\033[1m");
+	    uint fg = color & 7;
+	    uint bg = (color & bgMask) >> 4;
+	    if (bg)
+		fprintf(stdout, "\033[%d;%dm", 40 + bg, 30 + fg);
+	    else
+		fprintf(stdout, "\033[%dm", 30 + fg);
+	    if (color & underline)
+		fprintf(stdout, "\033[4m");
+	}
     }
 
     void resetColor()
