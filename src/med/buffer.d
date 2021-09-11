@@ -56,10 +56,12 @@ struct  BUFFER {
     {
 	if (filenameCmp(b_fname, fname))
 	{
-	    const lang = (filenameCmp(extension(fname), ".d") == 0 ||
-			  filenameCmp(extension(fname), ".di") == 0)
-			? Language.D
-			: Language.text;
+	    const lang = filenameCmp(extension(fname), ".d") == 0   ? Language.D   :
+			 filenameCmp(extension(fname), ".di") == 0  ? Language.D   :
+			 filenameCmp(extension(fname), ".c") == 0   ? Language.C   :
+			 filenameCmp(extension(fname), ".cpp") == 0 ? Language.CPP :
+			 filenameCmp(extension(fname), ".c++") == 0 ? Language.CPP :
+                                                                      Language.text;
 	    if (b_lang != lang)
 	    {
 		b_lang = lang;
@@ -80,8 +82,10 @@ enum
 
 enum Language
 {
-    text,	// plain text
+    text = 0,   // plain text (must be 0)
     D,		// D programming language
+    C,		// C programming language
+    CPP,	// C++ programming language
 }
 
 __gshared BUFFER*[] buffers;

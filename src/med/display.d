@@ -38,6 +38,8 @@ import buffer;
 import disprev;
 import search;
 import syntaxd;
+import syntaxc;
+import syntaxcpp;
 import terminal;
 import url;
 import utf;
@@ -387,7 +389,7 @@ version (MOUSE)
 
     foreach (wp; windows)		// for each window
     {
-	bool highlight = (wp.w_bufp.b_lang == Language.D);
+	const highlight = wp.w_bufp.b_lang;
 
         /* Look at any window with update flags set on. */
         if (wp.w_flag != 0)
@@ -533,7 +535,7 @@ Lout:
                     vtmove(i, 0);
                     if (lp != wp.w_bufp.b_linep) /* if not end of buffer */
                     {
-			if (highlight)
+			if (highlight != Language.text)
 			{
 			    if (lineAttr.length < lp.l_text.length)
 			    {
@@ -542,7 +544,10 @@ Lout:
 				assert(p);
 				lineAttr = p[0 .. newlen];
 			    }
-			    const nextState = syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr);
+			    const nextState =
+				highlight == Language.D ? syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr) :
+				highlight == Language.C ? syntaxHighlightC(lp.syntaxState, lp.l_text, lineAttr) :
+				                          syntaxHighlightCPP(lp.syntaxState, lp.l_text, lineAttr);
 			    auto lpn = lforw(lp);
 	                    if (lpn != wp.w_bufp.b_linep) /* if not end of buffer */
 			    {
@@ -579,7 +584,8 @@ Lout:
 			    if (j >= llength(lp))
 				break;
 
-			    const cattr = (highlight && attr == config.normattr) ? lineAttr[j] : attr;
+			    const cattr = (highlight != Language.text && attr == config.normattr)
+				? lineAttr[j] : attr;
 
 			    auto b = inURL(lp.l_text[], j);
 			    auto s = inSearch(lp.l_text[], j);
@@ -919,7 +925,11 @@ void modeline(WINDOW* wp)
     }
 
     vtputs("- ", 0);
-    vtputs(bp.b_lang == Language.D ? "D " : "text ", 0);
+    const lang = bp.b_lang == Language.D   ? "D "   :
+		 bp.b_lang == Language.C   ? "C "   :
+		 bp.b_lang == Language.CPP ? "C++ " :
+                                             "text ";
+    vtputs(lang, 0);
     vtputc('-', 0);
 
 debug (WFDEBUG)

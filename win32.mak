@@ -11,7 +11,8 @@ B=bin
 
 TARGET=med
 
-DFLAGS=-g -Isrc/med $(CONF)
+//DFLAGS=-g -Isrc/med $(CONF)
+DFLAGS=-O -Isrc/med $(CONF)
 LFLAGS=-L/map/co
 #DFLAGS=
 #LFLAGS=
@@ -22,14 +23,14 @@ LFLAGS=-L/map/co
 SRC= $S\ed.d $S\basic.d $S\buffer.d $S\display.d $S\file.d $S\fileio.d $S\line.d \
 	$S\random.d $S\region.d $S\search.d $S\spawn.d $S\terminal.d \
 	$S\window.d $S\word.d $S\main.d $S\more.d $S\disprev.d \
-	$S\termio.d $S\xterm.d $S\syntaxd.d \
+	$S\termio.d $S\xterm.d $S\syntaxd.d $S\syntaxc.d $S\syntaxcpp.d \
 	$S\tcap.d $S\console.d $S\mouse.d $S\disp.d $S\url.d $S\utf.d
 
 
 OBJ= $O\ed.obj $O\basic.obj $O\buffer.obj $O\display.obj $O\file.obj $O\fileio.obj $O\line.obj \
 	$O\random.obj $O\region.obj $O\search.obj $O\spawn.obj $O\terminal.obj \
 	$O\window.obj $O\word.obj $O\main.obj $O\more.obj $O\disprev.obj \
-	$O\termio.obj $O\xterm.obj $O\syntaxd.obj \
+	$O\termio.obj $O\xterm.obj $O\syntaxd.obj $O\syntaxc.obj $O\syntaxcpp.obj \
 	$O\tcap.obj $O\console.obj $O\mouse.obj $O\disp.obj $O\url.obj $O\utf.obj
 
 SOURCE= $(SRC) win32.mak linux.mak me.html
@@ -85,6 +86,12 @@ $O\spawn.obj: $S\spawn.d
 
 $O\syntaxd.obj: $S\syntaxd.d
 	$(DMD) -c $(DFLAGS) -od$O $S\syntaxd.d
+
+$O\syntaxc.obj: $S\syntaxc.d
+	$(DMD) -c $(DFLAGS) -od$O $S\syntaxc.d
+
+$O\syntaxcpp.obj: $S\syntaxcpp.d
+	$(DMD) -c $(DFLAGS) -od$O $S\syntaxcpp.d
 
 $O\terminal.obj: $S\terminal.d
 	$(DMD) -c $(DFLAGS) -od$O $S\terminal.d

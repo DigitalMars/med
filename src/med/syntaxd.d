@@ -136,7 +136,7 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
 		    break;
 		}
 		const id = text[istart .. i];
-		attr[istart .. i] = isKeyword(id) ? config.keyword : config.normattr;
+		attr[istart .. i] = isDKeyword(id) ? config.keyword : config.normattr;
 		continue;
 	    }
 
@@ -256,7 +256,7 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
     return SyntaxState(Syntax.normal);
 }
 
-bool isKeyword(const(char)[] s)
+private bool isDKeyword(const(char)[] s)
 {
     switch (s)
     {
