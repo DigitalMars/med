@@ -37,7 +37,7 @@ import basic;
 import terminal;
 
 enum CASESENSITIVE = true;	/* TRUE means case sensitive		*/
-enum WORDPREFIX = 'D' & 0x1F;	// prefix to trigger word search
+enum WORDPREFIX = 'W' & 0x1F;	// prefix to trigger word search
 
 int Dnoask_search;
 
