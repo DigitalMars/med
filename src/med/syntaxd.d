@@ -35,8 +35,11 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
     {
 	case Syntax.string:
 	case Syntax.singleString:
+	case Syntax.backtickString:
 	{
-	    const quote = (syntaxState.syntax == Syntax.string) ? '"' : '\'';
+	    const quote = (syntaxState.syntax == Syntax.string)       ? '"' :
+			  (syntaxState.syntax == Syntax.singleString) ? '\'' :
+			                                                '`';
 	    const istart = i;
 	    bool escape;
 	    while (i < text.length)
@@ -200,6 +203,7 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
 
 	    case '"':
 	    case '\'':
+	    case '`':
 	    {
 		const istart = i;
 		bool escape;
@@ -219,7 +223,9 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
 		    ++i;
 		}
 		attr[istart .. i] = config.string;
-		return SyntaxState(c == '"' ? Syntax.string : Syntax.singleString);
+		return SyntaxState(c == '"'  ? Syntax.string :
+				   c == '\'' ? Syntax.singleString :
+				               Syntax.backtickString);
 	    }
 
 	    default:

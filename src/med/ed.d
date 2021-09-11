@@ -138,6 +138,7 @@ enum Syntax
     string,
     comment,
     singleString,
+    backtickString,
 }
 
 struct SyntaxState
