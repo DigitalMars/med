@@ -391,7 +391,7 @@ static void build_long_keys(const(char)* term )
     lkroot.key = 0;
     lkroot.ptr = null;
 
-    version (linux)
+    version (Posix)
     {
         build_one_long("\033[A", UPKEY);
 	build_one_long("\033[B", DNKEY);

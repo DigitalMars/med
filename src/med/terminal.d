@@ -14,7 +14,7 @@ version (Windows)
     public import mouse;
 }
 
-version (linux)
+version (Posix)
 {
     public import termio;
     public import xterm;

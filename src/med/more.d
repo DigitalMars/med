@@ -37,7 +37,7 @@ import display;
 import url;
 import utf;
 
-version (linux)
+version (Posix)
 {
     import core.sys.posix.signal;
     import core.sys.posix.unistd;
@@ -185,7 +185,7 @@ int Dignore(bool f, int n)
 
 int Dpause(bool f, int n)
 {
-    version (linux)
+    version (Posix)
     {
 	term.t_move( term.t_nrow - 1, 0 );
 	term.t_eeop();

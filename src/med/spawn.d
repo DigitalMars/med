@@ -25,7 +25,7 @@ import std.process;
 import std.string;
 import std.utf;
 
-version(linux)
+version (Posix)
 {
     import core.sys.posix.unistd;
 }
@@ -58,7 +58,7 @@ int spawncli(bool f, int n)
 	args ~= "COMMAND.COM";
         spawnProcess(args);
     }
-    version (linux)
+    version (Posix)
     {
         term.t_flush();
         term.t_close();                             /* stty to old settings */
@@ -94,7 +94,7 @@ int spawn(bool f, int n)
         sgarbf = TRUE;
         return (TRUE);
     }
-    version (linux)
+    version (Posix)
     {
         if ((s=mlreply("! ", null, line)) != TRUE)
                 return (s);
@@ -162,7 +162,7 @@ version (Windows)
     if (std.file.exists(filnam) && std.file.isFile(filnam))
 	return FALSE;
 }
-version (linux)
+version (Posix)
 {
     term.t_putchar('\n');                /* Already have '\r'    */
     term.t_flush();
@@ -225,7 +225,7 @@ int spawn_filter(bool f, int n)
         movecursor(term.t_nrow - 2, 0);
         core.stdc.stdlib.system(toUTF8(line).toStringz());
     }
-    version (linux)
+    version (Posix)
     {
         term.t_putchar('\n');                /* Already have '\r'    */
         term.t_flush();

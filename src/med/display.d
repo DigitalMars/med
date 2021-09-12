@@ -177,7 +177,7 @@ void vtinit()
     pscreen = new attchar_t[][term.t_nrow];
     vrowflags = new ubyte[term.t_nrow];
 
-    version (linux)
+    version (Posix)
     {
 	blnk_ln = new attchar_t[term.t_ncol];
     }
@@ -675,7 +675,7 @@ version (MOUSE)
         mpresf = FALSE;                 /* the message area. */
     }
 
-version (linux)
+version (Posix)
 {
     /* Here we check to see if we can scroll any of the lines.
      * This silly routine just checks for possibilites of scrolling
@@ -794,7 +794,7 @@ version (MOUSE)
  * row and column variables. It does try an exploit erase to end of line. The
  * RAINBOW version of this routine uses fast video.
  */
-version (linux)
+version (Posix)
 {
 void updateline(int row, attchar_t[] vline, attchar_t[] pline)
 {
