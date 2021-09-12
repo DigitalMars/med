@@ -30,7 +30,7 @@ version (Windows)
     import core.sys.windows.windows;
 }
 
-version (linux)
+version (Posix)
 {
     import core.sys.posix.unistd;
     import core.sys.posix.sys.stat;
@@ -85,7 +85,7 @@ int ffrename(string from, string to)
     {
 	from = std.path.expandTilde(from);
 	to = std.path.expandTilde(to);
-	version (linux)
+	version (Posix)
 	{
 	    stat_t buf;
 	    if( stat( toStringz(from), &buf ) != -1
@@ -114,7 +114,7 @@ int ffrename(string from, string to)
  */
 int ffchmod(string subject, string image)
 {
-    version (linux)
+    version (Posix)
     {
 	subject = std.path.expandTilde(subject);
 	image = std.path.expandTilde(image);
