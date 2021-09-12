@@ -22,6 +22,7 @@
 
 module line;
 
+import core.memory;
 import core.stdc.string;
 
 import std.utf;
@@ -143,7 +144,8 @@ assert(bp);
         }
         lp.l_bp.l_fp = lp.l_fp;
         lp.l_fp.l_bp = lp.l_bp;
-        delete lp;
+        //delete lp;
+        core.memory.GC.free(lp);
 }
 
 /*
@@ -415,8 +417,10 @@ bool line_delnewline()
                 }
         }
 
-	delete lp2.l_text;
-	delete lp2;
+	//delete lp2.l_text;
+	//delete lp2;
+        core.memory.GC.free(lp2.l_text.ptr);
+        core.memory.GC.free(lp2);
 
         return (TRUE);
 }
@@ -459,7 +463,9 @@ void kill_toClipboard()
  */
 void kill_freebuffer()
 {
-    delete kbp.buf;
+    //delete kbp.buf;
+    core.memory.GC.free(kbp.buf.ptr);
+    kbp.buf = null;
 }
 
 void kill_fromClipboard()

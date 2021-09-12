@@ -15,6 +15,7 @@
 
 module window;
 
+import core.memory;
 import std.string;
 
 import ed;
@@ -221,7 +222,8 @@ int window_only(bool f, int n)
                 }
 		if (winSearchPat == wp)
 		    winSearchPat = null;
-                delete wp;
+                //delete wp;
+                core.memory.GC.free(wp);
 	    }
 	}
 	windows = windows[0 .. 1];
@@ -501,7 +503,8 @@ int delwind(bool f, int n)
 
 	if (winSearchPat == delwp)
 	    winSearchPat = null;
-	delete delwp;
+	//delete delwp;
+        core.memory.GC.free(delwp);
 
 	return( TRUE );
 }

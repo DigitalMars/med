@@ -20,6 +20,8 @@ module buffer;
 import std.stdio;
 import std.path;
 
+import core.memory;
+
 import ed;
 import line;
 import display;
@@ -208,7 +210,9 @@ int buffer_remove(BUFFER* bp)
         }
         if (!buffer_clear(bp))			/* Blow text away	*/
 	    return FALSE;
-        delete bp.b_linep;                     /* Release header line. */
+
+        //delete bp.b_linep;                     /* Release header line. */
+	core.memory.GC.free(bp.b_linep);
 
 	foreach (i, b; buffers)
 	{
@@ -219,7 +223,10 @@ int buffer_remove(BUFFER* bp)
 		break;
 	    }
 	}
-        delete bp;                      /* Release buffer block */
+
+        //delete bp;                      /* Release buffer block */
+	core.memory.GC.free(bp);
+
         return (TRUE);
 }
 

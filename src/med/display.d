@@ -22,6 +22,7 @@
 
 module display;
 
+import core.memory;
 import core.stdc.stdarg;
 import core.stdc.stdio;
 import core.stdc.stdlib;
@@ -198,11 +199,15 @@ void vttidy()
 {
     foreach (i; 0 .. term.t_nrow)
     {
-	delete vscreen[i];
-	delete pscreen[i];
+        //delete vscreen[i];
+        //delete pscreen[i];
+        core.memory.GC.free(vscreen[i].ptr);
+        core.memory.GC.free(pscreen[i].ptr);
     }
-    delete vscreen;
-    delete pscreen;
+    //delete vscreen;
+    //delete pscreen;
+    core.memory.GC.free(vscreen.ptr);
+    core.memory.GC.free(pscreen.ptr);
 
     version (Windows)
     {
@@ -1102,7 +1107,11 @@ int mlreply(string prompt, string init, out string result)
 			history[history_top] = buf.idup;
 			history_top = HINC(history_top);
 			if (history[history_top])
-			    delete history[history_top];
+			{
+			    //delete history[history_top];
+			    core.memory.GC.free(cast(void*)history[history_top].ptr);
+			    history[history_top] = null;
+			}
 		    }
 		    result = cast(immutable)buf;
 		    return 1;
