@@ -322,11 +322,11 @@ int coltodoto(LINE* lp, int col)
     size_t i = 0;
     while (i < len)
     {
-	if (getcol(lp,i) >= col)
-	    return i;
+	if (getcol(lp, cast(int)i) >= col)
+	    return cast(int)i;
 	decodeUTF8(lp.l_text, i);
     }
-    return i;
+    return cast(int)i;
 }
 
 /***********************

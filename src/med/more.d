@@ -396,10 +396,10 @@ int scrollUnicode(bool f, int n)
 
 		/* Replace s[index .. i] with entry[j .. k]
 		 */
-		line_delete(i - index, FALSE);
+		line_delete(cast(int)(i - index), FALSE);
 		foreach (char c; entry[j .. k])
 		    line_insert(1, c);
-		backchar(f, k - j);
+		backchar(f, cast(int)(k - j));
 		line_change(WFEDIT);
 
 		return TRUE;
