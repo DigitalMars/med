@@ -87,6 +87,19 @@ int ttkeysininput()
         return n != 0;
 }
 
+/**************************
+ * Return when there are unread chars ready in the input.
+ */
+
+void ttwaitkeys()
+{
+    import core.sys.posix.sys.select;
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(0, &readfds);
+    select(1, &readfds, null, null, null);
+} 
+
 /******************************
  */
 

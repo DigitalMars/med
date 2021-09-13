@@ -355,6 +355,14 @@ Lret:
     return c;
 }
 
+/**************************
+ * Return when there are unread chars ready in the input.
+ */
+
+void ttwaitkeys()
+{
+} 
+
 /*************************************
  * Wait for any input (yield to other processes).
  */

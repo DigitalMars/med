@@ -660,6 +660,7 @@ int getkey()
 	if (c)
 	    return c;
 	ttyield();
+        ttwaitkeys();
     }
     c = term.t_getchar();
     switch (c)

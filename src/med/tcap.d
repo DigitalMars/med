@@ -635,6 +635,14 @@ bool ttkeysininput()
     return false;
 }
 
+/**************************
+ * Return when there are unread chars ready in the input.
+ */
+
+void ttwaitkeys()
+{
+} 
+
 /******************************
  */
 
