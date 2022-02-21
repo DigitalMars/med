@@ -39,7 +39,8 @@ enum
     HELPCH  = 0x1F,                    /* Help key,    Control-_       */
 }
 
-enum MOUSEKEY = 0x12345678;
+enum MOUSEKEY = 0x12345678;             // left mouse button down
+enum MOUSEKEYR = 0x12345679;            // right mouse button down
 
 
 enum
@@ -144,7 +145,7 @@ enum Syntax
 struct SyntaxState
 {
     Syntax syntax = Syntax.normal;
-    int nest;		// nest level for nested comments like /+ /+ +/ +/
+    int nest;           // nest level for nested comments like /+ /+ +/ +/
 }
 
 /********************************
@@ -158,8 +159,8 @@ struct CONFIG
     attr_t eolattr;           /* for end of line              */
     attr_t markattr;          /* for selected text            */
     char tabchar;             /* char to use for tab display  */
-    attr_t urlattr;	      // for URLs
-    attr_t searchattr;	      // for search matches
+    attr_t urlattr;           // for URLs
+    attr_t searchattr;        // for search matches
 
     // for syntax highlighting
     attr_t keyword;
@@ -175,7 +176,7 @@ enum Color : attr_t
     green         = 2,
     yellow        = red | green,
     blue          = 4,
-    magenta       = red | blue,		// purple
+    magenta       = red | blue,         // purple
     cyan          = green | blue,
     lightGray     = red | green | blue,
 
