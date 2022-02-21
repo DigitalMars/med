@@ -23,13 +23,13 @@
  *      - Ported to Amiga.
  *
  * Later versions - Walter Bright, Bjorn Benson
- *	- Ported to linux
- *	- Ported to Win32 (compile with Digital Mars C compiler, www.digitalmars.com)
- *	- Ported to DOS32
+ *      - Ported to linux
+ *      - Ported to Win32 (compile with Digital Mars C compiler, www.digitalmars.com)
+ *      - Ported to DOS32
  *
  * The D programming language version
- *	- translated to D by Walter Bright on 14-Feb-2008
- *	- drops 16 bit versions, all versions other than Windows and Linux
+ *      - translated to D by Walter Bright on 14-Feb-2008
+ *      - drops 16 bit versions, all versions other than Windows and Linux
  */
 
 module main;
@@ -121,7 +121,7 @@ int     quit();                 /* Quit                         */
 int     main_saveconfig();      /* Save configuration           */
 int     ctlxlp();               /* Begin macro                  */
 int     ctlxrp();               /* End macro                    */
-int     macrotoggle();          /* Start/End macro		*/
+int     macrotoggle();          /* Start/End macro              */
 int     ctlxe();                /* Execute macro                */
 int     filenext();             /* Edit next file               */
 int     fileread();             /* Get a file, read only        */
@@ -151,7 +151,7 @@ int     listbuffers();          /* Display list of buffers      */
 int     usebuffer();            /* Switch a window to a buffer  */
 int     buffer_next();          /* Switch to next buffer        */
 int     killbuffer();           /* Make a buffer go away.       */
-int	word_wrap_line();	/* Word wrap current line	*/
+int     word_wrap_line();       /* Word wrap current line       */
 int     word_select();          /* Select word                  */
 int     word_back();            /* Backup by words              */
 int     word_forw();            /* Advance by words             */
@@ -170,7 +170,7 @@ int     filemodify();           /* Write modified files         */
 int     normexit();             /* Write modified files and exit*/
 int     replacestring();        /* Search and replace           */
 int     queryreplacestring();   /* Query search and replace     */
-int     win32toggle43();	/* Toggle 43 line mode          */
+int     win32toggle43();        /* Toggle 43 line mode          */
 int     ibmpctoggle43();        /* Toggle 43 line mode          */
 int     display_norm_fg();
 int     display_norm_bg();
@@ -191,7 +191,7 @@ int     Dadvance();             /* Set into advance mode        */
 int     Dbackup();              /* Set into backup mode         */
 int     Dpause();               /* Pause the program (UNIX only)*/
 int     Dinsertdate();          /* File and date stamp          */
-int     Dcppcomment();		/* convert to // comment	*/
+int     Dcppcomment();          /* convert to // comment        */
 int     Dinsertfile();          /* Insert a file                */
 +/
 
@@ -254,8 +254,8 @@ immutable KEYTAB[]  keytab =
        { F8KEY,                  &region_copy},
        { F9KEY,                  &region_kill},
        { F10KEY,                 &random_yank},
-	{F11KEY,		 &ctlxe},
-	{F12KEY,		 &macrotoggle},
+        {F11KEY,                 &ctlxe},
+        {F12KEY,                 &macrotoggle},
         {AltF1KEY,               &display_norm_bg},
         {AltF2KEY,               &display_norm_fg},
         {AltF3KEY,               &display_mode_bg},
@@ -267,7 +267,7 @@ immutable KEYTAB[]  keytab =
         {AltF10KEY,              &random_incindent},
         {ALTB,                   &buffer_next},
         {ALTC,                   &main_saveconfig},
-	{ALTX,			 &normexit},
+        {ALTX,                   &normexit},
         {ALTZ,                   &spawn_pipe},
         {RTKEY,                  &forwchar},
         {LTKEY,                  &backchar},
@@ -355,12 +355,12 @@ immutable KEYTAB[]  keytab =
         {0x8042,         &random_openline},
         {0x8043,         &random_kill},
         {0x8044,         &region_togglemode},
-	{0x8045,	 &Dcppcomment},
-	{0x8046,	 &random_hardtab},
-	{0x8047,	 &word_wrap_line},
-	{0x8048,         &help},
-	{0x8049,         &openBrowser},
-	{0x804A,         &scrollUnicode},
+        {0x8045,         &Dcppcomment},
+        {0x8046,         &random_hardtab},
+        {0x8047,         &word_wrap_line},
+        {0x8048,         &help},
+        {0x8049,         &openBrowser},
+        {0x804A,         &scrollUnicode},
 ];
 
 /* Translation table from 2 key sequence to single value        */
@@ -375,7 +375,7 @@ immutable ushort[2][] altf_tab =
         ['Q',            0x803C],         /* quit                 */
         ['R',            0x801C],         /* fileread             */
         ['S',            0x801D],         /* filesave             */
-	['T',		 0x8046],	  // random_hardtab
+        ['T',            0x8046],         // random_hardtab
         ['U',            0x803A],         /* fileunmodify         */
         ['V',            0x801F],         /* filevisit            */
         ['W',            0x8020],         /* filewrite            */
@@ -404,7 +404,7 @@ immutable ushort[2][] esc_tab =
         ['F',            0x802D],         /* word_forw            */
         ['H',            0x8023],         /* delbword             */
         ['I',            0x8024],         /* random_opttab        */
-	['J',		 0x803E],		// Dundelline
+        ['J',            0x803E],               // Dundelline
         ['L',            0x802E],         /* misc_lower           */
         ['M',            0x8048],         // help
         ['N',            0x8019],         /* window_mvdn          */
@@ -423,33 +423,33 @@ immutable ushort[2][] esc_tab =
 
 immutable ushort[2][] ctlx_tab =
 [
-        ['@',            0x8001],	// spawn_pipe
-        ['#',            0x8002],	// spawn_filter
-        ['=',            0x8003],	// random_showcpos
-        ['(',            0x8004],	// ctlxlp
-        [')',            0x8005],	// ctlxrp
-        ['[',            0x8006],	// random_decindent
-        [']',            0x8007],	// random_incindent
-        ['.',            0x8009],	// removemark
-        ['!',            0x800A],	// spawn
-        ['1',            0x8008],	// window_only
-        ['2',            0x800B],	// window_split
-	['A',		 0x8047],	// word_wrap_line
-        ['B',            0x800C],	// usebuffer
-        ['D',            0x800D],	// delwind
-        ['E',            0x800E],	// ctlxe
-        ['F',            0x800F],	// random_setfillcol
-        ['K',            0x8010],	// killbuffer
+        ['@',            0x8001],       // spawn_pipe
+        ['#',            0x8002],       // spawn_filter
+        ['=',            0x8003],       // random_showcpos
+        ['(',            0x8004],       // ctlxlp
+        [')',            0x8005],       // ctlxrp
+        ['[',            0x8006],       // random_decindent
+        [']',            0x8007],       // random_incindent
+        ['.',            0x8009],       // removemark
+        ['!',            0x800A],       // spawn
+        ['1',            0x8008],       // window_only
+        ['2',            0x800B],       // window_split
+        ['A',            0x8047],       // word_wrap_line
+        ['B',            0x800C],       // usebuffer
+        ['D',            0x800D],       // delwind
+        ['E',            0x800E],       // ctlxe
+        ['F',            0x800F],       // random_setfillcol
+        ['K',            0x8010],       // killbuffer
         ['L',            0x8039],       // gotoline
-        ['N',            0x8011],	// window_next
+        ['N',            0x8011],       // window_next
         ['O',            0x801A],       // random_deblank
-        ['P',            0x8012],	// window_prev
-        ['Q',            0x8013],	// random_quote
+        ['P',            0x8012],       // window_prev
+        ['Q',            0x8013],       // random_quote
         ['T',            0x801E],       // window_reposition
-        ['U',            0x804A],	// scrollUnicode
-        ['W',            0x8014],	// buffer_next
-        ['Z',            0x8015],	// window_enlarge
-	['/',		 0x8045],	// Dcppcomment
+        ['U',            0x804A],       // scrollUnicode
+        ['W',            0x8014],       // buffer_next
+        ['Z',            0x8015],       // window_enlarge
+        ['/',            0x8045],       // Dcppcomment
 ];
 
 struct CMDTAB
@@ -480,15 +480,15 @@ int main(string[] args)
     progname = args[0];                     /* remember program name */
     bname = "main";                         /* Work out the name of */
     if (args.length > 1)                    /* the default buffer.  */
-	    bname = makename(args[1]);
+            bname = makename(args[1]);
     vtinit();                               /* Displays.            */
     edinit(bname);                          /* Buffers, windows.    */
     if (args.length > 1) {
-	    update();                       /* You have to update   */
-	    readin(args[1]);                /* in case "[New file]" */
+            update();                       /* You have to update   */
+            readin(args[1]);                /* in case "[New file]" */
     }
     else
-	mlwrite("[No file]");
+        mlwrite("[No file]");
     gargi = 2;
     gargs = args;
     lastflag = 0;                           /* Fake last flags.     */
@@ -596,7 +596,7 @@ void edinit(string bname)
         wp.w_ntrows = term.t_nrow-2;           /* -1 for mode line, -1 for minibuffer  */
         wp.w_flag  = WFMODE|WFHARD;            /* Full.                */
 }
-        
+
 /*
  * This is the general command execution routine. It handles the fake binding
  * of all the keys to "self-insert". It also clears out the "thisflag" word,
@@ -622,19 +622,19 @@ int execute(int prefix, int c, bool f, int n)
      * negative, and we are now past fill column, perform word wrap.
      */
     if (c == ' ' && fillcol > 0 && n>=0 &&
-	getcol(curwp.w_dotp,curwp.w_doto) > fillcol)
-	    word_wrap(false, 0);
+        getcol(curwp.w_dotp,curwp.w_doto) > fillcol)
+            word_wrap(false, 0);
 
     if ((c>=0x20 && c<=0x7E)                /* Self inserting.      */
     ||  (c>=0xA0 && c<=0xFE)) {
-	    if (n <= 0) {                   /* Fenceposts.          */
-		    lastflag = 0;
-		    return (n<0 ? FALSE : TRUE);
-	    }
-	    thisflag = 0;                   /* For the future.      */
-	    status   = insertmode ? line_insert(n, cast(char)c) : line_overwrite(n, cast(char)c);
-	    lastflag = thisflag;
-	    return (status);
+            if (n <= 0) {                   /* Fenceposts.          */
+                    lastflag = 0;
+                    return (n<0 ? FALSE : TRUE);
+            }
+            thisflag = 0;                   /* For the future.      */
+            status   = insertmode ? line_insert(n, cast(char)c) : line_overwrite(n, cast(char)c);
+            lastflag = thisflag;
+            return (status);
     }
 
     /*
@@ -657,9 +657,9 @@ int getkey()
     ttyield();
     while (hasmouse && !ttkeysininput())
     {   c = mouse_command();
-	if (c)
-	    return c;
-	ttyield();
+        if (c)
+            return c;
+        ttyield();
         ttwaitkeys();
     }
     c = term.t_getchar();
@@ -676,8 +676,8 @@ int getkey()
                 c = get2nd(c);
                 break;
 
-	    default:
-		break;
+            default:
+                break;
     }
 
     return (c);
@@ -741,7 +741,7 @@ static int get2nd(int flag)
 int normexit(bool f, int n)
 {
     filemodify(f, n);                // write all modified files
-    update();    	             // make the screen look nice
+    update();                        // make the screen look nice
     quit(f, n);
     return false;
 }
@@ -779,8 +779,8 @@ int ctlxlp(bool f, int n)
         mlwrite("[Start macro]");
         kbdmip = kbdm.ptr;
 
-	foreach (wp; windows)
-	    wp.w_flag |= WFMODE;	/* so highlighting is updated */
+        foreach (wp; windows)
+            wp.w_flag |= WFMODE;        /* so highlighting is updated */
 
         return (TRUE);
 }
@@ -798,25 +798,25 @@ int ctlxrp(bool f, int n)
         mlwrite("[End macro]");
         kbdmip = null;
 
-	foreach (wp; windows)
-	    wp.w_flag |= WFMODE;	/* so highlighting is updated */
+        foreach (wp; windows)
+            wp.w_flag |= WFMODE;        /* so highlighting is updated */
 
         return (TRUE);
 }
 
 /*
  * If in a macro
- * 	end macro
+ *      end macro
  * Else
- *	start macro
+ *      start macro
  */
 
 int macrotoggle(bool f, int n)
 {
         if (kbdmip)
-	    return ctlxrp(f, n);
-	else
-	    return ctlxlp(f, n);
+            return ctlxrp(f, n);
+        else
+            return ctlxlp(f, n);
 }
 
 /*
@@ -875,53 +875,53 @@ int ctrlg(bool f, int n)
 version (Windows)
 {
     CONFIG config =
-    {	// mode, norm, eol, mark, tab, url, search
-	//0x74,0x02,0x07,0x24,
-	//0x34,0x7F,0x78,0x3B,
-	//0x34,0x0E,0x0E,0x3B,
-	//0x34,0x70,0x70,0x3B,
-	//0x34,0xF0,0xF0,0x3B,
-	0x3E,0xF0,0xF0,0x3B,
+    {   // mode, norm, eol, mark, tab, url, search
+        //0x74,0x02,0x07,0x24,
+        //0x34,0x7F,0x78,0x3B,
+        //0x34,0x0E,0x0E,0x3B,
+        //0x34,0x70,0x70,0x3B,
+        //0x34,0xF0,0xF0,0x3B,
+        0x3E,0xF0,0xF0,0x3B,
         ' '/*0xAF*/,
-	0xF9,	// url
-	0xE1,	// search
+        0xF9,   // url
+        0xE1,   // search
 
-	0xF9, //0xF3, // keyword
-	0xFC, //0xF4, // string
-	0xF8, //0xF2, // comment
+        0xF9, //0xF3, // keyword
+        0xFC, //0xF4, // string
+        0xF8, //0xF2, // comment
     };
 }
 else version (Posix)
 {
     CONFIG config =
     {
-	Color.bgCyan | Color.lightYellow,	// mode
-	Color.black,	// norm
-	Color.black,	// eol
-	Color.reverse,	// mark
-	' ',				// tab
-	Color.underline | Color.blue,	// url
-	Color.bgYellow | Color.black,	// search
+        Color.bgCyan | Color.lightYellow,       // mode
+        Color.black,    // norm
+        Color.black,    // eol
+        Color.reverse,  // mark
+        ' ',                            // tab
+        Color.underline | Color.blue,   // url
+        Color.bgYellow | Color.black,   // search
 
-	Color.blue,	// keyword
-	Color.red,	// string
-	Color.magenta,	// comment
+        Color.blue,     // keyword
+        Color.red,      // string
+        Color.magenta,  // comment
     };
 }
 else
 {
     CONFIG config =
     {
-	Color.bright,	// mode
-	0, 		// norm
-	0,		// eol
-	Color.bright,	// mark
-	' ',		// tab
-	0,		// url
-	Color.yellow,	// search
-	0,		// keyword
-	0,		// string
-	0,		// comment
+        Color.bright,   // mode
+        0,              // norm
+        0,              // eol
+        Color.bright,   // mark
+        ' ',            // tab
+        0,              // url
+        Color.yellow,   // search
+        0,              // keyword
+        0,              // string
+        0,              // comment
     };
 }
 

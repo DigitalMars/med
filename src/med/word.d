@@ -38,43 +38,43 @@ import display;
 int word_wrap(bool f, int n)
 {
         int cnt;
-	LINE* oldp;
+        LINE* oldp;
 
         oldp = curwp.w_dotp;
         cnt = -1;
-        do {                            
+        do {
                 cnt++;
                 if (! backchar(false, 1))
-		    goto err;
+                    goto err;
         } while (! inword());
         if (! word_back(false, 1))
-	    goto err;
-	/* If still on same line (but not at the beginning)	*/
+            goto err;
+        /* If still on same line (but not at the beginning)     */
         if (oldp == curwp.w_dotp && curwp.w_doto)
-	{   int i;
+        {   int i;
 
-	    if (!random_backdel(false, 1))
-		goto err;
-	    if (!random_newline(false, 1))
-		goto err;
-	    oldp = lback(curwp.w_dotp);
-	    i = 0;
-	    while (1)
-	    {
-		auto c = lgetc(oldp,i);
-		if (c != ' ' && c != '\t')
-		    break;
-		line_insert(1,c);
-		i++;
-	    }
+            if (!random_backdel(false, 1))
+                goto err;
+            if (!random_newline(false, 1))
+                goto err;
+            oldp = lback(curwp.w_dotp);
+            i = 0;
+            while (1)
+            {
+                auto c = lgetc(oldp,i);
+                if (c != ' ' && c != '\t')
+                    break;
+                line_insert(1,c);
+                i++;
+            }
         }
-	while (inword() == true)
-	    if (forwchar(false, 1) == false)
-		goto err;
+        while (inword() == true)
+            if (forwchar(false, 1) == false)
+                goto err;
         return forwchar(false, cnt);
 
 err:
-	return false;
+        return false;
 }
 
 /****************************
@@ -94,89 +94,89 @@ int word_wrap_line(bool f, int n)
     int dotosave;
 
     if (n < 0)
-	goto err;
+        goto err;
 
     if (window_marking(curwp))
     {   REGION region;
-	int s;
+        int s;
 
-	if ((s = getregion(&region)) != true)
-	    return s;
-	dotpsave = curwp.w_dotp;
-	dotosave = curwp.w_doto;
-	curwp.w_dotp = region.r_linep;
-	curwp.w_doto = region.r_offset;
-	n = region.r_nlines;
+        if ((s = getregion(&region)) != true)
+            return s;
+        dotpsave = curwp.w_dotp;
+        dotosave = curwp.w_doto;
+        curwp.w_dotp = region.r_linep;
+        curwp.w_doto = region.r_offset;
+        n = region.r_nlines;
     }
 
     while (n-- > 0)
     {
       L1:
-	col = 0;
-	lasti = 0;
-	inword = 0;
-	for (i = 0; i < llength(curwp.w_dotp); i++)
-	{
-	    c = lgetc(curwp.w_dotp, i);
-	    if (c == ' ' || c == '\t')
-	    {
-		if (inword)
-		    lasti = i;
-		inword = 0;
-	    }
-	    else
-	    {
-		inword = 1;
-	    }
-	    col = getcol(curwp.w_dotp, i);
-	    if (col >= term.t_ncol && lasti)
-	    {
-		if (!forwchar(0, lasti - curwp.w_doto))
-		    goto err;
-		if (!random_newline(0,1))
-		    goto err;
+        col = 0;
+        lasti = 0;
+        inword = 0;
+        for (i = 0; i < llength(curwp.w_dotp); i++)
+        {
+            c = lgetc(curwp.w_dotp, i);
+            if (c == ' ' || c == '\t')
+            {
+                if (inword)
+                    lasti = i;
+                inword = 0;
+            }
+            else
+            {
+                inword = 1;
+            }
+            col = getcol(curwp.w_dotp, i);
+            if (col >= term.t_ncol && lasti)
+            {
+                if (!forwchar(0, lasti - curwp.w_doto))
+                    goto err;
+                if (!random_newline(0,1))
+                    goto err;
 
-		/* Remove leading whitespace from new line	*/
-		while (1)
-		{
-		    if (!llength(curwp.w_dotp))
-			break;
-		    c = lgetc(curwp.w_dotp, 0);
-		    if (c == ' ' || c == '\t')
-		    {
-			if (!random_forwdel(0, 1))
-			    goto err;
-		    }
-		    else
-			break;
-		}
+                /* Remove leading whitespace from new line      */
+                while (1)
+                {
+                    if (!llength(curwp.w_dotp))
+                        break;
+                    c = lgetc(curwp.w_dotp, 0);
+                    if (c == ' ' || c == '\t')
+                    {
+                        if (!random_forwdel(0, 1))
+                            goto err;
+                    }
+                    else
+                        break;
+                }
 
-		/* Match indenting of original line (oldp)	*/
-		oldp = lback(curwp.w_dotp);
-		for (j = 0; j < llength(oldp); j++)
-		{
-		    c = lgetc(oldp, j);
-		    if (c == ' ' || c == '\t')
-		    {
-			if (!line_insert(1, c))
-			    goto err;
-		    }
-		    else
-			break;
-		}
+                /* Match indenting of original line (oldp)      */
+                oldp = lback(curwp.w_dotp);
+                for (j = 0; j < llength(oldp); j++)
+                {
+                    c = lgetc(oldp, j);
+                    if (c == ' ' || c == '\t')
+                    {
+                        if (!line_insert(1, c))
+                            goto err;
+                    }
+                    else
+                        break;
+                }
 
-		goto L1;
-	    }
-	}
-	if (!forwline(0, 1))
-	    goto err;
+                goto L1;
+            }
+        }
+        if (!forwline(0, 1))
+            goto err;
     }
     if (window_marking(curwp))
     {
-	if (dotosave > llength(dotpsave))
-	    dotosave = llength(dotpsave);
-	curwp.w_dotp = dotpsave;
-	curwp.w_doto = dotosave;
+        if (dotosave > llength(dotpsave))
+            dotosave = llength(dotpsave);
+        curwp.w_dotp = dotpsave;
+        curwp.w_doto = dotosave;
     }
     return true;
 
@@ -195,13 +195,13 @@ int word_select(bool f, int n)
 
     inw = inword();
     do
-	s = backchar(false, 1);
+        s = backchar(false, 1);
     while (s && inword() == inw);
 
     return s &&
-	forwchar(false,1) &&
-	basic_setmark(false,1) &&
-	word_forw(f,n);
+        forwchar(false,1) &&
+        basic_setmark(false,1) &&
+        word_forw(f,n);
 }
 
 /******************************
@@ -211,8 +211,8 @@ int word_select(bool f, int n)
 int word_lineselect(bool f, int n)
 {
     return (curwp.w_doto == 0 || gotobol(false,1)) &&
-	basic_setmark(false,1) &&
-	forwline(f,n);
+        basic_setmark(false,1) &&
+        forwline(f,n);
 }
 
 /*
@@ -227,11 +227,11 @@ int word_back(bool f, int n)
         if (backchar(false, 1) == false)
                 return (false);
         while (n--) {
-	    auto inw = inword();
-	    do
-		if (backchar(false, 1) == false)
-		    return (false);
-	    while (inword() == inw);
+            auto inw = inword();
+            do
+                if (backchar(false, 1) == false)
+                    return (false);
+            while (inword() == inw);
         }
         return (forwchar(false, 1));
 }
@@ -245,11 +245,11 @@ int word_forw(bool f, int n)
         if (n < 0)
                 return (word_back(f, -n));
         while (n--) {
-	    auto inw = inword();
-	    do
-		if (forwchar(false, 1) == false)
-		    return (false);
-	    while (inword() == inw);
+            auto inw = inword();
+            do
+                if (forwchar(false, 1) == false)
+                    return (false);
+            while (inword() == inw);
         }
         return (true);
 }
@@ -291,43 +291,43 @@ private int word_setcase(bool f, int n, int flag)
     char    c;
 
     if (n < 0)
-	return (false);
+        return (false);
     while (n--) {
-	while (inword() == false) {
-	    if (forwchar(false, 1) == false)
-		return (false);
-	}
-	if (flag == 2 && inword() != false) {
-	    c = lgetc(curwp.w_dotp, curwp.w_doto);
-	    if (isLower(c))
-	    {   c -= 'a'-'A';
-		lputc(curwp.w_dotp, curwp.w_doto, c);
-		line_change(WFHARD);
-	    }
-	    if (forwchar(false, 1) == false)
-		return (false);
-	}
-	while (inword() != false) {
-	    c = lgetc(curwp.w_dotp, curwp.w_doto);
-	    final switch (flag)
-	    {   case 0:
-		    if (isLower(c)) {
-			c -= 'a'-'A';
-			goto L1;
-		    }
-		    break;
-		case 1:
-		case 2:
-		    if (isUpper(c)) {
-			c += 'a'-'A';
-		    L1: lputc(curwp.w_dotp, curwp.w_doto, c);
-			line_change(WFHARD);
-		    }
-		    break;
-	    }
-	    if (forwchar(false, 1) == false)
-		return (false);
-	}
+        while (inword() == false) {
+            if (forwchar(false, 1) == false)
+                return (false);
+        }
+        if (flag == 2 && inword() != false) {
+            c = lgetc(curwp.w_dotp, curwp.w_doto);
+            if (isLower(c))
+            {   c -= 'a'-'A';
+                lputc(curwp.w_dotp, curwp.w_doto, c);
+                line_change(WFHARD);
+            }
+            if (forwchar(false, 1) == false)
+                return (false);
+        }
+        while (inword() != false) {
+            c = lgetc(curwp.w_dotp, curwp.w_doto);
+            final switch (flag)
+            {   case 0:
+                    if (isLower(c)) {
+                        c -= 'a'-'A';
+                        goto L1;
+                    }
+                    break;
+                case 1:
+                case 2:
+                    if (isUpper(c)) {
+                        c += 'a'-'A';
+                    L1: lputc(curwp.w_dotp, curwp.w_doto, c);
+                        line_change(WFHARD);
+                    }
+                    break;
+            }
+            if (forwchar(false, 1) == false)
+                return (false);
+        }
     }
     return (true);
 }
@@ -406,6 +406,6 @@ bool inword()
         if (curwp.w_doto == llength(curwp.w_dotp))
                 return false;
         auto c = lgetc(curwp.w_dotp, curwp.w_doto);
-	return (isAlphaNum(c) ||
-		 c=='$' || c=='_');	/* For identifiers      */
+        return (isAlphaNum(c) ||
+                 c=='$' || c=='_');     /* For identifiers      */
 }

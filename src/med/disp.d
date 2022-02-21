@@ -36,43 +36,43 @@ struct disp_t
 
     union
     {
-	ushort *base;
-	struct
-	{   uint offset;
-	    ushort basep;
-	}
+        ushort *base;
+        struct
+        {   uint offset;
+            ushort basep;
+        }
     }
     void *handle;
 }
 
 extern __gshared disp_t disp_state;
 
-int	disp_printf(char *,...);
-int	disp_getmode();
-int	disp_getattr();
-int	disp_putc(int);
-void	disp_levelblockpoke(int,int,int,int,uint,uint *,uint,uint *,uint);
-void	disp_open();
-void	disp_puts(const char *);
-void	disp_box(int,int,uint,uint,uint,uint);
-void	disp_close();
-void	disp_move(int,int);
-void	disp_flush();
-void	disp_eeol();
-void	disp_eeop();
-void	disp_startstand();
-void	disp_endstand();
-void	disp_setattr(int);
-void	disp_setcursortype(int);
-void	disp_pokew(int,int,ushort);
-void	disp_scroll(int,uint,uint,uint,uint,uint);
-void	disp_setmode(ubyte);
-void	disp_peekbox(ushort *,uint,uint,uint,uint);
-void	disp_pokebox(ushort *,uint,uint,uint,uint);
-void	disp_fillbox(uint,uint,uint,uint,uint);
-void	disp_hidecursor();
-void	disp_showcursor();
-ushort	disp_peekw(int,int);
+int     disp_printf(char *,...);
+int     disp_getmode();
+int     disp_getattr();
+int     disp_putc(int);
+void    disp_levelblockpoke(int,int,int,int,uint,uint *,uint,uint *,uint);
+void    disp_open();
+void    disp_puts(const char *);
+void    disp_box(int,int,uint,uint,uint,uint);
+void    disp_close();
+void    disp_move(int,int);
+void    disp_flush();
+void    disp_eeol();
+void    disp_eeop();
+void    disp_startstand();
+void    disp_endstand();
+void    disp_setattr(int);
+void    disp_setcursortype(int);
+void    disp_pokew(int,int,ushort);
+void    disp_scroll(int,uint,uint,uint,uint,uint);
+void    disp_setmode(ubyte);
+void    disp_peekbox(ushort *,uint,uint,uint,uint);
+void    disp_pokebox(ushort *,uint,uint,uint,uint);
+void    disp_fillbox(uint,uint,uint,uint,uint);
+void    disp_hidecursor();
+void    disp_showcursor();
+ushort  disp_peekw(int,int);
 
 enum
 {
@@ -84,9 +84,9 @@ enum
     DISP_INTENSITY          = 0x08,
     DISP_BLINK              = 0x80,
 
-    DISP_CURSORBLOCK	    = 100,
-    DISP_CURSORHALF	    = 50,
-    DISP_CURSORUL	    = 20,
+    DISP_CURSORBLOCK        = 100,
+    DISP_CURSORHALF         = 50,
+    DISP_CURSORUL           = 20,
 }
 
 }

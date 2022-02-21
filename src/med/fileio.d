@@ -59,20 +59,20 @@ bool ffreadonly(string name)
     bool exists = true;
     try
     {
-	a = std.file.getAttributes(name);
+        a = std.file.getAttributes(name);
     }
     catch (Throwable o)
     {
-	exists = false;
+        exists = false;
     }
 
     version (Win32)
     {
-	return (a & FILE_ATTRIBUTE_READONLY) != 0;
+        return (a & FILE_ATTRIBUTE_READONLY) != 0;
     }
     else
     {
-	return exists && (a & S_IWUSR) == 0;
+        return exists && (a & S_IWUSR) == 0;
     }
 }
 
@@ -83,24 +83,24 @@ int ffrename(string from, string to)
 {
     try
     {
-	from = std.path.expandTilde(from);
-	to = std.path.expandTilde(to);
-	version (Posix)
-	{
-	    stat_t buf;
-	    if( stat( toStringz(from), &buf ) != -1
-	     && !(buf.st_uid == getuid() && (buf.st_mode & octal!200))
-	     && !(buf.st_gid == getgid() && (buf.st_mode & octal!20))
-	     && !(                          (buf.st_mode & octal!2)) )
-	    {
-		    mlwrite("Cannot open file for writing.");
-		    /* Note the above message is a lie, but because this	*/
-		    /* routine is only called by the backup file creation	*/
-		    /* code, the message will look right to the user.	*/
-		    return( FIOERR );
-	    }
-	}
-	rename( from, to );
+        from = std.path.expandTilde(from);
+        to = std.path.expandTilde(to);
+        version (Posix)
+        {
+            stat_t buf;
+            if( stat( toStringz(from), &buf ) != -1
+             && !(buf.st_uid == getuid() && (buf.st_mode & octal!200))
+             && !(buf.st_gid == getgid() && (buf.st_mode & octal!20))
+             && !(                          (buf.st_mode & octal!2)) )
+            {
+                    mlwrite("Cannot open file for writing.");
+                    /* Note the above message is a lie, but because this        */
+                    /* routine is only called by the backup file creation       */
+                    /* code, the message will look right to the user.   */
+                    return( FIOERR );
+            }
+        }
+        rename( from, to );
     }
     catch (Throwable o)
     {
@@ -116,29 +116,29 @@ int ffchmod(string subject, string image)
 {
     version (Posix)
     {
-	subject = std.path.expandTilde(subject);
-	image = std.path.expandTilde(image);
+        subject = std.path.expandTilde(subject);
+        image = std.path.expandTilde(image);
 
-	uint attr;
-	try
-	{
-	    attr = std.file.getAttributes(image);
-	}
-	catch (FileException fe)
-	{
-		return( FIOSUC );
-		/* Note that this won't work in all cases, but because	*/
-		/* this is only called from the backup file creator, it	*/
-		/* will work.  UGLY!!					*/
-	}
-	if (chmod( toStringz(subject), attr ) == -1 )
-	{
-		mlwrite("Cannot open file for writing.");
-		/* Note the above message is a lie, but because this	*/
-		/* routine is only called by the backup file creation	*/
-		/* code, the message will look right to the user.	*/
-		return( FIOERR );
-	}
+        uint attr;
+        try
+        {
+            attr = std.file.getAttributes(image);
+        }
+        catch (FileException fe)
+        {
+                return( FIOSUC );
+                /* Note that this won't work in all cases, but because  */
+                /* this is only called from the backup file creator, it */
+                /* will work.  UGLY!!                                   */
+        }
+        if (chmod( toStringz(subject), attr ) == -1 )
+        {
+                mlwrite("Cannot open file for writing.");
+                /* Note the above message is a lie, but because this    */
+                /* routine is only called by the backup file creation   */
+                /* code, the message will look right to the user.       */
+                return( FIOERR );
+        }
     }
     return( FIOSUC );
 }

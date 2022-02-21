@@ -29,7 +29,7 @@ import terminal;
 int     tabsize;                        /* Tab size (0: use real tabs)  */
 
 /*****************************
- * Set fill column to n if n was given, otherwise set to current column. 
+ * Set fill column to n if n was given, otherwise set to current column.
  */
 
 int random_setfillcol(bool f, int n)
@@ -48,24 +48,24 @@ int random_setfillcol(bool f, int n)
 int random_showcpos(bool f, int n)
 {
         LINE   *clp;
-	int     numchars;
-	int     cbo;
-	int    thischar;
-	int    charatdot;
-	int    ratio;
-	int    col;
-	int	thisline;
-	int	numlines;
+        int     numchars;
+        int     cbo;
+        int    thischar;
+        int    charatdot;
+        int    ratio;
+        int    col;
+        int     thisline;
+        int     numlines;
 
         clp = lforw(curbp.b_linep);            /* Grovel the data.     */
         cbo = 0;
         numchars = 0;
-	numlines = 1;
+        numlines = 1;
         for (;;) {
-		/* if on the current dot, save the character at dot	*/
-		/* and the character and line position of the dot	*/
+                /* if on the current dot, save the character at dot     */
+                /* and the character and line position of the dot       */
                 if (clp==curwp.w_dotp && cbo==curwp.w_doto) {
-			thisline = numlines;
+                        thisline = numlines;
                         thischar = numchars;
                         if (cbo == llength(clp))
                                 charatdot = '\n';
@@ -77,18 +77,18 @@ int random_showcpos(bool f, int n)
                                 break;
                         clp = lforw(clp);
                         cbo = 0;
-			numlines++;
+                        numlines++;
                 } else
                         ++cbo;
                 ++numchars;
         }
-	col = getcol(curwp.w_dotp,curwp.w_doto); /* Get real column	*/
+        col = getcol(curwp.w_dotp,curwp.w_doto); /* Get real column     */
         ratio = 0;                              /* Ratio before dot.    */
         if (numchars != 0)
                 ratio = cast(int)((100*thischar) / numchars);
         mlwrite("row=%d col=%d CH=0x%x .=%d (%d%% of %d) line %d of %d",
                 currow+1, col+1, charatdot, thischar,
-		ratio, numchars, thisline, numlines - 1);
+                ratio, numchars, thisline, numlines - 1);
         return (TRUE);
 }
 
@@ -174,13 +174,13 @@ int random_hardtab(bool f, int n)
         if (n < 0)
                 return (FALSE);
         if (n == 0 || n > 1)
-	    hardtabsize = n;
-	else if (hardtabsize == 8)
-	    hardtabsize = 4;
-	else if (hardtabsize == 4)
-	    hardtabsize = 8;
-	display_recalc();
-	return TRUE;
+            hardtabsize = n;
+        else if (hardtabsize == 8)
+            hardtabsize = 4;
+        else if (hardtabsize == 4)
+            hardtabsize = 8;
+        display_recalc();
+        return TRUE;
 }
 
 /*
@@ -200,7 +200,7 @@ int random_openline(bool f, int n)
         i = n;                                  /* Insert newlines.     */
         do {
                 s = line_newline();
-	} while (s==TRUE && --i);
+        } while (s==TRUE && --i);
         if (s == TRUE)                          /* Then back up overtop */
                 s = backchar(f, n);             /* of them all.         */
         return (s);
@@ -222,7 +222,7 @@ int random_newline(bool f, int n)
         if (n < 0)
                 return (FALSE);
         while (n--) {
-		    if ((s=line_newline()) != TRUE)
+                    if ((s=line_newline()) != TRUE)
                         return (s);
         }
         return (TRUE);
@@ -299,84 +299,84 @@ int random_indent(bool f, int n)
  * Step to next line.
  */
 
-int random_incindent(bool f, int n)	{ return changeindent(f,n,4); }
-int random_decindent(bool f, int n)	{ return changeindent(f,n,-4); }
+int random_incindent(bool f, int n)     { return changeindent(f,n,4); }
+int random_decindent(bool f, int n)     { return changeindent(f,n,-4); }
 
 private int changeindent(bool f, int n, int val)
 {
         int    nicol;
         int    c;
         int    i;
-	LINE*  dotpsave;
-	int    dotosave;
+        LINE*  dotpsave;
+        int    dotosave;
 
         if (n < 0)
-	    goto err;
-	if (window_marking(curwp))
-	{   REGION region;
-	    int s;
+            goto err;
+        if (window_marking(curwp))
+        {   REGION region;
+            int s;
 
-	    if ((s = getregion(&region)) != TRUE)
-		return s;
-	    dotpsave = curwp.w_dotp;
-	    dotosave = curwp.w_doto;
-	    curwp.w_dotp = region.r_linep;
-	    curwp.w_doto = region.r_offset;
-	    n = region.r_nlines;
-	}
-        while (n--)
-	{   int len;
-
-	    len = llength(curwp.w_dotp);
-	    if (len)
-	    {
-                nicol = 0;
-		for (i=0; i < len; ++i) {
-		    c = lgetc(curwp.w_dotp, i);
-		    if (c == '{' && i + 1 < len) /* } to balance things out */
-		    {	int j;
-
-			/* Next non-white char after bracket is indented by 3 */
-			for (j = i + 1; j < len; j++)
-			{   c = lgetc(curwp.w_dotp,j);
-			    if (c != ' ' && c != '\t')
-				break;
-			}
-			curwp.w_doto = i + 1;
-			line_delete(j - (i + 1),FALSE);
-			auto absval = val < 0 ? -val : val;
-			line_insert(absval - 1,' ');
-			break;
-		    }
-		    if (c!=' ' && c!='\t')
-			break;
-		    if (c == '\t')
-			nicol |= 0x07;
-		    ++nicol;
-                }
-		curwp.w_doto = 0;	/* move to beginning of line	*/
-		line_delete(i,FALSE);	/* delete existing blanks	*/
-		nicol += val;
-		if (nicol < 0)
-		    nicol = 0;
-		if (((i=nicol/8)!=0 && line_insert(i, '\t')==FALSE)
-		 || ((i=nicol%8)!=0 && line_insert(i,  ' ')==FALSE))
-		    goto err;
-	    }
-	    if (forwline(FALSE,1) == FALSE)
-		goto err;
+            if ((s = getregion(&region)) != TRUE)
+                return s;
+            dotpsave = curwp.w_dotp;
+            dotosave = curwp.w_doto;
+            curwp.w_dotp = region.r_linep;
+            curwp.w_doto = region.r_offset;
+            n = region.r_nlines;
         }
-	if (window_marking(curwp))
-	{
-	    if (dotosave > llength(dotpsave))
-		dotosave = llength(dotpsave);
-	    curwp.w_dotp = dotpsave;
-	    curwp.w_doto = dotosave;
-	}
+        while (n--)
+        {   int len;
+
+            len = llength(curwp.w_dotp);
+            if (len)
+            {
+                nicol = 0;
+                for (i=0; i < len; ++i) {
+                    c = lgetc(curwp.w_dotp, i);
+                    if (c == '{' && i + 1 < len) /* } to balance things out */
+                    {   int j;
+
+                        /* Next non-white char after bracket is indented by 3 */
+                        for (j = i + 1; j < len; j++)
+                        {   c = lgetc(curwp.w_dotp,j);
+                            if (c != ' ' && c != '\t')
+                                break;
+                        }
+                        curwp.w_doto = i + 1;
+                        line_delete(j - (i + 1),FALSE);
+                        auto absval = val < 0 ? -val : val;
+                        line_insert(absval - 1,' ');
+                        break;
+                    }
+                    if (c!=' ' && c!='\t')
+                        break;
+                    if (c == '\t')
+                        nicol |= 0x07;
+                    ++nicol;
+                }
+                curwp.w_doto = 0;       /* move to beginning of line    */
+                line_delete(i,FALSE);   /* delete existing blanks       */
+                nicol += val;
+                if (nicol < 0)
+                    nicol = 0;
+                if (((i=nicol/8)!=0 && line_insert(i, '\t')==FALSE)
+                 || ((i=nicol%8)!=0 && line_insert(i,  ' ')==FALSE))
+                    goto err;
+            }
+            if (forwline(FALSE,1) == FALSE)
+                goto err;
+        }
+        if (window_marking(curwp))
+        {
+            if (dotosave > llength(dotpsave))
+                dotosave = llength(dotpsave);
+            curwp.w_dotp = dotpsave;
+            curwp.w_doto = dotosave;
+        }
         return (TRUE);
 
 err:
-	return FALSE;
+        return FALSE;
 }
 
 /*********************************
@@ -385,91 +385,91 @@ err:
  */
 
 int random_opttab(bool f, int n)
-{   
+{
     int    c;
     int    i;
     LINE *dotpsave;
     int dotosave;
 
     if (n < 0)
-	goto err;
+        goto err;
     if (window_marking(curwp))
     {   REGION region;
-	int s;
+        int s;
 
-	if ((s = getregion(&region)) != TRUE)
-	    return s;
-	dotpsave = curwp.w_dotp;
-	dotosave = curwp.w_doto;
-	curwp.w_dotp = region.r_linep;
-	curwp.w_doto = region.r_offset;
-	n = region.r_nlines;
+        if ((s = getregion(&region)) != TRUE)
+            return s;
+        dotpsave = curwp.w_dotp;
+        dotosave = curwp.w_doto;
+        curwp.w_dotp = region.r_linep;
+        curwp.w_doto = region.r_offset;
+        n = region.r_nlines;
     }
     while (n--)
-    {   
-	int nspaces = 0;
-	int nwhite = 0;
-	int nicol = 0;			/* column number		*/
+    {
+        int nspaces = 0;
+        int nwhite = 0;
+        int nicol = 0;                  /* column number                */
 
-	for (i=0; i < llength(curwp.w_dotp); i++)
-	{   
-	    c = lgetc(curwp.w_dotp, i);
-	    switch (c)
-	    {   
-		case '\t':
-		    nwhite++;
-		    if (nspaces)
-		    {	int ntabs;
+        for (i=0; i < llength(curwp.w_dotp); i++)
+        {
+            c = lgetc(curwp.w_dotp, i);
+            switch (c)
+            {
+                case '\t':
+                    nwhite++;
+                    if (nspaces)
+                    {   int ntabs;
 
-			i -= nspaces;
-			nwhite -= nspaces;
-			curwp.w_doto = i;
-			line_delete(nspaces,FALSE);
-			ntabs = nspaces >> 3;
-			line_insert(ntabs,'\t');
-			i += ntabs;
-			nwhite += ntabs;
-			nspaces = 0;
-		    }
-		    nicol = (nicol | 7) + 1;
-		    break;
-		default:
-		    if (nspaces >= 2 && (nicol & 7) == 0)
-		    {   i -= nspaces;
-			curwp.w_doto = i;
-			line_delete(nspaces,FALSE);
-			line_insert((nspaces + 7) >> 3,'\t');
-			i += (nspaces + 7) >> 3;
-			nspaces = 0;
-		    }
-		    if (c == ' ')
-		    {	nwhite++;
-			nspaces++;
-		    }
-		    else
-		    {	nwhite = 0;
-			nspaces = 0;
-		    }
-		    nicol++;
-		    break;
-	    }
-	}
+                        i -= nspaces;
+                        nwhite -= nspaces;
+                        curwp.w_doto = i;
+                        line_delete(nspaces,FALSE);
+                        ntabs = nspaces >> 3;
+                        line_insert(ntabs,'\t');
+                        i += ntabs;
+                        nwhite += ntabs;
+                        nspaces = 0;
+                    }
+                    nicol = (nicol | 7) + 1;
+                    break;
+                default:
+                    if (nspaces >= 2 && (nicol & 7) == 0)
+                    {   i -= nspaces;
+                        curwp.w_doto = i;
+                        line_delete(nspaces,FALSE);
+                        line_insert((nspaces + 7) >> 3,'\t');
+                        i += (nspaces + 7) >> 3;
+                        nspaces = 0;
+                    }
+                    if (c == ' ')
+                    {   nwhite++;
+                        nspaces++;
+                    }
+                    else
+                    {   nwhite = 0;
+                        nspaces = 0;
+                    }
+                    nicol++;
+                    break;
+            }
+        }
 
-	/* Truncate any trailing spaces or tabs	*/
-	if (nwhite)
-	{   curwp.w_doto = i - nwhite;
-	    line_delete(nwhite,FALSE);
-	}
+        /* Truncate any trailing spaces or tabs */
+        if (nwhite)
+        {   curwp.w_doto = i - nwhite;
+            line_delete(nwhite,FALSE);
+        }
 
-	if (forwline(FALSE,1) == FALSE)		/* proceed to next line	*/
-	    goto err;
+        if (forwline(FALSE,1) == FALSE)         /* proceed to next line */
+            goto err;
     }
     if (window_marking(curwp))
-    {   
-	if (dotosave > llength(dotpsave))
-	    dotosave = llength(dotpsave);
-	curwp.w_dotp = dotpsave;
-	curwp.w_doto = dotosave;
+    {
+        if (dotosave > llength(dotpsave))
+            dotosave = llength(dotpsave);
+        curwp.w_dotp = dotpsave;
+        curwp.w_doto = dotosave;
     }
     return (TRUE);
 
@@ -491,23 +491,23 @@ int random_forwdel(bool f, int n)
 {
         if (n < 0)
                 return (random_backdel(f, -n));
-	if (f) {                       /* Really a random_kill.       */
+        if (f) {                       /* Really a random_kill.       */
                 if ((lastflag&CFKILL) == 0)
                         kill_freebuffer();
                 thisflag |= CFKILL;
         }
-	else if (curwp.w_doto == llength(curwp.w_dotp))
-		undelch = '\n';
-	else
-		undelch = lgetc(curwp.w_dotp,curwp.w_doto);
+        else if (curwp.w_doto == llength(curwp.w_dotp))
+                undelch = '\n';
+        else
+                undelch = lgetc(curwp.w_dotp,curwp.w_doto);
         return (line_delete(n, f));
 }
 
 int random_undelchar(bool f, int n)
 {
-	if (undelch == '\n')
-	    return random_newline(f, n);
-	return line_insert(n,cast(char)undelch);
+        if (undelch == '\n')
+            return random_newline(f, n);
+        return line_insert(n,cast(char)undelch);
 }
 
 /*
@@ -524,8 +524,8 @@ int random_backdel(bool f, int n)
 
         if (n < 0)
                 return (random_forwdel(f, -n));
-	if (curwp.w_markp)			/* if marking		*/
-		return region_kill(f,n);
+        if (curwp.w_markp)                      /* if marking           */
+                return region_kill(f,n);
         if (f != FALSE) {                       /* Really a kill.       */
                 if ((lastflag&CFKILL) == 0)
                         kill_freebuffer();
@@ -590,62 +590,62 @@ int random_yank(bool f, int n)
         extern   int    kused;
 
         if (n < 0)
-	    goto err;
+            goto err;
         kill_fromClipboard();
         while (n--)
-	{
-	    i = 0;
-	    if (column_mode)
-	    {	int col;
+        {
+            i = 0;
+            if (column_mode)
+            {   int col;
 
-		col = getcol(curwp.w_dotp,curwp.w_doto);
-		while ((c=kill_remove(i)) >= 0)
-		{
-		    if (c == '\r')
-		    {
-		    }
-		    else if (c == '\n')
-		    {	int nspaces;
+                col = getcol(curwp.w_dotp,curwp.w_doto);
+                while ((c=kill_remove(i)) >= 0)
+                {
+                    if (c == '\r')
+                    {
+                    }
+                    else if (c == '\n')
+                    {   int nspaces;
 
-			if (curwp.w_dotp == curbp.b_linep)
-			{   if (random_newline(FALSE, 1) == FALSE)
-				goto err;
-			}
-			else
-			    curwp.w_dotp = lforw(curwp.w_dotp);
-			curwp.w_flag |= WFHARD;
-			curwp.w_doto = coltodoto(curwp.w_dotp,col);
-			if (kill_remove(i + 1) >= 0)
-			{
-			    nspaces = col - getcol(curwp.w_dotp,curwp.w_doto);
-			    while (nspaces--)
-				if (!line_insert(1,' '))
-				    goto err;
-			}
-		    }
-		    else
-		    {
-			if (line_insert(1, cast(char)c) == FALSE)
-			    goto err;
-		    }
-		    ++i;
-		}
-	    }
-	    else
-		while ((c=kill_remove(i)) >= 0)
-		{
-		    if (c == '\r')
-		    {
-		    }
-		    else if (c == '\n') {
-			if (random_newline(FALSE, 1) == FALSE)
-			    goto err;
-		    } else {
-			if (line_insert(1, cast(char)c) == FALSE)
-			    goto err;
-		    }
-		    ++i;
-		}
+                        if (curwp.w_dotp == curbp.b_linep)
+                        {   if (random_newline(FALSE, 1) == FALSE)
+                                goto err;
+                        }
+                        else
+                            curwp.w_dotp = lforw(curwp.w_dotp);
+                        curwp.w_flag |= WFHARD;
+                        curwp.w_doto = coltodoto(curwp.w_dotp,col);
+                        if (kill_remove(i + 1) >= 0)
+                        {
+                            nspaces = col - getcol(curwp.w_dotp,curwp.w_doto);
+                            while (nspaces--)
+                                if (!line_insert(1,' '))
+                                    goto err;
+                        }
+                    }
+                    else
+                    {
+                        if (line_insert(1, cast(char)c) == FALSE)
+                            goto err;
+                    }
+                    ++i;
+                }
+            }
+            else
+                while ((c=kill_remove(i)) >= 0)
+                {
+                    if (c == '\r')
+                    {
+                    }
+                    else if (c == '\n') {
+                        if (random_newline(FALSE, 1) == FALSE)
+                            goto err;
+                    } else {
+                        if (line_insert(1, cast(char)c) == FALSE)
+                            goto err;
+                    }
+                    ++i;
+                }
         }
         return (TRUE);
 

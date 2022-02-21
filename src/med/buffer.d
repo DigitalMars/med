@@ -56,20 +56,20 @@ struct  BUFFER {
      */
     void setFilename(string fname)
     {
-	if (filenameCmp(b_fname, fname))
-	{
-	    const lang = filenameCmp(extension(fname), ".d") == 0   ? Language.D   :
-			 filenameCmp(extension(fname), ".di") == 0  ? Language.D   :
-			 filenameCmp(extension(fname), ".c") == 0   ? Language.C   :
-			 filenameCmp(extension(fname), ".cpp") == 0 ? Language.CPP :
-			 filenameCmp(extension(fname), ".c++") == 0 ? Language.CPP :
+        if (filenameCmp(b_fname, fname))
+        {
+            const lang = filenameCmp(extension(fname), ".d") == 0   ? Language.D   :
+                         filenameCmp(extension(fname), ".di") == 0  ? Language.D   :
+                         filenameCmp(extension(fname), ".c") == 0   ? Language.C   :
+                         filenameCmp(extension(fname), ".cpp") == 0 ? Language.CPP :
+                         filenameCmp(extension(fname), ".c++") == 0 ? Language.CPP :
                                                                       Language.text;
-	    if (b_lang != lang)
-	    {
-		b_lang = lang;
-	    }
-	}
-	b_fname = fname;
+            if (b_lang != lang)
+            {
+                b_lang = lang;
+            }
+        }
+        b_fname = fname;
     }
 }
 
@@ -85,9 +85,9 @@ enum
 enum Language
 {
     text = 0,   // plain text (must be 0)
-    D,		// D programming language
-    C,		// C programming language
-    CPP,	// C++ programming language
+    D,          // D programming language
+    C,          // C programming language
+    CPP,        // C++ programming language
 }
 
 __gshared BUFFER*[] buffers;
@@ -104,10 +104,10 @@ int usebuffer(bool f, int n)
 
     auto s = mlreply("Use buffer: ", null, bufn);
     if (s != TRUE)
-	return (s);
+        return (s);
     auto bp = buffer_find(bufn, TRUE, 0);
     if (bp == null)
-	return (FALSE);
+        return (FALSE);
     return buffer_switch(bp);
 }
 
@@ -120,13 +120,13 @@ int buffer_next(bool f, int n)
 {
     foreach (i, bp; buffers)
     {
-	if (bp == curbp)
-	{
-	    i = i + 1;
-	    if (i == buffers.length)
-		i = 0;
-	    return buffer_switch(buffers[i]);
-	}
+        if (bp == curbp)
+        {
+            i = i + 1;
+            if (i == buffers.length)
+                i = 0;
+            return buffer_switch(buffers[i]);
+        }
     }
     return FALSE;
 }
@@ -134,42 +134,42 @@ int buffer_next(bool f, int n)
 /***************************
  * Switch to buffer bp.
  * Returns:
- *	TRUE or FALSE
+ *      TRUE or FALSE
  */
 
 int buffer_switch(BUFFER* bp)
 {
     if (--curbp.b_nwnd == 0) {             /* Last use.            */
-	curbp.b_dotp  = curwp.w_dotp;
-	curbp.b_doto  = curwp.w_doto;
-	curbp.b_markp = curwp.w_markp;
-	curbp.b_marko = curwp.w_marko;
+        curbp.b_dotp  = curwp.w_dotp;
+        curbp.b_doto  = curwp.w_doto;
+        curbp.b_markp = curwp.w_markp;
+        curbp.b_marko = curwp.w_marko;
     }
     curbp = bp;                             /* Switch.              */
     curwp.w_bufp  = bp;
     curwp.w_linep = bp.b_linep;           /* For macros, ignored. */
     curwp.w_flag |= WFMODE|WFFORCE|WFHARD; /* Quite nasty.         */
     if (bp.b_nwnd++ == 0) {                /* First use.           */
-	curwp.w_dotp  = bp.b_dotp;
-	curwp.w_doto  = bp.b_doto;
-	curwp.w_markp = bp.b_markp;
-	curwp.w_marko = bp.b_marko;
-	return (TRUE);
+        curwp.w_dotp  = bp.b_dotp;
+        curwp.w_doto  = bp.b_doto;
+        curwp.w_markp = bp.b_markp;
+        curwp.w_marko = bp.b_marko;
+        return (TRUE);
     }
     else
     {
-	/* Look for the existing window onto buffer bp			*/
-	foreach (wp; windows)
-	{
-	    if (wp!=curwp && wp.w_bufp==bp)
-	    {
-		curwp.w_dotp  = wp.w_dotp;
-		curwp.w_doto  = wp.w_doto;
-		curwp.w_markp = wp.w_markp;
-		curwp.w_marko = wp.w_marko;
-		break;
-	    }
-	}
+        /* Look for the existing window onto buffer bp                  */
+        foreach (wp; windows)
+        {
+            if (wp!=curwp && wp.w_bufp==bp)
+            {
+                curwp.w_dotp  = wp.w_dotp;
+                curwp.w_doto  = wp.w_doto;
+                curwp.w_markp = wp.w_markp;
+                curwp.w_marko = wp.w_marko;
+                break;
+            }
+        }
     }
     return TRUE;
 }
@@ -184,7 +184,7 @@ int buffer_switch(BUFFER* bp)
  */
 int killbuffer(bool f, int n)
 {
-	BUFFER *bp;
+        BUFFER *bp;
         int    s;
         string bufn;
 
@@ -192,14 +192,14 @@ int killbuffer(bool f, int n)
                 return (s);
         if ((bp=buffer_find(bufn, FALSE, 0)) == null) /* Easy if unknown.     */
                 return (TRUE);
-	return buffer_remove(bp);
+        return buffer_remove(bp);
 }
 
 /**********************
  * Remove buffer bp.
  * Returns:
- *	0	failed
- *	!=0	succeeded
+ *      0       failed
+ *      !=0     succeeded
  */
 
 int buffer_remove(BUFFER* bp)
@@ -208,24 +208,24 @@ int buffer_remove(BUFFER* bp)
                 mlwrite("Buffer is being displayed");
                 return (FALSE);
         }
-        if (!buffer_clear(bp))			/* Blow text away	*/
-	    return FALSE;
+        if (!buffer_clear(bp))                  /* Blow text away       */
+            return FALSE;
 
         //delete bp.b_linep;                     /* Release header line. */
-	core.memory.GC.free(bp.b_linep);
+        core.memory.GC.free(bp.b_linep);
 
-	foreach (i, b; buffers)
-	{
-	    if (b == bp)
-	    {
-		buffers[i .. $ - 1] = buffers[i + 1 .. $];
-		buffers = buffers[0 .. $ - 1];
-		break;
-	    }
-	}
+        foreach (i, b; buffers)
+        {
+            if (b == bp)
+            {
+                buffers[i .. $ - 1] = buffers[i + 1 .. $];
+                buffers = buffers[0 .. $ - 1];
+                break;
+            }
+        }
 
         //delete bp;                      /* Release buffer block */
-	core.memory.GC.free(bp);
+        core.memory.GC.free(bp);
 
         return (TRUE);
 }
@@ -248,7 +248,7 @@ int listbuffers(bool f, int n)
         if ((s=makelist()) != TRUE)
                 return (s);
         if (blistp.b_nwnd == 0) {              /* Not on screen yet.   */
-	        WINDOW *wp;
+                WINDOW *wp;
                 if ((wp=wpopup()) == null)
                         return (FALSE);
                 bp = wp.w_bufp;
@@ -261,8 +261,8 @@ int listbuffers(bool f, int n)
                 wp.w_bufp  = blistp;
                 ++blistp.b_nwnd;
         }
-	foreach (wp; windows)
-	{
+        foreach (wp; windows)
+        {
                 if (wp.w_bufp == blistp) {
                         wp.w_linep = lforw(blistp.b_linep);
                         wp.w_dotp  = lforw(blistp.b_linep);
@@ -299,9 +299,9 @@ int makelist()
         if (addline("C   Size Buffer           File") == FALSE
         ||  addline("-   ---- ------           ----") == FALSE)
                 return (FALSE);
-	/* For all buffers      */
-	foreach (bp; buffers)
-	{
+        /* For all buffers      */
+        foreach (bp; buffers)
+        {
                 if ((bp.b_flag&BFTEMP) != 0) { /* Skip magic ones.     */
                         continue;
                 }
@@ -318,20 +318,20 @@ int makelist()
                         lp = lforw(lp);
                 }
                 buffer_itoa(b, 6, nbytes);             /* 6 digit buffer size. */
-		line[i .. i + b.length] = b;
-		i += b.length;
+                line[i .. i + b.length] = b;
+                i += b.length;
                 line[i++] = ' ';                /* Gap.                 */
-		line[i .. i + bp.b_bname.length] = bp.b_bname;	// buffer name
-		i += bp.b_bname.length;
+                line[i .. i + bp.b_bname.length] = bp.b_bname;  // buffer name
+                i += bp.b_bname.length;
                 if (bp.b_fname.length)
-		{
+                {
                         while (i < 25)
                                 line[i++] = ' ';
-			line[i++] = ' ';
-			foreach (c; bp.b_bname)
-			{
-			    if (i < line.length)
-				line[i++] = c;
+                        line[i++] = ' ';
+                        foreach (c; bp.b_bname)
+                        {
+                            if (i < line.length)
+                                line[i++] = c;
                         }
                 }
                                        /* Add to the buffer.   */
@@ -391,8 +391,8 @@ int anycb()
 {
     foreach (bp; buffers)
     {
-	if ((bp.b_flag & (BFTEMP | BFCHG)) == BFCHG)
-	    return TRUE;
+        if ((bp.b_flag & (BFTEMP | BFCHG)) == BFCHG)
+            return TRUE;
     }
     return FALSE;
 }
@@ -411,29 +411,29 @@ BUFFER *buffer_find(string bname, int cflag, int bflag)
 {
     foreach (bp; buffers)
     {
-	if (globMatch(bname, bp.b_bname))
-	{   
-	    if ((bflag & BFTEMP) == 0 && (bp.b_flag & BFTEMP) != 0)
-	    {
-		mlwrite("Cannot select builtin buffer");
-		return (null);
-	    }
-	    return (bp);
-	}
+        if (globMatch(bname, bp.b_bname))
+        {
+            if ((bflag & BFTEMP) == 0 && (bp.b_flag & BFTEMP) != 0)
+            {
+                mlwrite("Cannot select builtin buffer");
+                return (null);
+            }
+            return (bp);
+        }
     }
     if (cflag != FALSE)
     {
-	auto lp = new LINE;
-	auto bp = new BUFFER;
-	buffers ~= bp;
-	bp.b_dotp  = lp;
-	bp.b_flag  = cast(ubyte)bflag;
-	bp.b_linep = lp;
-	bp.b_fname = "";
-	bp.b_bname = bname;
-	lp.l_fp = lp;
-	lp.l_bp = lp;
-	return bp;
+        auto lp = new LINE;
+        auto bp = new BUFFER;
+        buffers ~= bp;
+        bp.b_dotp  = lp;
+        bp.b_flag  = cast(ubyte)bflag;
+        bp.b_linep = lp;
+        bp.b_fname = "";
+        bp.b_bname = bname;
+        lp.l_fp = lp;
+        lp.l_bp = lp;
+        return bp;
     }
     return null;
 }
@@ -453,8 +453,8 @@ int buffer_clear(BUFFER* bp)
         LINE   *lp;
         int    s;
 
-	/*if (bp.b_flag & BFRDONLY)
-	    return FALSE;*/
+        /*if (bp.b_flag & BFRDONLY)
+            return FALSE;*/
         if ((bp.b_flag&BFTEMP) == 0            /* Not scratch buffer.  */
         && (bp.b_flag&BFCHG) != 0              /* Something changed    */
         && (s=mlyesno("Discard changes [y/n]? ")) != TRUE)

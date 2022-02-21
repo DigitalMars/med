@@ -65,7 +65,7 @@ enum VFCHG = 0x0001;                  /* Changed. */
 int display_recalc()
 {
     foreach (wp; windows)
-	wp.w_flag |= WFHARD | WFMODE;
+        wp.w_flag |= WFHARD | WFMODE;
     return TRUE;
 }
 
@@ -151,14 +151,14 @@ int display_mark_fg(bool f, int n)
 }
 }
 
-int	sgarbf	= TRUE;			/* TRUE if screen is garbage */
-int	mpresf	= FALSE;		/* TRUE if message in last line */
-int	vtrow	= 0;			/* Row location of SW cursor */
-int	vtcol	= 0;			/* Column location of SW cursor */
-int	ttrow	= HUGE;			/* Row location of HW cursor */
-int	ttcol	= HUGE;			/* Column location of HW cursor */
-attr_t	attr;				/* Attribute for chars to vtputc() */
-int	hardtabsize = 8;		// hardware tab size
+int     sgarbf  = TRUE;                 /* TRUE if screen is garbage */
+int     mpresf  = FALSE;                /* TRUE if message in last line */
+int     vtrow   = 0;                    /* Row location of SW cursor */
+int     vtcol   = 0;                    /* Column location of SW cursor */
+int     ttrow   = HUGE;                 /* Row location of HW cursor */
+int     ttcol   = HUGE;                 /* Column location of HW cursor */
+attr_t  attr;                           /* Attribute for chars to vtputc() */
+int     hardtabsize = 8;                // hardware tab size
 
 attchar_t[][] vscreen;                      /* Virtual screen. */
 attchar_t[][] pscreen;                      /* Physical screen. */
@@ -179,13 +179,13 @@ void vtinit()
 
     version (Posix)
     {
-	blnk_ln = new attchar_t[term.t_ncol];
+        blnk_ln = new attchar_t[term.t_ncol];
     }
 
     foreach (i; 0 .. term.t_nrow)
     {
-	vscreen[i] = new attchar_t[term.t_ncol];
-	pscreen[i] = new attchar_t[term.t_ncol];
+        vscreen[i] = new attchar_t[term.t_ncol];
+        pscreen[i] = new attchar_t[term.t_ncol];
     }
 }
 
@@ -211,15 +211,15 @@ void vttidy()
 
     version (Windows)
     {
-	movecursor(term.t_nrow - 1, 0);
-	term.t_close();
-	printf("\n");			/* scroll up one line		*/
+        movecursor(term.t_nrow - 1, 0);
+        term.t_close();
+        printf("\n");                   /* scroll up one line           */
     }
     else
     {
-	movecursor(term.t_nrow - 1, 0);
-	term.t_putchar('\n');		/* scroll up one line		*/
-	term.t_close();
+        movecursor(term.t_nrow - 1, 0);
+        term.t_putchar('\n');           /* scroll up one line           */
+        term.t_close();
     }
 }
 
@@ -252,15 +252,15 @@ void vtputc(dchar c, int startcol, int tabbase, attr_t attr)
 
     if (vtcol - startcol >= term.t_ncol)
     {
-	vp[term.t_ncol - 1].chr = '+';
-	vp[term.t_ncol - 1].attr = config.modeattr;
+        vp[term.t_ncol - 1].chr = '+';
+        vp[term.t_ncol - 1].attr = config.modeattr;
     }
     else if (c == '\t')
     {
-	auto i = hardtabsize - ((vtcol - tabbase) % hardtabsize);
-	do
+        auto i = hardtabsize - ((vtcol - tabbase) % hardtabsize);
+        do
             vtputc(config.tabchar, startcol, tabbase, attr);
-	while (--i);
+        while (--i);
     }
     else if (SHOWCONTROL && (c < 0x20 || c == 0x7F))
     {
@@ -269,17 +269,17 @@ void vtputc(dchar c, int startcol, int tabbase, attr_t attr)
     }
     else
     {
-	if (vtcol - startcol == 0 && startcol != 0)
-	{
+        if (vtcol - startcol == 0 && startcol != 0)
+        {
             vp[0].chr = '+';
             vp[0].attr = config.modeattr;
-	}
-	else if (vtcol - startcol >= 0)
-	{
-	    vp[vtcol - startcol].chr = c;
-	    vp[vtcol - startcol].attr = attr;
-	}
-	vtcol++;
+        }
+        else if (vtcol - startcol >= 0)
+        {
+            vp[vtcol - startcol].chr = c;
+            vp[vtcol - startcol].attr = attr;
+        }
+        vtcol++;
     }
 }
 
@@ -298,20 +298,20 @@ int getcol2(const(char)[] dotp, int doto)
     size_t i = 0;
     while (i < doto)
     {
-	const c = decodeUTF8(dotp, i);
+        const c = decodeUTF8(dotp, i);
 
-	if (c == '\t')
-	{
-	    if (hardtabsize == 8)
-		curcol |= 7;
-	    else
-	    {
-		curcol = ((curcol + hardtabsize) / hardtabsize) * hardtabsize - 1;
-	    }
-	}
-	else if (SHOWCONTROL && (c < 0x20 || c == 0x7F))
-	    ++curcol;
-	++curcol;
+        if (c == '\t')
+        {
+            if (hardtabsize == 8)
+                curcol |= 7;
+            else
+            {
+                curcol = ((curcol + hardtabsize) / hardtabsize) * hardtabsize - 1;
+            }
+        }
+        else if (SHOWCONTROL && (c < 0x20 || c == 0x7F))
+            ++curcol;
+        ++curcol;
     }
     return curcol;
 }
@@ -327,9 +327,9 @@ int coltodoto(LINE* lp, int col)
     size_t i = 0;
     while (i < len)
     {
-	if (getcol(lp, cast(int)i) >= col)
-	    return cast(int)i;
-	decodeUTF8(lp.l_text, i);
+        if (getcol(lp, cast(int)i) >= col)
+            return cast(int)i;
+        decodeUTF8(lp.l_text, i);
     }
     return cast(int)i;
 }
@@ -342,8 +342,8 @@ static void vtputs(const char[] s, int startcol, int tabbase = 0)
 {
     for (size_t i = 0; i < s.length; )
     {
-	dchar c = decodeUTF8(s, i);
-	vtputc(c, startcol, tabbase);
+        dchar c = decodeUTF8(s, i);
+        vtputc(c, startcol, tabbase);
     }
 }
 
@@ -373,241 +373,241 @@ void update()
     int l_first,l_last;
     int scroll_done_flag;
     int wcol;
-    int curcol;				/* cursor column from left of text */
-    char inmark;			/* if column marking, and in region */
+    int curcol;                         /* cursor column from left of text */
+    char inmark;                        /* if column marking, and in region */
 version (MOUSE)
     char hidden;
 
     __gshared attr_t[] lineAttr;
 
-    if (ttkeysininput())		/* if more user input		*/
-	return;				/* skip updating till caught up	*/
+    if (ttkeysininput())                /* if more user input           */
+        return;                         /* skip updating till caught up */
 
     curcol = getcol(curwp.w_dotp,curwp.w_doto);
-    if ((lastflag&CFCPCN) == 0)		/* Reset goal if last		*/
-	curgoal = curcol;		/* not backline() or forwline()	*/
+    if ((lastflag&CFCPCN) == 0)         /* Reset goal if last           */
+        curgoal = curcol;               /* not backline() or forwline() */
 
     /* If cursor is off left or right side, set update bit so it'll scroll */
     if (curwp.w_startcol && curcol <= curwp.w_startcol ||
-	curcol > curwp.w_startcol + term.t_ncol - 2)
-	curwp.w_flag |= WFHARD;
+        curcol > curwp.w_startcol + term.t_ncol - 2)
+        curwp.w_flag |= WFHARD;
 
-    foreach (wp; windows)		// for each window
+    foreach (wp; windows)               // for each window
     {
-	const highlight = wp.w_bufp.b_lang;
+        const highlight = wp.w_bufp.b_lang;
 
         /* Look at any window with update flags set on. */
         if (wp.w_flag != 0)
-	{   char marking = wp.w_markp != null;
-	    int col_left,col_right;		/* for column marking	*/
+        {   char marking = wp.w_markp != null;
+            int col_left,col_right;             /* for column marking   */
 
             /* If not force reframe, check the framing. */
             if ((wp.w_flag & WFFORCE) == 0)
-	    {
-                lp = wp.w_linep;	/* top line on screen		*/
+            {
+                lp = wp.w_linep;        /* top line on screen           */
 
                 for (int i = 0; 1; ++i)
-		{
-		    /* if not on screen	*/
-		    if (i == wp.w_ntrows)
-		    {   if (lp == wp.w_dotp ||
-			    wp.w_dotp == wp.w_bufp.b_linep)
-			    wp.w_force = -1;	/* one up from bottom	*/
-			else if (wp.w_dotp == lback(wp.w_linep))
-			    wp.w_force = 1;	/* one before top	*/
-			break;
-		    }
+                {
+                    /* if not on screen */
+                    if (i == wp.w_ntrows)
+                    {   if (lp == wp.w_dotp ||
+                            wp.w_dotp == wp.w_bufp.b_linep)
+                            wp.w_force = -1;    /* one up from bottom   */
+                        else if (wp.w_dotp == lback(wp.w_linep))
+                            wp.w_force = 1;     /* one before top       */
+                        break;
+                    }
 
-                    if (lp == wp.w_dotp)	/* if dot is on screen	*/
-                        goto Lout;		/* no reframe necessary	*/
+                    if (lp == wp.w_dotp)        /* if dot is on screen  */
+                        goto Lout;              /* no reframe necessary */
 
                     if (lp == wp.w_bufp.b_linep)
-                        break;			/* reached end of buffer */
+                        break;                  /* reached end of buffer */
 
                     lp = lforw(lp);
-		}
+                }
 
             } /* if not force reframe */
 
-	    /* A reframe is necessary.
+            /* A reframe is necessary.
              * Compute a new value for the line at the
              * top of the window. Then set the "WFHARD" flag to force full
              * redraw.
              */
-	    {
+            {
             int i = wp.w_force;
 
-            if (i > 0)		/* if set dot to be on ith window line	*/
-	    {
+            if (i > 0)          /* if set dot to be on ith window line  */
+            {
                 --i;
 
                 if (i >= wp.w_ntrows)
-                  i = wp.w_ntrows-1;	/* clip i to size of window	*/
-	    }
-            else if (i < 0)	/* if set dot to be -ith line from bottom */
-	    {
+                  i = wp.w_ntrows-1;    /* clip i to size of window     */
+            }
+            else if (i < 0)     /* if set dot to be -ith line from bottom */
+            {
                 i += wp.w_ntrows;
 
                 if (i < 0)
-                    i = 0;	/* clip to top of screen		*/
-	    }
-            else		/* set to center of screen		*/
+                    i = 0;      /* clip to top of screen                */
+            }
+            else                /* set to center of screen              */
                 i = wp.w_ntrows/2;
 
             lp = wp.w_dotp;
             while (i != 0 && lback(lp) != wp.w_bufp.b_linep)
-	    {
+            {
                 --i;
                 lp = lback(lp);
-	    }
-	    }
+            }
+            }
 
             wp.w_linep = lp;
             wp.w_flag |= WFHARD;       /* Force full. */
 
 Lout:
-	    /* Determine cursor column. If cursor is off the left or the  */
-	    /* right, readjust starting column and do a WFHARD update	  */
-	    wcol = getcol(wp.w_dotp,wp.w_doto);
-	    if (wp.w_startcol && wcol <= wp.w_startcol)
-	    {	wp.w_startcol = wcol ? wcol - 1 : 0;
-		wp.w_flag |= WFHARD;
-	    }
-	    else if (wp.w_startcol < wcol - term.t_ncol + 2)
-	    {	wp.w_startcol = wcol - term.t_ncol + 2;
-		wp.w_flag |= WFHARD;
-	    }
+            /* Determine cursor column. If cursor is off the left or the  */
+            /* right, readjust starting column and do a WFHARD update     */
+            wcol = getcol(wp.w_dotp,wp.w_doto);
+            if (wp.w_startcol && wcol <= wp.w_startcol)
+            {   wp.w_startcol = wcol ? wcol - 1 : 0;
+                wp.w_flag |= WFHARD;
+            }
+            else if (wp.w_startcol < wcol - term.t_ncol + 2)
+            {   wp.w_startcol = wcol - term.t_ncol + 2;
+                wp.w_flag |= WFHARD;
+            }
 
-	    /* Determine if we should start out with a standout		  */
-	    /* attribute or not, depends on if mark is before the window. */
-	    attr = config.normattr;
-	    if (marking)
-	    {
-		inmark = FALSE;
-		for (lp = lforw(wp.w_bufp.b_linep);
-		     lp != wp.w_linep;
-		     lp = lforw(lp))
-			if (lp == wp.w_markp)
-			{   inmark = TRUE;
-			    break;
-			}
-		if (column_mode)
-		{
-		    /* Calculate left and right column numbers of region */
-		    col_right = markcol;/*getcol(wp.w_markp,wp.w_marko);*/
-		    if (curgoal <= col_right)
-			col_left = curgoal;
-		    else
-		    {	col_left = col_right;
-			col_right = curgoal;
-		    }
-		}
-		else
-		{   if (inmark)
-		    {	attr = config.markattr;
-			inmark = FALSE;
-		    }
-		}
-	    }
+            /* Determine if we should start out with a standout           */
+            /* attribute or not, depends on if mark is before the window. */
+            attr = config.normattr;
+            if (marking)
+            {
+                inmark = FALSE;
+                for (lp = lforw(wp.w_bufp.b_linep);
+                     lp != wp.w_linep;
+                     lp = lforw(lp))
+                        if (lp == wp.w_markp)
+                        {   inmark = TRUE;
+                            break;
+                        }
+                if (column_mode)
+                {
+                    /* Calculate left and right column numbers of region */
+                    col_right = markcol;/*getcol(wp.w_markp,wp.w_marko);*/
+                    if (curgoal <= col_right)
+                        col_left = curgoal;
+                    else
+                    {   col_left = col_right;
+                        col_right = curgoal;
+                    }
+                }
+                else
+                {   if (inmark)
+                    {   attr = config.markattr;
+                        inmark = FALSE;
+                    }
+                }
+            }
 
-	    /* The window is framed properly now.
+            /* The window is framed properly now.
              * Try to use reduced update. Mode line update has its own special
              * flag. The fast update is used if the only thing to do is within
              * the line editing.
              */
-            lp = wp.w_linep;		/* line of top of window	  */
-            int i = wp.w_toprow;	/* display row # of top of window */
+            lp = wp.w_linep;            /* line of top of window          */
+            int i = wp.w_toprow;        /* display row # of top of window */
 
              if ((wp.w_flag & (WFEDIT | WFHARD)) != 0 ||
-	          marking && wp.w_flag & WFMOVE)
-	     {
-		const oneLine = (wp.w_flag & (WFFORCE | WFEDIT | WFHARD | WFMOVE)) == WFEDIT;
+                  marking && wp.w_flag & WFMOVE)
+             {
+                const oneLine = (wp.w_flag & (WFFORCE | WFEDIT | WFHARD | WFMOVE)) == WFEDIT;
 
-		if (oneLine)
-		{
-		    /* Determine row number and line pointer for cursor line */
-		    while (lp != wp.w_dotp)
-		    {   ++i;
-			lp = lforw(lp);
-		    }
-		}
+                if (oneLine)
+                {
+                    /* Determine row number and line pointer for cursor line */
+                    while (lp != wp.w_dotp)
+                    {   ++i;
+                        lp = lforw(lp);
+                    }
+                }
 
-		/* update every line in the window	*/
+                /* update every line in the window      */
                 while (i < wp.w_toprow+wp.w_ntrows)
                 {
-		    bool nextLine = !oneLine;
+                    bool nextLine = !oneLine;
                     vrowflags[i] |= VFCHG;
                     vtmove(i, 0);
                     if (lp != wp.w_bufp.b_linep) /* if not end of buffer */
                     {
-			if (highlight != Language.text)
-			{
-			    if (lineAttr.length < lp.l_text.length)
-			    {
-				size_t newlen = (lp.l_text.length * 3) / 2;
-				attr_t* p = cast(attr_t*)realloc(lineAttr.ptr, newlen);
-				assert(p);
-				lineAttr = p[0 .. newlen];
-			    }
-			    const nextState =
-				highlight == Language.D ? syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr) :
-				highlight == Language.C ? syntaxHighlightC(lp.syntaxState, lp.l_text, lineAttr) :
-				                          syntaxHighlightCPP(lp.syntaxState, lp.l_text, lineAttr);
-			    auto lpn = lforw(lp);
-	                    if (lpn != wp.w_bufp.b_linep) /* if not end of buffer */
-			    {
-				nextLine |= lpn.syntaxState != nextState;
-				lpn.syntaxState = nextState;
-			    }
-			}
+                        if (highlight != Language.text)
+                        {
+                            if (lineAttr.length < lp.l_text.length)
+                            {
+                                size_t newlen = (lp.l_text.length * 3) / 2;
+                                attr_t* p = cast(attr_t*)realloc(lineAttr.ptr, newlen);
+                                assert(p);
+                                lineAttr = p[0 .. newlen];
+                            }
+                            const nextState =
+                                highlight == Language.D ? syntaxHighlightD(lp.syntaxState, lp.l_text, lineAttr) :
+                                highlight == Language.C ? syntaxHighlightC(lp.syntaxState, lp.l_text, lineAttr) :
+                                                          syntaxHighlightCPP(lp.syntaxState, lp.l_text, lineAttr);
+                            auto lpn = lforw(lp);
+                            if (lpn != wp.w_bufp.b_linep) /* if not end of buffer */
+                            {
+                                nextLine |= lpn.syntaxState != nextState;
+                                lpn.syntaxState = nextState;
+                            }
+                        }
 
-			if (marking && column_mode)
-			{   if (wp.w_markp == lp)
-				inmark++;
-			    if (wp.w_dotp == lp)
-				inmark++;
-			    attr = config.normattr;
-			}
+                        if (marking && column_mode)
+                        {   if (wp.w_markp == lp)
+                                inmark++;
+                            if (wp.w_dotp == lp)
+                                inmark++;
+                            attr = config.normattr;
+                        }
 
                         for (size_t j = 0; 1; )
-			{   if (marking)
-			    {	if (column_mode)
-				{
-				    if (inmark && col_left <= vtcol)
-					attr = config.markattr;
-				    if (col_right <= vtcol)
-					attr = config.normattr;
-				}
-				else
-				{
-				    if (wp.w_markp == lp && wp.w_marko == j)
-					attr ^= config.normattr ^ config.markattr;
-				    if (wp.w_dotp == lp && wp.w_doto == j)
-					attr ^= config.normattr ^ config.markattr;
-				}
-			    }
-			    if (j >= llength(lp))
-				break;
+                        {   if (marking)
+                            {   if (column_mode)
+                                {
+                                    if (inmark && col_left <= vtcol)
+                                        attr = config.markattr;
+                                    if (col_right <= vtcol)
+                                        attr = config.normattr;
+                                }
+                                else
+                                {
+                                    if (wp.w_markp == lp && wp.w_marko == j)
+                                        attr ^= config.normattr ^ config.markattr;
+                                    if (wp.w_dotp == lp && wp.w_doto == j)
+                                        attr ^= config.normattr ^ config.markattr;
+                                }
+                            }
+                            if (j >= llength(lp))
+                                break;
 
-			    const cattr = (highlight != Language.text && attr == config.normattr)
-				? lineAttr[j] : attr;
+                            const cattr = (highlight != Language.text && attr == config.normattr)
+                                ? lineAttr[j] : attr;
 
-			    auto b = inURL(lp.l_text[], j);
-			    auto s = inSearch(lp.l_text[], j);
-			    dchar c = decodeUTF8(lp.l_text, j);
-			    if (attr == config.normattr && (b || s))
-				vtputc(c, wp.w_startcol, 0, s ? config.searchattr : config.urlattr);
-			    else
-				vtputc(c, wp.w_startcol, 0, cattr);
-			}
-			if (inmark == 2)
-			    inmark = 0;
+                            auto b = inURL(lp.l_text[], j);
+                            auto s = inSearch(lp.l_text[], j);
+                            dchar c = decodeUTF8(lp.l_text, j);
+                            if (attr == config.normattr && (b || s))
+                                vtputc(c, wp.w_startcol, 0, s ? config.searchattr : config.urlattr);
+                            else
+                                vtputc(c, wp.w_startcol, 0, cattr);
+                        }
+                        if (inmark == 2)
+                            inmark = 0;
                         lp = lforw(lp);
                     }
                     vteeol(wp.w_startcol);
                     ++i;
-		    if (!nextLine)
-			break;
+                    if (!nextLine)
+                        break;
                 }
             }
 debug (WFDEBUG)
@@ -615,12 +615,12 @@ debug (WFDEBUG)
 }
 else
 {
-            if ((wp.w_flag&WFMODE) != 0)	/* if mode line is modified */
+            if ((wp.w_flag&WFMODE) != 0)        /* if mode line is modified */
                 modeline(wp);
             wp.w_flag  = 0;
             wp.w_force = 0;
 }
-        } /* if any update flags on */           
+        } /* if any update flags on */
 debug (WFDEBUG)
 {
         modeline(wp);
@@ -651,24 +651,24 @@ version (MOUSE)
     if (sgarbf != FALSE)
     {
         for (int i = 0; i < term.t_nrow; ++i)
-	{
+        {
             vrowflags[i] |= VFCHG;
-	    for (int j = 0; j < term.t_ncol; j++)
-	    {
-		pscreen[i][j].chr = ' ';
-		pscreen[i][j].attr = config.normattr;
-	    }
-	}
+            for (int j = 0; j < term.t_ncol; j++)
+            {
+                pscreen[i][j].chr = ' ';
+                pscreen[i][j].attr = config.normattr;
+            }
+        }
 
 version (MOUSE)
 {
-	if (!hidden && mouse)
-	{   msm_hidecursor();
-	    hidden++;
-	}
+        if (!hidden && mouse)
+        {   msm_hidecursor();
+            hidden++;
+        }
 }
-	ttrow = HUGE;
-	ttcol = HUGE;			// don't know where they are
+        ttrow = HUGE;
+        ttcol = HUGE;                   // don't know where they are
         movecursor(0, 0);               /* Erase the screen. */
         term.t_eeop();
         sgarbf = FALSE;                 /* Erase-page clears */
@@ -685,64 +685,64 @@ version (Posix)
     scroll_done_flag = 0;
     for (int i = 0; i < term.t_nrow; i++)
     {
-	if( vrowflags[i] & VFCHG )
-	{
-		/* if not first line					*/
-		/* and current line is identical to previous line	*/
-		/* and previous line is not blank			*/
-		if( i > 0
-		&& vrowflags[i - 1] & VFCHG
-		&& vscreen[i] == pscreen[i-1]
-		&& pscreen[i-1] != blnk_ln )
-		{
-			/* Scroll screen down	*/
-			l_first = i-1;	/* first line of scrolling region */
-			while( i<term.t_nrow
-			&& vrowflags[i - 1] & VFCHG
-			&& vscreen[i] == pscreen[i-1] )
-				i++;
-			l_last = i-1;	/* last line of scrolling region */
-			term.t_scrolldn( l_first, l_last );
-			scroll_done_flag++;
-			for (int j = l_first+1; j < l_last+1; j++ )
-				vrowflags[j] &= ~VFCHG;
-			for (int j = l_last; j > l_first; j-- )
-				pscreen[j][] = pscreen[j - 1][];
-			pscreen[l_first][] = attchar_t.init;
+        if( vrowflags[i] & VFCHG )
+        {
+                /* if not first line                                    */
+                /* and current line is identical to previous line       */
+                /* and previous line is not blank                       */
+                if( i > 0
+                && vrowflags[i - 1] & VFCHG
+                && vscreen[i] == pscreen[i-1]
+                && pscreen[i-1] != blnk_ln )
+                {
+                        /* Scroll screen down   */
+                        l_first = i-1;  /* first line of scrolling region */
+                        while( i<term.t_nrow
+                        && vrowflags[i - 1] & VFCHG
+                        && vscreen[i] == pscreen[i-1] )
+                                i++;
+                        l_last = i-1;   /* last line of scrolling region */
+                        term.t_scrolldn( l_first, l_last );
+                        scroll_done_flag++;
+                        for (int j = l_first+1; j < l_last+1; j++ )
+                                vrowflags[j] &= ~VFCHG;
+                        for (int j = l_last; j > l_first; j-- )
+                                pscreen[j][] = pscreen[j - 1][];
+                        pscreen[l_first][] = attchar_t.init;
 
-			/* Set change flag on last line to get rid of	*/
-			/* bug that caused lines to 'vanish'.		*/
-			vrowflags[l_first] |= VFCHG;
-		}
-		else if( i < term.t_nrow-1
-		&& vrowflags[i + 1] & VFCHG
-		&& vscreen[i] == pscreen[i+1]
-		&& pscreen[i+1] != blnk_ln )
-		{
-			l_first = i;
-			while( i<term.t_nrow-1
-			&& vrowflags[i + 1] & VFCHG
-			&& vscreen[i] == pscreen[i+1] )
-				i++;
-			l_last = i;
-			term.t_scrollup( l_first, l_last );
-			scroll_done_flag++;
-			for (int j = l_first; j < l_last; j++ )
-				vrowflags[j] &= ~VFCHG;
-			for (int j = l_first; j < l_last; j++ )
-				pscreen[j][] = pscreen[j + 1];
-			pscreen[l_last][] = attchar_t.init;
+                        /* Set change flag on last line to get rid of   */
+                        /* bug that caused lines to 'vanish'.           */
+                        vrowflags[l_first] |= VFCHG;
+                }
+                else if( i < term.t_nrow-1
+                && vrowflags[i + 1] & VFCHG
+                && vscreen[i] == pscreen[i+1]
+                && pscreen[i+1] != blnk_ln )
+                {
+                        l_first = i;
+                        while( i<term.t_nrow-1
+                        && vrowflags[i + 1] & VFCHG
+                        && vscreen[i] == pscreen[i+1] )
+                                i++;
+                        l_last = i;
+                        term.t_scrollup( l_first, l_last );
+                        scroll_done_flag++;
+                        for (int j = l_first; j < l_last; j++ )
+                                vrowflags[j] &= ~VFCHG;
+                        for (int j = l_first; j < l_last; j++ )
+                                pscreen[j][] = pscreen[j + 1];
+                        pscreen[l_last][] = attchar_t.init;
 
-			/* Set change flag on last line to get rid of	*/
-			/* bug that caused lines to 'vanish'.		*/
-			vrowflags[l_last] |= VFCHG;
-		}
-	}
+                        /* Set change flag on last line to get rid of   */
+                        /* bug that caused lines to 'vanish'.           */
+                        vrowflags[l_last] |= VFCHG;
+                }
+        }
     }
     if( scroll_done_flag )
     {
-	ttrow = ttrow-1;	/* force a change */
-	movecursor(currow, curcol - curwp.w_startcol);
+        ttrow = ttrow-1;        /* force a change */
+        movecursor(currow, curcol - curwp.w_startcol);
     }
 
   no_scroll_possible:
@@ -755,24 +755,24 @@ version (Posix)
     for (int i = 0; i < term.t_nrow; ++i)
     {
         if (vrowflags[i] & VFCHG)
-	{
+        {
 version (MOUSE)
 {
-	    if (!hidden && mouse)
-	    {	msm_hidecursor();
-		hidden++;
-	    }
+            if (!hidden && mouse)
+            {   msm_hidecursor();
+                hidden++;
+            }
 }
             vrowflags[i] &= ~VFCHG;
-	    updateline(i, vscreen[i], pscreen[i]);
-	}
+            updateline(i, vscreen[i], pscreen[i]);
+        }
     }
 
     /* Finally, update the hardware cursor and flush out buffers. */
 
 version (Windows)
 {
-    term.t_move(currow,curcol - curwp.w_startcol);	/* putline() trashed the cursor pos */
+    term.t_move(currow,curcol - curwp.w_startcol);      /* putline() trashed the cursor pos */
     ttrow = currow;
     ttcol = curcol - curwp.w_startcol;
 }
@@ -784,7 +784,7 @@ else
 version (MOUSE)
 {
     if (hidden && mouse)
-	msm_showcursor();
+        msm_showcursor();
 }
 }
 
@@ -846,24 +846,24 @@ void updateline(int row, attchar_t[] vline, attchar_t[] pline)
 
     movecursor(row, cast(int)(cp1-&vline[0]));     /* Go to start of line. */
 
-    __gshared attr_t tstand = 0;	// != 0 if standout mode is active
+    __gshared attr_t tstand = 0;        // != 0 if standout mode is active
     while (cp1 != cp5)                  /* Ordinary. */
     {
-	if (cp1.attr != tstand)
-	{
-	    if (cp1.attr)
-	    {
-		//term.t_standout();
-		term.setColor(cast(Color)cp1.attr);
-		tstand = cp1.attr;
-	    }
-	    else
-	    {
-		//term.t_standend();
-		term.resetColor();
-		tstand = 0;
-	    }
-	}
+        if (cp1.attr != tstand)
+        {
+            if (cp1.attr)
+            {
+                //term.t_standout();
+                term.setColor(cast(Color)cp1.attr);
+                tstand = cp1.attr;
+            }
+            else
+            {
+                //term.t_standend();
+                term.resetColor();
+                tstand = 0;
+            }
+        }
         term.t_putchar(cp1.chr);
         ++ttcol;
         *cp2++ = *cp1++;
@@ -875,11 +875,11 @@ void updateline(int row, attchar_t[] vline, attchar_t[] pline)
         while (cp1 != cp3)
             *cp2++ = *cp1++;
         }
-	if( tstand )
-	{	//term.t_standend();
-		term.resetColor();
-		tstand = 0;
-	}
+        if( tstand )
+        {       //term.t_standend();
+                term.resetColor();
+                tstand = 0;
+        }
 }
 }
 
@@ -903,7 +903,7 @@ void modeline(WINDOW* wp)
     bp = wp.w_bufp;
 
     if (bp.b_flag & BFRDONLY)
-	vtputc('R',0);
+        vtputc('R',0);
     else if ((bp.b_flag&BFCHG) != 0)                /* "*" if changed. */
         vtputc('*',0);
     else
@@ -918,21 +918,21 @@ void modeline(WINDOW* wp)
     vtputc(' ', 0);
 
     if (globMatch(bp.b_bname,bp.b_fname) == 0)
-    {	vtputs("-- Buffer: "c,0);
-	vtputs(bp.b_bname,0);
-	vtputc(' ',0);
+    {   vtputs("-- Buffer: "c,0);
+        vtputs(bp.b_bname,0);
+        vtputc(' ',0);
     }
     if (bp.b_fname.length)            /* File name. */
     {
-	vtputs("-- File: "c,0);
-	vtputs(bp.b_fname,0);
+        vtputs("-- File: "c,0);
+        vtputs(bp.b_fname,0);
         vtputc(' ',0);
     }
 
     vtputs("- ", 0);
     const lang = bp.b_lang == Language.D   ? "D "   :
-		 bp.b_lang == Language.C   ? "C "   :
-		 bp.b_lang == Language.CPP ? "C++ " :
+                 bp.b_lang == Language.C   ? "C "   :
+                 bp.b_lang == Language.CPP ? "C++ " :
                                              "text ";
     vtputs(lang, 0);
     vtputc('-', 0);
@@ -976,7 +976,7 @@ void mlerase()
 {
     auto vp = vscreen[term.t_nrow - 1];
     foreach (ref c; vp[0 .. term.t_ncol])
-	c = attchar_t(' ', config.eolattr);
+        c = attchar_t(' ', config.eolattr);
     vrowflags[term.t_nrow - 1] |= VFCHG;
     mpresf = FALSE;
 }
@@ -1017,8 +1017,8 @@ const HISTORY_MAX = 10;
 string[HISTORY_MAX] history;
 int history_top;
 
-int HDEC(int hi)	{ return (hi == 0) ? HISTORY_MAX - 1 : hi - 1; }
-int HINC(int hi)	{ return (hi == HISTORY_MAX - 1) ? 0 : hi + 1; }
+int HDEC(int hi)        { return (hi == 0) ? HISTORY_MAX - 1 : hi - 1; }
+int HINC(int hi)        { return (hi == HISTORY_MAX - 1) ? 0 : hi + 1; }
 
 /*
  * Write a prompt into the message line, then read back a response. Keep
@@ -1029,8 +1029,8 @@ int HINC(int hi)	{ return (hi == HISTORY_MAX - 1) ? 0 : hi + 1; }
  */
 int mlreply(string prompt, string init, out string result)
 {
-    int dot;		// insertion point in buffer
-    int buflen;		// number of characters in buffer
+    int dot;            // insertion point in buffer
+    int buflen;         // number of characters in buffer
     int startcol;
     int changes;
     int hi;
@@ -1040,12 +1040,12 @@ int mlreply(string prompt, string init, out string result)
 
     if (kbdmop != null)
     {
-	int len;
-	while ((cast(char*)kbdmop)[len])
-	    ++len;
-	result = (cast(char*)kbdmop)[0 .. len].idup;
-	kbdmop = cast(dchar*)(cast(char*)kbdmop + len + 1);
-	return (len != 0);
+        int len;
+        while ((cast(char*)kbdmop)[len])
+            ++len;
+        result = (cast(char*)kbdmop)[0 .. len].idup;
+        kbdmop = cast(dchar*)(cast(char*)kbdmop + len + 1);
+        return (len != 0);
     }
 
     hi = history_top;
@@ -1063,196 +1063,196 @@ int mlreply(string prompt, string init, out string result)
 
     for (;;)
     {
-	if (changes)
-	{
-	    auto col = promptlen + getcol2(buf, dot);
-	    if (col >= startcol + term.t_ncol - 2)
-		startcol = col - term.t_ncol + 2;
-	    if (col < startcol + promptlen)
-		startcol = col - promptlen;
+        if (changes)
+        {
+            auto col = promptlen + getcol2(buf, dot);
+            if (col >= startcol + term.t_ncol - 2)
+                startcol = col - term.t_ncol + 2;
+            if (col < startcol + promptlen)
+                startcol = col - promptlen;
 
-	    vtmove(term.t_nrow - 1, 0);
-	    vtputs(prompt,startcol);
-	    vtputs(buf, startcol, promptlen);
-	    vteeol(startcol);
-	    mlchange();
-	    update();
-	    attr = config.normattr;
-	    vtmove(term.t_nrow - 1, col);
+            vtmove(term.t_nrow - 1, 0);
+            vtputs(prompt,startcol);
+            vtputs(buf, startcol, promptlen);
+            vteeol(startcol);
+            mlchange();
+            update();
+            attr = config.normattr;
+            vtmove(term.t_nrow - 1, col);
 
-	    changes = 0;
-	}
+            changes = 0;
+        }
 
-	movecursor(vtrow, vtcol - startcol);
-	term.t_flush();
+        movecursor(vtrow, vtcol - startcol);
+        term.t_flush();
         c = term.t_getchar();
 
         switch (c)
-	{   case 0x0D:                  /* Return, end of line */
+        {   case 0x0D:                  /* Return, end of line */
                 if (kbdmip != null)
-		{
+                {
                     if (kbdmip + buflen + 1 > &kbdm[$-3])
-			goto err;	/* error	*/
+                        goto err;       /* error        */
 
-		    memcpy(kbdmip, buf.ptr, buflen * buf[0].sizeof);
-		    (cast(char*)kbdmip)[buflen] = 0;
-		    (*cast(char**)&kbdmip) += buflen + 1;
-		}
-		if (buflen != 0)
-		{
-		    hi = HDEC(history_top);
-		    if (!history[hi] || buf != history[hi])
-		    {
-			// Store in history buffer
-			history[history_top] = buf.idup;
-			history_top = HINC(history_top);
-			if (history[history_top])
-			{
-			    //delete history[history_top];
-			    core.memory.GC.free(cast(void*)history[history_top].ptr);
-			    history[history_top] = null;
-			}
-		    }
-		    result = cast(immutable)buf;
-		    return 1;
-		}
-		return 0;
+                    memcpy(kbdmip, buf.ptr, buflen * buf[0].sizeof);
+                    (cast(char*)kbdmip)[buflen] = 0;
+                    (*cast(char**)&kbdmip) += buflen + 1;
+                }
+                if (buflen != 0)
+                {
+                    hi = HDEC(history_top);
+                    if (!history[hi] || buf != history[hi])
+                    {
+                        // Store in history buffer
+                        history[history_top] = buf.idup;
+                        history_top = HINC(history_top);
+                        if (history[history_top])
+                        {
+                            //delete history[history_top];
+                            core.memory.GC.free(cast(void*)history[history_top].ptr);
+                            history[history_top] = null;
+                        }
+                    }
+                    result = cast(immutable)buf;
+                    return 1;
+                }
+                return 0;
 
             case 0x07:                  /* Bell, abort */
                 vtputc(7, startcol);
-		mlchange();
-		goto err;		/* error	*/
+                mlchange();
+                goto err;               /* error        */
 
-	    case 0x01:			// ^A, beginning of line
-	    case HOMEKEY:
+            case 0x01:                  // ^A, beginning of line
+            case HOMEKEY:
                 if (dot != 0)
-		{
-		    dot = 0;
-		    startcol = 0;
-		    changes = 1;
-		}
+                {
+                    dot = 0;
+                    startcol = 0;
+                    changes = 1;
+                }
                 break;
 
-	    case 0x05:			// ^E, beginning of line
-	    case ENDKEY:
+            case 0x05:                  // ^E, beginning of line
+            case ENDKEY:
                 if (dot != buflen)
-		{
-		    dot = buflen;
-		    changes = 1;
-		}
+                {
+                    dot = buflen;
+                    changes = 1;
+                }
                 break;
 
-	    case 0x0B:			// ^K, delete to end of line
-		if (dot != buflen)
-		{
-		    buflen = dot;
-		    buf = buf[0 .. buflen];
-		    changes = 1;
-		}
-		break;
+            case 0x0B:                  // ^K, delete to end of line
+                if (dot != buflen)
+                {
+                    buflen = dot;
+                    buf = buf[0 .. buflen];
+                    changes = 1;
+                }
+                break;
 
             case 0x7F:                  /* Rubout, erase */
             case 0x08:                  /* Backspace, erase */
                 if (dot != 0)
-		{
-		    memmove(buf.ptr + dot - 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
-		    --dot;
-		    --buflen;
-		    buf = buf[0 .. buflen];
-		    changes = 1;
-		}
+                {
+                    memmove(buf.ptr + dot - 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
+                    --dot;
+                    --buflen;
+                    buf = buf[0 .. buflen];
+                    changes = 1;
+                }
                 break;
 
-	    case DelKEY:
+            case DelKEY:
                 if (dot < buflen)
-		{
-		    memmove(buf.ptr + dot, buf.ptr + dot + 1, (buflen - dot - 1) * buf[0].sizeof);
-		    --buflen;
-		    buf = buf[0 .. buflen];
-		    changes = 1;
-		}
+                {
+                    memmove(buf.ptr + dot, buf.ptr + dot + 1, (buflen - dot - 1) * buf[0].sizeof);
+                    --buflen;
+                    buf = buf[0 .. buflen];
+                    changes = 1;
+                }
                 break;
 
 
             case 0x15:                  // ^U means delete line
-		dot = 0;
-		buflen = 0;
-		buf = buf[0 .. buflen];
-		startcol = 0;
-		changes = 1;
+                dot = 0;
+                buflen = 0;
+                buf = buf[0 .. buflen];
+                startcol = 0;
+                changes = 1;
                 break;
 
-	    case 'Y' - 0x40:		/* ^Y means yank		*/
-		{   int n;
+            case 'Y' - 0x40:            /* ^Y means yank                */
+                {   int n;
 
-		    for (n = 0; (c = kill_remove(n)) != -1; n++)
-		    {
-			buf.length = buf.length + 1;
-			memmove(buf.ptr + dot + 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
-			buflen++;
-			buf[dot++] = cast(char)c;
-		    }
-		    changes = 1;
-		}
-		break;
-
-	    case LTKEY:
-		if (dot != 0)
-		{
-		    dot--;
-		    changes = 1;
-		}
+                    for (n = 0; (c = kill_remove(n)) != -1; n++)
+                    {
+                        buf.length = buf.length + 1;
+                        memmove(buf.ptr + dot + 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
+                        buflen++;
+                        buf[dot++] = cast(char)c;
+                    }
+                    changes = 1;
+                }
                 break;
 
-	    case RTKEY:
-		if (dot < buflen)
-		{
-		    dot++;
-		    changes = 1;
-		}
+            case LTKEY:
+                if (dot != 0)
+                {
+                    dot--;
+                    changes = 1;
+                }
                 break;
 
-	    case UPKEY:
-		i = HDEC(hi);
-		if (hi == history_top && history[i] && buf == history[i])
-		    i = HDEC(i);
-		goto L1;
+            case RTKEY:
+                if (dot < buflen)
+                {
+                    dot++;
+                    changes = 1;
+                }
+                break;
 
-	    case DNKEY:
-		i = HINC(hi);
-	    L1:
-		if (history[i])
-		{
-		    buf = history[i].dup;
-		    buflen = cast(int)buf.length;
-		    dot = buflen;
-		    startcol = 0;
-		    changes = 1;
-		    hi = i;
-		}
-		else
-		    ctrlg(FALSE, 0);
-		break;
+            case UPKEY:
+                i = HDEC(hi);
+                if (hi == history_top && history[i] && buf == history[i])
+                    i = HDEC(i);
+                goto L1;
 
-	    //case InsKEY:
-	    case 0x11:			/* ^Q, quote next		*/
-	        c = term.t_getchar();
-		goto default;
+            case DNKEY:
+                i = HINC(hi);
+            L1:
+                if (history[i])
+                {
+                    buf = history[i].dup;
+                    buflen = cast(int)buf.length;
+                    dot = buflen;
+                    startcol = 0;
+                    changes = 1;
+                    hi = i;
+                }
+                else
+                    ctrlg(FALSE, 0);
+                break;
+
+            //case InsKEY:
+            case 0x11:                  /* ^Q, quote next               */
+                c = term.t_getchar();
+                goto default;
 
             default:
-		if (c < 0 || c >= 0x7F)
-		{   // Error
-		    ctrlg(FALSE, 0);
-		}
+                if (c < 0 || c >= 0x7F)
+                {   // Error
+                    ctrlg(FALSE, 0);
+                }
                 else
-		{
-		    buf.length = buf.length + 1;
-		    memmove(buf.ptr + dot + 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
-		    buflen++;
+                {
+                    buf.length = buf.length + 1;
+                    memmove(buf.ptr + dot + 1, buf.ptr + dot, (buflen - dot) * buf[0].sizeof);
+                    buflen++;
                     buf[dot++] = cast(char)c;
-		    changes = 1;
-		}
-		break;
+                    changes = 1;
+                }
+                break;
             }
     }
 
@@ -1295,9 +1295,9 @@ extern (C) void mlwrite(const(char)* fmt, ...)
 
     // http://www.cplusplus.com/reference/cstdio/vsnprintf/
     if (n <= 0)
-	n = 0;
+        n = 0;
     else if (n >= buffer.length)
-	n = buffer.length - 1;
+        n = buffer.length - 1;
 
     vtmove(term.t_nrow - 1, 0);
     attr = config.normattr;

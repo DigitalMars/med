@@ -36,13 +36,13 @@ import buffer;
 import basic;
 import terminal;
 
-enum CASESENSITIVE = true;	/* TRUE means case sensitive		*/
-enum WORDPREFIX = 'W' & 0x1F;	// prefix to trigger word search
+enum CASESENSITIVE = true;      /* TRUE means case sensitive            */
+enum WORDPREFIX = 'W' & 0x1F;   // prefix to trigger word search
 
 int Dnoask_search;
 
 /* Returns:
- *	true if word character
+ *      true if word character
  */
 bool isWordChar(char c)
 {
@@ -58,8 +58,8 @@ int forwsearch(bool f, int n)
 {
     if (winSearchPat)
     {
-	winSearchPat.w_flag |= WFHARD;
-	winSearchPat = null;
+        winSearchPat.w_flag |= WFHARD;
+        winSearchPat = null;
     }
 
     int s;
@@ -68,73 +68,73 @@ int forwsearch(bool f, int n)
 
     static bool notFound()
     {
-	mlwrite("Not found");
-	return FALSE;
+        mlwrite("Not found");
+        return FALSE;
     }
 
     bool word;
-    string pattern = pat;	// pattern to match
+    string pattern = pat;       // pattern to match
     if (pattern.length == 0)
-	return notFound();
+        return notFound();
     word = pattern[0] == WORDPREFIX;  // ^D means only match words
     if (word)
     {
-	pattern = pattern[1 .. $];
-	if (pattern.length == 0)
-	    return notFound();
+        pattern = pattern[1 .. $];
+        if (pattern.length == 0)
+            return notFound();
     }
 
-    char p0 = pattern[0];		// first char to match
+    char p0 = pattern[0];               // first char to match
 
-    LINE* clp = curwp.w_dotp;		/* get pointer to current line	*/
-    int cbo = curwp.w_doto;		/* and offset into that line	*/
+    LINE* clp = curwp.w_dotp;           /* get pointer to current line  */
+    int cbo = curwp.w_doto;             /* and offset into that line    */
 
     char lastc;
 
 again:
-    while (!empty(clp, cbo))		/* while not end of buffer	*/
+    while (!empty(clp, cbo))            /* while not end of buffer      */
     {
-	int c = front(clp, cbo);
-	popFront(clp, cbo);
-	if (!eq(c, p0))
-	{
-	    lastc = cast(char)c;
-	    continue;
-	}
-	if (word && lastc != lastc.init && isWordChar(lastc))
-	    continue;
-	lastc = cast(char)c;
+        int c = front(clp, cbo);
+        popFront(clp, cbo);
+        if (!eq(c, p0))
+        {
+            lastc = cast(char)c;
+            continue;
+        }
+        if (word && lastc != lastc.init && isWordChar(lastc))
+            continue;
+        lastc = cast(char)c;
 
-	{
+        {
             LINE* tlp = clp;
-            int tbo = cbo;			/* remember where start of pattern */
+            int tbo = cbo;                      /* remember where start of pattern */
 
-	    foreach (pc; pattern[1 .. $])
-	    {
-		if (empty(tlp, tbo))
-		    continue again;
-		c = front(tlp, tbo);
-		popFront(tlp, tbo);
+            foreach (pc; pattern[1 .. $])
+            {
+                if (empty(tlp, tbo))
+                    continue again;
+                c = front(tlp, tbo);
+                popFront(tlp, tbo);
 
-		lastc = cast(char)c;
+                lastc = cast(char)c;
 
                 if (!eq(c, pc))
                     continue again;
-	    }
+            }
 
-	    if (word && !empty(tlp, tbo) && isWordChar(cast(char)front(tlp, tbo)))
-	    {
-		continue again;
-	    }
+            if (word && !empty(tlp, tbo) && isWordChar(cast(char)front(tlp, tbo)))
+            {
+                continue again;
+            }
 
-	    /* We've found it. It starts at clp,cbo and ends before tlp,tbo */
+            /* We've found it. It starts at clp,cbo and ends before tlp,tbo */
             curwp.w_dotp  = tlp;
             curwp.w_doto  = tbo;
             curwp.w_flag |= WFMOVE;
             curwp.w_flag |= WFHARD;
-	    winSearchPat = curwp;
+            winSearchPat = curwp;
             return (TRUE);
-	}
+        }
     }
 
     return notFound();
@@ -150,8 +150,8 @@ int backsearch(bool f, int n)
 {
     if (winSearchPat)
     {
-	winSearchPat.w_flag |= WFHARD;
-	winSearchPat = null;
+        winSearchPat.w_flag |= WFHARD;
+        winSearchPat = null;
     }
 
     int s;
@@ -160,20 +160,20 @@ int backsearch(bool f, int n)
 
     static bool notFound()
     {
-	mlwrite("Not found");
-	return FALSE;
+        mlwrite("Not found");
+        return FALSE;
     }
 
     bool word;
-    string pattern = pat;	// pattern to match
+    string pattern = pat;       // pattern to match
     if (pattern.length == 0)
-	return notFound();
+        return notFound();
     word = pattern[0] == WORDPREFIX;  // ^D means only match words
     if (word)
     {
-	pattern = pattern[1 .. $];
-	if (pattern.length == 0)
-	    return notFound();
+        pattern = pattern[1 .. $];
+        if (pattern.length == 0)
+            return notFound();
     }
 
     immutable(char)* epp = &pattern[$ - 1];
@@ -184,47 +184,47 @@ int backsearch(bool f, int n)
 again:
     for (;;)
     {
-	if (atFront(clp, cbo))
-	    return notFound();
+        if (atFront(clp, cbo))
+            return notFound();
 
         if (word && !empty(clp, cbo) && isWordChar(cast(char)front(clp, cbo)))
-	{
-	    popBack(clp, cbo);
-	    continue;
-	}
+        {
+            popBack(clp, cbo);
+            continue;
+        }
 
-	popBack(clp, cbo);
-	int c = front(clp, cbo);
+        popBack(clp, cbo);
+        int c = front(clp, cbo);
 
         if (eq(c, *epp))
-	{
+        {
             LINE* tlp = clp;
             int tbo = cbo;
             auto pp  = epp;
 
             while (pp != &pattern[0])
-	    {
-		if (atFront(tlp, tbo))
-		    continue again;
-		popBack(tlp, tbo);
-		c = front(tlp, tbo);
+            {
+                if (atFront(tlp, tbo))
+                    continue again;
+                popBack(tlp, tbo);
+                c = front(tlp, tbo);
 
                 if (!eq(c, *--pp))
                     continue again;
-	    }
+            }
 
-	    if (word && !atFront(tlp, tbo) && isWordChar(cast(char)peekBack(tlp, tbo)))
-	    {
-		continue again;
-	    }
+            if (word && !atFront(tlp, tbo) && isWordChar(cast(char)peekBack(tlp, tbo)))
+            {
+                continue again;
+            }
 
             curwp.w_dotp  = tlp;
             curwp.w_doto  = tbo;
             curwp.w_flag |= WFMOVE;
             curwp.w_flag |= WFHARD;
-	    winSearchPat = curwp;
+            winSearchPat = curwp;
             return (TRUE);
-	}
+        }
     }
     assert(0);
 }
@@ -237,7 +237,7 @@ again:
 bool eq(int bc, int pc)
 {
     if (CASESENSITIVE)
-	return bc == pc;
+        return bc == pc;
 
     if (bc>='a' && bc<='z')
         bc -= 0x20;
@@ -254,7 +254,7 @@ bool eq(int bc, int pc)
 
 int replacestring(bool f, int n)
 {
-	return replace(FALSE);
+        return replace(FALSE);
 }
 
 /********************************
@@ -262,13 +262,13 @@ int replacestring(bool f, int n)
 
 int queryreplacestring(bool f, int n)
 {
-	return replace(TRUE);
+        return replace(TRUE);
 }
 
 /*************************
  * Do the replacements.
  * Input:
- *	query	if TRUE then it's a query-search-replace
+ *      query   if TRUE then it's a query-search-replace
  */
 
 private int replace(bool query)
@@ -288,36 +288,36 @@ private int replace(bool query)
 
     if (winSearchPat)
     {
-	winSearchPat.w_flag |= WFHARD;
-	winSearchPat = null;
+        winSearchPat.w_flag |= WFHARD;
+        winSearchPat = null;
     }
 
     if ((s = readpattern("Replace: ", pat)) != TRUE)
-	return (s);			/* must have search pattern	*/
+        return (s);                     /* must have search pattern     */
 
     bool word;
-    string pattern = pat;	// pattern to match
+    string pattern = pat;       // pattern to match
     if (pattern.length == 0)
-	return FALSE;
+        return FALSE;
     word = pattern[0] == WORDPREFIX;  // ^D means only match words
     if (word)
     {
-	pattern = pattern[1 .. $];
-	if (pattern.length == 0)
-	    return FALSE;
+        pattern = pattern[1 .. $];
+        if (pattern.length == 0)
+            return FALSE;
     }
 
-    readpattern ("With: ", withpat);	/* replacement pattern can be null */
+    readpattern ("With: ", withpat);    /* replacement pattern can be null */
 
     stop = FALSE;
     retval = TRUE;
     numreplacements = 0;
     dotpsave = curwp.w_dotp;
-    dotosave = curwp.w_doto;		/* save original position	*/
-    clp = curwp.w_dotp;			/* get pointer to current line	 */
-    cbo = curwp.w_doto;			/* and offset into that line	 */
+    dotosave = curwp.w_doto;            /* save original position       */
+    clp = curwp.w_dotp;                 /* get pointer to current line   */
+    cbo = curwp.w_doto;                 /* and offset into that line     */
 
-    curwp.w_flag |= WFHARD;		// repaint window with matches
+    curwp.w_flag |= WFHARD;             // repaint window with matches
     winSearchPat = curwp;
     update();
 
@@ -326,120 +326,120 @@ private int replace(bool query)
     char lastc;
 
 again:
-    while (!empty(clp, cbo))		/* while not end of buffer	 */
+    while (!empty(clp, cbo))            /* while not end of buffer       */
     {
-	/* Compute c, the character at the current position		 */
-	c = front(clp, cbo);
-	popFront(clp, cbo);
+        /* Compute c, the character at the current position              */
+        c = front(clp, cbo);
+        popFront(clp, cbo);
 
-	if (!eq(c, p0))
-	{
-	    lastc = cast(char)c;
-	    continue;
-	}
-	if (word && lastc != lastc.init && isWordChar(lastc))
-	    continue;
-	lastc = cast(char)c;
+        if (!eq(c, p0))
+        {
+            lastc = cast(char)c;
+            continue;
+        }
+        if (word && lastc != lastc.init && isWordChar(lastc))
+            continue;
+        lastc = cast(char)c;
 
-	{
-	    tlp = clp;
-	    tbo = cbo;			/* remember where start of pattern */
-	    int i = 1;
+        {
+            tlp = clp;
+            tbo = cbo;                  /* remember where start of pattern */
+            int i = 1;
 
-	    foreach (pc; pattern[1 .. $])
-	    {
-		if (empty(tlp, tbo))
-		    continue again;
-		c = front(tlp, tbo);
-		popFront(tlp, tbo);
+            foreach (pc; pattern[1 .. $])
+            {
+                if (empty(tlp, tbo))
+                    continue again;
+                c = front(tlp, tbo);
+                popFront(tlp, tbo);
 
-		lastc = cast(char)c;
+                lastc = cast(char)c;
 
-		if (!eq(c, pc))
-		    continue again;
-		i++;
-	    }
+                if (!eq(c, pc))
+                    continue again;
+                i++;
+            }
 
-	    if (word && !empty(tlp, tbo) && isWordChar(cast(char)front(tlp, tbo)))
-	    {
-		continue again;
-	    }
+            if (word && !empty(tlp, tbo) && isWordChar(cast(char)front(tlp, tbo)))
+            {
+                continue again;
+            }
 
-	    /* We've found it. It starts before clp,cbo and ends	*/
-	    /* before tlp,tbo						*/
+            /* We've found it. It starts before clp,cbo and ends        */
+            /* before tlp,tbo                                           */
 
-	    /* If query, get user input about this			*/
-	    if (query)
-	    {
-		curwp.w_dotp= clp;
-		curwp.w_doto = cbo;
-		backchar(FALSE,1);
-		mlwrite("' ' change 'n' continue '!' change rest '.' change and stop ^G abort");
-		curwp.w_flag |= WFMOVE;
-	      tryagain:
-		update();
-		switch (getkey())
-		{
-		    case 'n':		/* don't change, but continue	*/
-			continue again;
+            /* If query, get user input about this                      */
+            if (query)
+            {
+                curwp.w_dotp= clp;
+                curwp.w_doto = cbo;
+                backchar(FALSE,1);
+                mlwrite("' ' change 'n' continue '!' change rest '.' change and stop ^G abort");
+                curwp.w_flag |= WFMOVE;
+              tryagain:
+                update();
+                switch (getkey())
+                {
+                    case 'n':           /* don't change, but continue   */
+                        continue again;
 
-		    /*case 'R':*/	/* enter recursive edit		*/
-		    case '!':		/* change rest w/o asking	*/
-			query = FALSE;
-			goto case;
+                    /*case 'R':*/       /* enter recursive edit         */
+                    case '!':           /* change rest w/o asking       */
+                        query = FALSE;
+                        goto case;
 
-		    case ' ':		/* change and continue to next	*/
-			break;
-		    case '.':		/* change and stop		*/
-			stop = TRUE;
-			break;
-		    case 'G' & 0x1F:	/* abort			*/
-			goto abortreplace;
-		    default:		/* illegal command		*/
-			term.t_beep();
-			goto tryagain;
-		}
-	    }
+                    case ' ':           /* change and continue to next  */
+                        break;
+                    case '.':           /* change and stop              */
+                        stop = TRUE;
+                        break;
+                    case 'G' & 0x1F:    /* abort                        */
+                        goto abortreplace;
+                    default:            /* illegal command              */
+                        term.t_beep();
+                        goto tryagain;
+                }
+            }
 
-	    /* Delete the pattern by setting the current position to	*/
-	    /* the start of the pattern, and deleting 'n' characters	*/
-	    curwp.w_flag |= WFHARD;
-	    curwp.w_dotp= clp;
-	    curwp.w_doto = cbo;
-	    if (backchar(FALSE,1) == FALSE ||
-		line_delete(i,FALSE) == FALSE)
-		goto L1;
+            /* Delete the pattern by setting the current position to    */
+            /* the start of the pattern, and deleting 'n' characters    */
+            curwp.w_flag |= WFHARD;
+            curwp.w_dotp= clp;
+            curwp.w_doto = cbo;
+            if (backchar(FALSE,1) == FALSE ||
+                line_delete(i,FALSE) == FALSE)
+                goto L1;
 
-	    /* 'Yank' the replacement pattern back in at dot (also	*/
-	    /* moving cursor past end of replacement pattern to prevent	*/
-	    /* recursive replaces).					*/
-	    foreach (wc; withpat)
-		if (line_insert(1, wc) == FALSE)
-		{
-		    goto L1;
-		}
+            /* 'Yank' the replacement pattern back in at dot (also      */
+            /* moving cursor past end of replacement pattern to prevent */
+            /* recursive replaces).                                     */
+            foreach (wc; withpat)
+                if (line_insert(1, wc) == FALSE)
+                {
+                    goto L1;
+                }
 
-	    /* Take care of case where line_insert() reallocated the line	*/
-	    if (dotpsave == clp)
-		dotpsave = curwp.w_dotp;
-	    clp = curwp.w_dotp;
-	    cbo = curwp.w_doto;		/* continue from end of with text */
-	    numreplacements++;
-	    if (stop)
-		break;
-	}
+            /* Take care of case where line_insert() reallocated the line       */
+            if (dotpsave == clp)
+                dotpsave = curwp.w_dotp;
+            clp = curwp.w_dotp;
+            cbo = curwp.w_doto;         /* continue from end of with text */
+            numreplacements++;
+            if (stop)
+                break;
+        }
     }
 
 abortreplace:
     curwp.w_dotp = dotpsave;
-    curwp.w_doto = dotosave;		/* back to original position	*/
+    curwp.w_doto = dotosave;            /* back to original position    */
     curwp.w_flag |= WFMOVE;
     mlwrite("%d replacements done", numreplacements);
     return retval;
 
 L1:
     if (dotpsave == clp)
-	dotpsave = curwp.w_dotp;
+        dotpsave = curwp.w_dotp;
     retval = FALSE;
     goto abortreplace;
 }
@@ -453,7 +453,7 @@ L1:
 private int readpattern(string prompt, ref string pat)
 {
     if( Dnoask_search )
-	return( pat.length != 0 );
+        return( pat.length != 0 );
     auto tpat = pat;
     auto s = mlreply(prompt, pat, tpat);
     if (s == TRUE)                      /* Specified */
@@ -467,16 +467,16 @@ private int readpattern(string prompt, ref string pat)
 /*********************************
  * Examine line at '.'.
  * Returns:
- *	HASH_xxx
- *	0	anything else
+ *      HASH_xxx
+ *      0       anything else
  */
 
 enum
 {
-	HASH_IF		= 1,
-	HASH_ELIF	= 2,
-	HASH_ELSE	= 3,
-	HASH_ENDIF	= 4,
+        HASH_IF         = 1,
+        HASH_ELIF       = 2,
+        HASH_ELSE       = 3,
+        HASH_ENDIF      = 4,
 }
 
 static int ifhash(LINE* clp)
@@ -487,18 +487,18 @@ static int ifhash(LINE* clp)
 
     len = cast(int)clp.l_text.length;
     if (len < 3 || lgetc(clp,0) != '#')
-	goto ret0;
+        goto ret0;
     for (i = 1; ; i++)
     {
-	if (i >= len)
-	    goto ret0;
-	if (!isSpace(clp.l_text[i]))
-	    break;
+        if (i >= len)
+            goto ret0;
+        if (!isSpace(clp.l_text[i]))
+            break;
     }
     for (int h = 0; h < hash.length; h++)
-	if (len - i >= hash[h].length &&
-	    clp.l_text[i .. i + hash[h].length] == hash[h])
-	    return h + 1;
+        if (len - i >= hash[h].length &&
+            clp.l_text[i .. i + hash[h].length] == hash[h])
+            return h + 1;
 ret0:
     return 0;
 }
@@ -522,110 +522,110 @@ int search_paren(bool f, int n)
     int h;
     static char[2][] bracket = [['(',')'],['<','>'],['[',']'],['{','}']];
 
-    clp = curwp.w_dotp;		/* get pointer to current line	*/
-    cbo = curwp.w_doto;		/* and offset into that line	*/
+    clp = curwp.w_dotp;         /* get pointer to current line  */
+    cbo = curwp.w_doto;         /* and offset into that line    */
     count = 0;
 
     len = llength(clp);
     if (cbo >= len)
-	chinc = '\n';
+        chinc = '\n';
     else
-	chinc = lgetc(clp,cbo);
+        chinc = lgetc(clp,cbo);
 
     if (cbo == 0 && (h = ifhash(clp)) != 0)
-    {	forward = h != HASH_ENDIF;
+    {   forward = h != HASH_ENDIF;
     }
     else
     {
-	forward = TRUE;			/* forward			*/
-	h = 0;
-	chdec = chinc;
-	for (i = 0; i < bracket.length; i++)
-	    if (bracket[i][0] == chinc)
-	    {	chdec = bracket[i][1];
-		break;
-	    }
-	for (i = 0; i < bracket.length; i++)
-	    if (bracket[i][1] == chinc)
-	    {	chdec = bracket[i][0];
-		forward = FALSE;	/* search backwards		*/
-		break;
-	    }
+        forward = TRUE;                 /* forward                      */
+        h = 0;
+        chdec = chinc;
+        for (i = 0; i < bracket.length; i++)
+            if (bracket[i][0] == chinc)
+            {   chdec = bracket[i][1];
+                break;
+            }
+        for (i = 0; i < bracket.length; i++)
+            if (bracket[i][1] == chinc)
+            {   chdec = bracket[i][0];
+                forward = FALSE;        /* search backwards             */
+                break;
+            }
     }
 
-    while (1)				/* while not end of buffer	*/
+    while (1)                           /* while not end of buffer      */
     {
-	if (forward)
-	{
-	    if (h || cbo >= len)
-	    {
-		clp = lforw(clp);
-		if (clp == curbp.b_linep)	/* if end of buffer	*/
-		    break;
-		len = llength(clp);
-		cbo = 0;
-	    }
-	    else
-		cbo++;
-	}
-	else /* backward */
-	{
-	    if (h || cbo == 0)
+        if (forward)
+        {
+            if (h || cbo >= len)
             {
-		clp = lback(clp);
-		if (clp == curbp.b_linep)
-		    break;
-		len = llength(clp);
-		cbo = len;
+                clp = lforw(clp);
+                if (clp == curbp.b_linep)       /* if end of buffer     */
+                    break;
+                len = llength(clp);
+                cbo = 0;
             }
-	    else
-		--cbo;
-	}
+            else
+                cbo++;
+        }
+        else /* backward */
+        {
+            if (h || cbo == 0)
+            {
+                clp = lback(clp);
+                if (clp == curbp.b_linep)
+                    break;
+                len = llength(clp);
+                cbo = len;
+            }
+            else
+                --cbo;
+        }
 
-	if (h)
-	{   int h2;
+        if (h)
+        {   int h2;
 
-	    cbo = 0;
-	    h2 = ifhash(clp);
-	    if (h2)
-	    {	if (h == HASH_ENDIF)
-		{
-		    if (h2 == HASH_ENDIF)
-			count++;
-		    else if (h2 == HASH_IF)
-		    {	if (count-- == 0)
-			    goto found;
-		    }
-		}
-		else
-		{   if (h2 == HASH_IF)
-			count++;
-		    else
-		    {	if (count == 0)
-			    goto found;
-			if (h2 == HASH_ENDIF)
-			    count--;
-		    }
-		}
-	    }
-	}
-	else
-	{
-	    ch = (cbo < len) ? lgetc(clp,cbo) : '\n';
-	    if (eq(ch,chdec))
-	    {   if (count-- == 0)
-		{
-		    /* We've found it	*/
-		found:
-		    curwp.w_dotp  = clp;
-		    curwp.w_doto  = cbo;
-		    curwp.w_flag |= WFMOVE;
-		    return (TRUE);
-		}
-	    }
-	    else if (eq(ch,chinc))
-		count++;
-	}
+            cbo = 0;
+            h2 = ifhash(clp);
+            if (h2)
+            {   if (h == HASH_ENDIF)
+                {
+                    if (h2 == HASH_ENDIF)
+                        count++;
+                    else if (h2 == HASH_IF)
+                    {   if (count-- == 0)
+                            goto found;
+                    }
+                }
+                else
+                {   if (h2 == HASH_IF)
+                        count++;
+                    else
+                    {   if (count == 0)
+                            goto found;
+                        if (h2 == HASH_ENDIF)
+                            count--;
+                    }
+                }
+            }
+        }
+        else
+        {
+            ch = (cbo < len) ? lgetc(clp,cbo) : '\n';
+            if (eq(ch,chdec))
+            {   if (count-- == 0)
+                {
+                    /* We've found it   */
+                found:
+                    curwp.w_dotp  = clp;
+                    curwp.w_doto  = cbo;
+                    curwp.w_flag |= WFMOVE;
+                    return (TRUE);
+                }
+            }
+            else if (eq(ch,chinc))
+                count++;
+        }
     }
     mlwrite("Not found");
     return (FALSE);
@@ -638,64 +638,64 @@ int search_paren(bool f, int n)
 bool inSearch(const(char)[] s, size_t index)
 {
     if (curwp != winSearchPat || pat.length == 0)
-	return false;
+        return false;
 
     string pattern = pat;
     bool word = pattern[0] == WORDPREFIX;
     if (word)
     {
-	pattern = pattern[1 .. $];
-	if (pattern.length == 0)
-	    return false;
+        pattern = pattern[1 .. $];
+        if (pattern.length == 0)
+            return false;
     }
 
-    char p0 = pattern[0];		// first char to match
+    char p0 = pattern[0];               // first char to match
 
     char lastc;
 
 again:
     for (int i = 0; i <= s.length;)
     {
-	char front(int i) { return i < s.length ? s[i] : '\n'; }
+        char front(int i) { return i < s.length ? s[i] : '\n'; }
 
-	if (index < i)
-	    break;
+        if (index < i)
+            break;
 
-	char c = front(i);
-	++i;
+        char c = front(i);
+        ++i;
 
-	if (!eq(c, p0))
-	{
-	    lastc = cast(char)c;
-	    continue;
-	}
-	if (word && lastc != lastc.init && isWordChar(lastc))
-	    continue;
-	lastc = c;
+        if (!eq(c, p0))
+        {
+            lastc = cast(char)c;
+            continue;
+        }
+        if (word && lastc != lastc.init && isWordChar(lastc))
+            continue;
+        lastc = c;
 
-	{
-	    foreach (pc; pattern[1 .. $])
-	    {
-		if (i > s.length)
-		    break again;
+        {
+            foreach (pc; pattern[1 .. $])
+            {
+                if (i > s.length)
+                    break again;
 
-		char c2 = front(i);
-		++i;
+                char c2 = front(i);
+                ++i;
 
-		lastc = c2;
+                lastc = c2;
 
                 if (!eq(c2, pc))
                     continue again;
-	    }
+            }
 
-	    if (word && i <= s.length && isWordChar(front(i)))
-	    {
-		continue again;
-	    }
+            if (word && i <= s.length && isWordChar(front(i)))
+            {
+                continue again;
+            }
 
-	    if (index < i)
-		return true;
-	}
+            if (index < i)
+                return true;
+        }
     }
 
     return false;

@@ -33,21 +33,21 @@ import console;
  */
 
 int gotobol(bool f, int n)
-{	int s;
+{       int s;
 
-	if (curwp.w_doto == 0)
-		s = backline(f, n);
-	else
-	{
-		if (curwp.w_markp)
-			curwp.w_flag |= WFMOVE;
-		s = TRUE;
-		curwp.w_doto = 0;
-		if( n > 1 )
-			s = backline(f, n-1);
-	}
-	curgoal = 0;
-	return s;
+        if (curwp.w_doto == 0)
+                s = backline(f, n);
+        else
+        {
+                if (curwp.w_markp)
+                        curwp.w_flag |= WFMOVE;
+                s = TRUE;
+                curwp.w_doto = 0;
+                if( n > 1 )
+                        s = backline(f, n-1);
+        }
+        curgoal = 0;
+        return s;
 }
 
 /*
@@ -60,11 +60,11 @@ int backchar(bool f, int n)
 {
         if (n < 0)
                 return (forwchar(f, -n));
-	if (curwp.w_markp && n)
-		curwp.w_flag |= WFMOVE;
+        if (curwp.w_markp && n)
+                curwp.w_flag |= WFMOVE;
         while (n--) {
                 if (curwp.w_doto == 0) {
-		        LINE   *lp;
+                        LINE   *lp;
                         if ((lp=lback(curwp.w_dotp)) == curbp.b_linep)
                                 return (FALSE);
                         curwp.w_dotp  = lp;
@@ -88,12 +88,12 @@ int gotoeol(bool f, int n)
     s = TRUE;
     if( curwp.w_doto != llength(curwp.w_dotp) )
     {
-	if (curwp.w_markp)
-	    curwp.w_flag |= WFMOVE;
-	n--;
+        if (curwp.w_markp)
+            curwp.w_flag |= WFMOVE;
+        n--;
     }
     if( n > 0 )
-	s = forwline(f,n);
+        s = forwline(f,n);
     curwp.w_doto = llength(curwp.w_dotp);
     return( s );
 }
@@ -108,8 +108,8 @@ int forwchar(bool f, int n)
 {
         if (n < 0)
                 return (backchar(f, -n));
-	if (curwp.w_markp && n)
-		curwp.w_flag |= WFMOVE;
+        if (curwp.w_markp && n)
+                curwp.w_flag |= WFMOVE;
         while (n--) {
                 if (curwp.w_doto == llength(curwp.w_dotp)) {
                         if (curwp.w_dotp == curbp.b_linep)
@@ -161,11 +161,11 @@ int forwline(bool f, int n)
                 return (backline(f, -n));
         auto dlp = curwp.w_dotp;
 
-	/* Reset goal if last command not backline() or forwline()	*/
+        /* Reset goal if last command not backline() or forwline()      */
         if ((lastflag&CFCPCN) == 0)
                 curgoal = getcol(dlp,curwp.w_doto);
-        thisflag |= CFCPCN;			/* this command was a	*/
-						/* forwline or backline	*/
+        thisflag |= CFCPCN;                     /* this command was a   */
+                                                /* forwline or backline */
         while (n-- && dlp!=curbp.b_linep)
                 dlp = lforw(dlp);
         curwp.w_dotp  = dlp;
@@ -182,8 +182,8 @@ int basic_nextline(bool f, int n)
 {
     if (curwp.w_doto == 0 || gotobol(FALSE,1))
     {
-	lastflag &= ~CFCPCN;
-	return forwline(f,n);
+        lastflag &= ~CFCPCN;
+        return forwline(f,n);
     }
     return FALSE;
 }
@@ -200,7 +200,7 @@ int backline(bool f, int n)
                 return (forwline(f, -n));
         auto dlp = curwp.w_dotp;
 
-	/* Reset goal if last command not backline() or forwline()	*/
+        /* Reset goal if last command not backline() or forwline()      */
         if ((lastflag&CFCPCN) == 0)
                 curgoal = getcol(dlp,curwp.w_doto);
         thisflag |= CFCPCN;
@@ -218,20 +218,20 @@ int backline(bool f, int n)
  */
 
 int gotoline(bool f, int n)
-{	string number;
+{       string number;
 
-	if (mlreply("Goto line: ", null, number) == FALSE)
-		return FALSE;
-	try
-	{
-	    const num = to!(int)(number);
-	    gotobob(f, n);			/* move to beginning of buffer	*/
-	    return forwline(f, num - 1);
-	}
-	catch (Throwable o)
-	{
-	}
-	return FALSE;
+        if (mlreply("Goto line: ", null, number) == FALSE)
+                return FALSE;
+        try
+        {
+            const num = to!(int)(number);
+            gotobob(f, n);                      /* move to beginning of buffer  */
+            return forwline(f, num - 1);
+        }
+        catch (Throwable o)
+        {
+        }
+        return FALSE;
 }
 
 /*
@@ -322,11 +322,11 @@ int backpage(bool f, int n)
  */
 int basic_setmark(bool f, int n)
 {
-	removemark(f,n);		/* delete old mark		*/
+        removemark(f,n);                /* delete old mark              */
         curwp.w_markp = curwp.w_dotp;
         curwp.w_marko = curwp.w_doto;
-	/* Get starting column for column regions	*/
-	markcol = getcol(curwp.w_markp,curwp.w_doto);
+        /* Get starting column for column regions       */
+        markcol = getcol(curwp.w_markp,curwp.w_doto);
         mlwrite("[Mark set]");
         return (TRUE);
 }
@@ -337,13 +337,13 @@ int basic_setmark(bool f, int n)
 
 int removemark(bool f, int n)
 {
-	if (curwp.w_markp)
-	{	curwp.w_flag |= WFHARD;
-		curwp.w_markp = null;
-	        mlwrite("[Mark removed]");
-	}
-	else
-		mlwrite("[No mark]");
+        if (curwp.w_markp)
+        {       curwp.w_flag |= WFHARD;
+                curwp.w_markp = null;
+                mlwrite("[Mark removed]");
+        }
+        else
+                mlwrite("[No mark]");
         return (TRUE);
 }
 

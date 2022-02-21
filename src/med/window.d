@@ -32,7 +32,7 @@ import display;
  * The flag field contains some bits that are set by commands to guide
  * redisplay; although this is a bit of a compromise in terms of decoupling,
  * the full blown redisplay is just too expensive to run for every input
- * character. 
+ * character.
  */
 struct  WINDOW {
         BUFFER* w_bufp;           /* Buffer displayed in window   */
@@ -59,7 +59,7 @@ enum
 
 __gshared WINDOW*[] windows;
 
-__gshared WINDOW* winSearchPat;		// the window with highlighted search results
+__gshared WINDOW* winSearchPat;         // the window with highlighted search results
 
 /* !=0 means marking    */
 bool window_marking(WINDOW* wp) { return wp.w_markp != null; }
@@ -106,15 +106,15 @@ int window_next(bool f, int n)
 {
     foreach (i, wp; windows)
     {
-	if (wp == curwp)
-	{
-	    i = i + 1;
-	    if (i == windows.length)
-		i = 0;
-	    curwp = windows[i];
-	    curbp = curwp.w_bufp;
-	    return TRUE;
-	}
+        if (wp == curwp)
+        {
+            i = i + 1;
+            if (i == windows.length)
+                i = 0;
+            curwp = windows[i];
+            curbp = curwp.w_bufp;
+            return TRUE;
+        }
     }
     return FALSE;
 }
@@ -128,15 +128,15 @@ int window_prev(bool f, int n)
 {
     foreach (i, wp; windows)
     {
-	if (wp == curwp)
-	{
-	    if (i == 0)
-		i = windows.length;
-	    i--;
-	    curwp = windows[i];
-	    curbp = curwp.w_bufp;
-	    return TRUE;
-	}
+        if (wp == curwp)
+        {
+            if (i == 0)
+                i = windows.length;
+            i--;
+            curwp = windows[i];
+            curbp = curwp.w_bufp;
+            return TRUE;
+        }
     }
     return FALSE;
 }
@@ -178,7 +178,7 @@ int window_mvup(bool f, int n)
             lp = lback(lp);
         }
 
-    curwp.w_linep = lp;		/* new top line of window	*/
+    curwp.w_linep = lp;         /* new top line of window       */
     curwp.w_flag |= WFHARD;            /* Mode line is OK. */
 
     for (i = 0; i < curwp.w_ntrows; ++i)
@@ -210,24 +210,24 @@ int window_mvup(bool f, int n)
  */
 int window_only(bool f, int n)
 {
-	foreach (wp; windows)
-	{
-	    if (wp != curwp)
-	    {
+        foreach (wp; windows)
+        {
+            if (wp != curwp)
+            {
                 if (--wp.w_bufp.b_nwnd == 0) {
                         wp.w_bufp.b_dotp  = wp.w_dotp;
                         wp.w_bufp.b_doto  = wp.w_doto;
                         wp.w_bufp.b_markp = wp.w_markp;
                         wp.w_bufp.b_marko = wp.w_marko;
                 }
-		if (winSearchPat == wp)
-		    winSearchPat = null;
+                if (winSearchPat == wp)
+                    winSearchPat = null;
                 //delete wp;
                 core.memory.GC.free(wp);
-	    }
-	}
-	windows = windows[0 .. 1];
-	windows[0] = curwp;
+            }
+        }
+        windows = windows[0 .. 1];
+        windows[0] = curwp;
 
         auto lp = curwp.w_linep;
         auto i  = curwp.w_toprow;
@@ -260,7 +260,7 @@ int window_split(bool f, int n)
                 mlwrite("Cannot split a %d line window", curwp.w_ntrows);
                 return (FALSE);
         }
-	auto wp = new WINDOW;
+        auto wp = new WINDOW;
         ++curbp.b_nwnd;                        /* Displayed twice.     */
         wp.w_bufp  = curbp;
         wp.w_dotp  = curwp.w_dotp;
@@ -280,25 +280,25 @@ int window_split(bool f, int n)
                 if (ntrd == ntru)               /* Hit mode line.       */
                         lp = lforw(lp);
                 curwp.w_ntrows = ntru;
-		// Insert wp after curwp
-		foreach (i, w; windows)
-		{   if (w == curwp)
-		    {
-			windows = windows[0 .. i + 1] ~ wp ~ windows[i + 1 .. $];
-			break;
-		    }
-		}
+                // Insert wp after curwp
+                foreach (i, w; windows)
+                {   if (w == curwp)
+                    {
+                        windows = windows[0 .. i + 1] ~ wp ~ windows[i + 1 .. $];
+                        break;
+                    }
+                }
                 wp.w_toprow = curwp.w_toprow+ntru+1;
                 wp.w_ntrows = ntrl;
         } else {                                /* Old is lower window  */
-		// Insert wp before curwp
-		foreach (i, w; windows)
-		{   if (w == curwp)
-		    {
-			windows = windows[0 .. i] ~ wp ~ windows[i .. $];
-			break;
-		    }
-		}
+                // Insert wp before curwp
+                foreach (i, w; windows)
+                {   if (w == curwp)
+                    {
+                        windows = windows[0 .. i] ~ wp ~ windows[i .. $];
+                        break;
+                    }
+                }
 
                 wp.w_toprow = curwp.w_toprow;
                 wp.w_ntrows = ntru;
@@ -325,7 +325,7 @@ int window_enlarge(bool f, int n)
 {
         WINDOW *adjwp;
         LINE   *lp;
-	bool prev;
+        bool prev;
 
         if (n < 0)
                 return (window_shrink(f, -n));
@@ -335,23 +335,23 @@ int window_enlarge(bool f, int n)
                 return (FALSE);
         }
 
-	foreach (i, wp; windows)
-	{
-	    if (wp == curwp)
-	    {
-		if (i == windows.length - 1)
-		{
-		    adjwp = windows[i - 1];
-		    prev = true;
-		}
-		else
-		{
-		    adjwp = windows[i + 1];
-		    prev = false;
-		}
-		break;
-	    }
-	}
+        foreach (i, wp; windows)
+        {
+            if (wp == curwp)
+            {
+                if (i == windows.length - 1)
+                {
+                    adjwp = windows[i - 1];
+                    prev = true;
+                }
+                else
+                {
+                    adjwp = windows[i + 1];
+                    prev = false;
+                }
+                break;
+            }
+        }
 
         if (adjwp.w_ntrows <= n) {
                 mlwrite("Impossible enlarge change");
@@ -386,7 +386,7 @@ int window_shrink(bool f, int n)
 {
         WINDOW *adjwp;
         LINE   *lp;
-	bool prev;
+        bool prev;
 
         if (n < 0)
                 return (window_enlarge(f, -n));
@@ -395,23 +395,23 @@ int window_shrink(bool f, int n)
                 return (FALSE);
         }
 
-	foreach (i, wp; windows)
-	{
-	    if (wp == curwp)
-	    {
-		if (i == windows.length - 1)
-		{
-		    adjwp = windows[i - 1];
-		    prev = true;
-		}
-		else
-		{
-		    adjwp = windows[i + 1];
-		    prev = false;
-		}
-		break;
-	    }
-	}
+        foreach (i, wp; windows)
+        {
+            if (wp == curwp)
+            {
+                if (i == windows.length - 1)
+                {
+                    adjwp = windows[i - 1];
+                    prev = true;
+                }
+                else
+                {
+                    adjwp = windows[i + 1];
+                    prev = false;
+                }
+                break;
+            }
+        }
 
         if (curwp.w_ntrows <= n) {
                 mlwrite("Impossible shrink change");
@@ -448,8 +448,8 @@ WINDOW  *wpopup()
         && window_split(FALSE, 0) == FALSE)        // and it won't split
                 return null;
         auto wp = windows[0];                            // Find window to use
-	if (wp == curwp)
-	    wp = windows[1];
+        if (wp == curwp)
+            wp = windows[1];
         return wp;
 }
 
@@ -460,51 +460,51 @@ WINDOW  *wpopup()
  */
 int delwind(bool f, int n)
 {
-	if (windows.length == 1)
-	    return TRUE;	// Only 1 window
+        if (windows.length == 1)
+            return TRUE;        // Only 1 window
 
-	auto delwp = curwp;
-	if (windows[0] == delwp)		// Pick which window to be in next
-	{
-		curwp = windows[1];
-		windows = windows[1 .. $];
-		curbp = curwp.w_bufp;
-		auto lp = curwp.w_linep;
-		int i  = curwp.w_toprow;
-		while( i!=0 && lback(lp)!=curbp.b_linep )
-		{
-			i--;
-			lp = lback(lp);
-		}
-		curwp.w_toprow = delwp.w_toprow;
-	}
-	else
-	{
-		foreach (i, wp; windows)
-		{
-		    if (wp == delwp)
-		    {
-			curwp = windows[i - 1];
-			windows = windows[0 .. i] ~ windows[i + 1 .. $];
-			break;
-		    }
-		}
-		curbp = curwp.w_bufp;
-	}
+        auto delwp = curwp;
+        if (windows[0] == delwp)                // Pick which window to be in next
+        {
+                curwp = windows[1];
+                windows = windows[1 .. $];
+                curbp = curwp.w_bufp;
+                auto lp = curwp.w_linep;
+                int i  = curwp.w_toprow;
+                while( i!=0 && lback(lp)!=curbp.b_linep )
+                {
+                        i--;
+                        lp = lback(lp);
+                }
+                curwp.w_toprow = delwp.w_toprow;
+        }
+        else
+        {
+                foreach (i, wp; windows)
+                {
+                    if (wp == delwp)
+                    {
+                        curwp = windows[i - 1];
+                        windows = windows[0 .. i] ~ windows[i + 1 .. $];
+                        break;
+                    }
+                }
+                curbp = curwp.w_bufp;
+        }
 
-	curwp.w_ntrows += delwp.w_ntrows+1;
-	curwp.w_flag |= WFMODE|WFHARD;
+        curwp.w_ntrows += delwp.w_ntrows+1;
+        curwp.w_flag |= WFMODE|WFHARD;
 
-	delwp.w_bufp.b_dotp  = delwp.w_dotp;
-	delwp.w_bufp.b_doto  = delwp.w_doto;
-	delwp.w_bufp.b_markp = delwp.w_markp;
-	delwp.w_bufp.b_marko = delwp.w_marko;
-	delwp.w_bufp.b_nwnd--;
+        delwp.w_bufp.b_dotp  = delwp.w_dotp;
+        delwp.w_bufp.b_doto  = delwp.w_doto;
+        delwp.w_bufp.b_markp = delwp.w_markp;
+        delwp.w_bufp.b_marko = delwp.w_marko;
+        delwp.w_bufp.b_nwnd--;
 
-	if (winSearchPat == delwp)
-	    winSearchPat = null;
-	//delete delwp;
+        if (winSearchPat == delwp)
+            winSearchPat = null;
+        //delete delwp;
         core.memory.GC.free(delwp);
 
-	return( TRUE );
+        return( TRUE );
 }

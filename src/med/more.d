@@ -48,10 +48,10 @@ version (Posix)
  */
 enum
 {
-	DK_CUT,
-	DK_LINE,
-	DK_WORD,
-	DK_CHAR,
+        DK_CUT,
+        DK_LINE,
+        DK_WORD,
+        DK_CHAR,
 }
 
 void SETMARK()
@@ -65,136 +65,136 @@ void SETMARK()
  */
 enum
 {
-	ADVANCE,
-	BACKUP,
+        ADVANCE,
+        BACKUP,
 }
 
 int Dcur_direction = ADVANCE;
 
 int Dsearch(bool f, int n)
 {
-	if( Dcur_direction == ADVANCE )
-		return( forwsearch(f, n) );
-	else	return( backsearch(f, n) );
+        if( Dcur_direction == ADVANCE )
+                return( forwsearch(f, n) );
+        else    return( backsearch(f, n) );
 }
 
 int Dsearchagain(bool f, int n)
 {
-	int s;
-	Dnoask_search = true;
-	scope(exit) Dnoask_search = false;
-	if( Dcur_direction == ADVANCE )
-		s = forwsearch(f, n);
-	else	s = backsearch(f, n);
-	return s;
+        int s;
+        Dnoask_search = true;
+        scope(exit) Dnoask_search = false;
+        if( Dcur_direction == ADVANCE )
+                s = forwsearch(f, n);
+        else    s = backsearch(f, n);
+        return s;
 }
 
 int Ddelline(bool f, int n)
 {
-	int s = true;
+        int s = true;
 
-	kill_setbuffer(DK_LINE);
-	kill_freebuffer();
-	while( n-- > 0 && s )
-	{   curwp.w_doto = 0;
-	    s &= line_delete(llength(curwp.w_dotp) + 1, true);
-	}
-	kill_setbuffer(DK_CUT);
-	return s;
+        kill_setbuffer(DK_LINE);
+        kill_freebuffer();
+        while( n-- > 0 && s )
+        {   curwp.w_doto = 0;
+            s &= line_delete(llength(curwp.w_dotp) + 1, true);
+        }
+        kill_setbuffer(DK_CUT);
+        return s;
 }
 
 int Dundelline(bool f, int n)
 {
-	int s = true;
+        int s = true;
 
-	kill_setbuffer(DK_LINE);
-	while( n-- > 0 && s )
-	{
-		curwp.w_doto = 0;
-		s = random_yank(true, 1);
-		backline(false, 1);
-		curwp.w_doto = 0;
-	}
-	kill_setbuffer(DK_CUT);
-	return s;
+        kill_setbuffer(DK_LINE);
+        while( n-- > 0 && s )
+        {
+                curwp.w_doto = 0;
+                s = random_yank(true, 1);
+                backline(false, 1);
+                curwp.w_doto = 0;
+        }
+        kill_setbuffer(DK_CUT);
+        return s;
 }
 
 int Ddelword(bool f, int n)
 {
-	int s = true;
+        int s = true;
 
-	kill_setbuffer(DK_WORD);
-	kill_freebuffer();
-	while( n-- > 0 && s )
-	{
-		SETMARK();
-		s = word_forw(false, 1);
-		if( !s ) break;
-		s = region_kill(false, 1);
-	}
-	kill_setbuffer(DK_CUT);
-	return s;
+        kill_setbuffer(DK_WORD);
+        kill_freebuffer();
+        while( n-- > 0 && s )
+        {
+                SETMARK();
+                s = word_forw(false, 1);
+                if( !s ) break;
+                s = region_kill(false, 1);
+        }
+        kill_setbuffer(DK_CUT);
+        return s;
 }
 
 int Ddelbword(bool f, int n)
 {
-	int s = true;
+        int s = true;
 
-	kill_setbuffer(DK_WORD);
-	kill_freebuffer();
-	while( n-- > 0 && s )
-	{
-		SETMARK;
-		s = word_back(false, 1);
-		if( !s ) break;
-		s = region_kill(false, 1);
-	}
-	kill_setbuffer(DK_CUT);
-	return s;
+        kill_setbuffer(DK_WORD);
+        kill_freebuffer();
+        while( n-- > 0 && s )
+        {
+                SETMARK;
+                s = word_back(false, 1);
+                if( !s ) break;
+                s = region_kill(false, 1);
+        }
+        kill_setbuffer(DK_CUT);
+        return s;
 }
 
 int Dundelword(bool f, int n)
 {
-	int s = true;
+        int s = true;
 
-	kill_setbuffer(DK_WORD);
-	while( n-- > 0 && s )
-		s &= random_yank(true, 1);
-	kill_setbuffer(DK_CUT);
-	return s;
+        kill_setbuffer(DK_WORD);
+        while( n-- > 0 && s )
+                s &= random_yank(true, 1);
+        kill_setbuffer(DK_CUT);
+        return s;
 }
 
 int Dadvance(bool f, int n)
 {
-	Dcur_direction = ADVANCE;
-	return true;
+        Dcur_direction = ADVANCE;
+        return true;
 }
 
 int Dbackup(bool f, int n)
 {
-	Dcur_direction = BACKUP;
-	return true;
+        Dcur_direction = BACKUP;
+        return true;
 }
 
 int Dignore(bool f, int n)
 {
-	/* Ignore this command. Useful for ^S and ^Q flow control	*/
-	/* sent out by some terminals.					*/
-	return true;
+        /* Ignore this command. Useful for ^S and ^Q flow control       */
+        /* sent out by some terminals.                                  */
+        return true;
 }
 
 int Dpause(bool f, int n)
 {
     version (Posix)
     {
-	term.t_move( term.t_nrow - 1, 0 );
-	term.t_eeop();
-	term.t_flush();
-	term.t_close();
-	killpg(getpgid(0), 18);	/* SIGTSTP -- stop the current program */
-	term.t_open();
-	sgarbf = true;
-	window_refresh(false, 1);
+        term.t_move( term.t_nrow - 1, 0 );
+        term.t_eeop();
+        term.t_flush();
+        term.t_close();
+        killpg(getpgid(0), 18); /* SIGTSTP -- stop the current program */
+        term.t_open();
+        sgarbf = true;
+        window_refresh(false, 1);
     }
     return true;
 }
@@ -206,9 +206,9 @@ int Dpause(bool f, int n)
 int misc_upper(bool f, int n)
 {
     if (curwp.w_markp)
-	return region_upper(f,n);
+        return region_upper(f,n);
     else
-	return word_upper(f,n);
+        return word_upper(f,n);
 }
 
 /*********************************
@@ -218,9 +218,9 @@ int misc_upper(bool f, int n)
 int misc_lower(bool f, int n)
 {
     if (curwp.w_markp)
-	return region_lower(f,n);
+        return region_lower(f,n);
     else
-	return word_lower(f,n);
+        return word_lower(f,n);
 }
 
 /*********************************
@@ -228,7 +228,7 @@ int misc_lower(bool f, int n)
  */
 
 int Dinsertdate(bool f, int n)
-{	return false;
+{       return false;
 }
 
 /***********************************
@@ -244,15 +244,15 @@ void deblank()
     len = llength(curwp.w_dotp);
     for (i = len - 1; i >= 0; i--)
     {
-	c = lgetc(curwp.w_dotp, i);
-	if (!isSpace(c))
-	    break;
+        c = lgetc(curwp.w_dotp, i);
+        if (!isSpace(c))
+            break;
     }
     n = (len - 1) - i;
     if (n)
     {
-	curwp.w_doto = i + 1;
-	line_delete(n,false);
+        curwp.w_doto = i + 1;
+        line_delete(n,false);
     }
 }
 
@@ -264,64 +264,64 @@ int Dcppcomment(bool f, int n)
 {
         int    c;
         int    i;
-	LINE *dotpsave;
-	int dotosave;
+        LINE *dotpsave;
+        int dotosave;
 
         if (n < 0)
-	    goto err;
-	if (window_marking(curwp))
-	{   REGION region;
-	    int s;
+            goto err;
+        if (window_marking(curwp))
+        {   REGION region;
+            int s;
 
-	    if ((s = getregion(&region)) != true)
-		return s;
-	    dotpsave = curwp.w_dotp;
-	    dotosave = curwp.w_doto;
-	    curwp.w_dotp = region.r_linep;
-	    curwp.w_doto = region.r_offset;
-	    n = region.r_nlines;
-	}
-        while (n--)
-	{   int len;
-
-	    deblank();
-	    len = llength(curwp.w_dotp);
-	    if (len)
-	    {
-		for (i = 0; i + 3 < len; i++)
-		{
-		    c = lgetc(curwp.w_dotp, i);
-		    if (c == '/' && lgetc(curwp.w_dotp, i + 1) == '*')
-		    {
-			if (lgetc(curwp.w_dotp, len - 2) == '*' &&
-			    lgetc(curwp.w_dotp, len - 1) == '/')
-			{
-			    curwp.w_doto = i + 1;
-			    line_delete(1,false);
-			    line_insert(1,'/');
-			    curwp.w_doto = len - 2;
-			    line_delete(2,false);
-			    deblank();
-			    break;
-			}
-		    }
-                }
-		curwp.w_doto = 0;	/* move to beginning of line	*/
-	    }
-	    if (forwline(false,1) == false)
-		goto err;
+            if ((s = getregion(&region)) != true)
+                return s;
+            dotpsave = curwp.w_dotp;
+            dotosave = curwp.w_doto;
+            curwp.w_dotp = region.r_linep;
+            curwp.w_doto = region.r_offset;
+            n = region.r_nlines;
         }
-	if (window_marking(curwp))
-	{
-	    if (dotosave > llength(dotpsave))
-		dotosave = llength(dotpsave);
-	    curwp.w_dotp = dotpsave;
-	    curwp.w_doto = dotosave;
-	}
+        while (n--)
+        {   int len;
+
+            deblank();
+            len = llength(curwp.w_dotp);
+            if (len)
+            {
+                for (i = 0; i + 3 < len; i++)
+                {
+                    c = lgetc(curwp.w_dotp, i);
+                    if (c == '/' && lgetc(curwp.w_dotp, i + 1) == '*')
+                    {
+                        if (lgetc(curwp.w_dotp, len - 2) == '*' &&
+                            lgetc(curwp.w_dotp, len - 1) == '/')
+                        {
+                            curwp.w_doto = i + 1;
+                            line_delete(1,false);
+                            line_insert(1,'/');
+                            curwp.w_doto = len - 2;
+                            line_delete(2,false);
+                            deblank();
+                            break;
+                        }
+                    }
+                }
+                curwp.w_doto = 0;       /* move to beginning of line    */
+            }
+            if (forwline(false,1) == false)
+                goto err;
+        }
+        if (window_marking(curwp))
+        {
+            if (dotosave > llength(dotpsave))
+                dotosave = llength(dotpsave);
+            curwp.w_dotp = dotpsave;
+            curwp.w_doto = dotosave;
+        }
         return true;
 
 err:
-	return false;
+        return false;
 }
 
 /************************************
@@ -333,8 +333,8 @@ int openBrowser(bool f, int n)
     auto s = getURL(dotp.l_text[0 .. llength(dotp)], curwp.w_doto);
     if (s)
     {
-	browse(cast(string)s);
-	return TRUE;
+        browse(cast(string)s);
+        return TRUE;
     }
     return FALSE;
 }
@@ -343,8 +343,8 @@ int openBrowser(bool f, int n)
  * Look up current character in the replacement table,
  * and replace it with the next character in the table.
  * Returns:
- *	TRUE = success
- *	FALSE = failure
+ *      TRUE = success
+ *      FALSE = failure
  */
 
 int scrollUnicode(bool f, int n)
@@ -353,27 +353,27 @@ int scrollUnicode(bool f, int n)
      */
     __gshared immutable string[] table =
     [
-	"a\&auml;\&agrave;\&aacute;\&acirc;\&atilde;\&aring;\&aelig;\&alpha;\&ordf;",
-	"e\&egrave;\&eacute;\&ecirc;\&euml;\&epsilon;\&eta;",
+        "a\&auml;\&agrave;\&aacute;\&acirc;\&atilde;\&aring;\&aelig;\&alpha;\&ordf;",
+        "e\&egrave;\&eacute;\&ecirc;\&euml;\&epsilon;\&eta;",
         "i\&igrave;\&iacute;\&icirc;\&iuml;\&iota;",
         "o\&ograve;\&oacute;\&ocirc;\&otilde;\&ouml;\&oslash;\&omicron;\&oelig;",
         "u\&ugrave;\&uacute;\&ucirc;\&uuml;\&mu;\&upsilon;",
 
-	"A\&Agrave;\&Aacute;\&Acirc;\&Atilde;\&Auml;\&Aring;\&AElig;\&Alpha;\&forall;",
-	"E\&Egrave;\&Eacute;\&Ecirc;\&Euml;\&Epsilon;\&exist;\&isin;\&notin;\&ni;",
-	"I\&Igrave;\&Iacute;\&Icirc;\&Iuml;\&Iota;\&int;",
-	"O\&Ograve;\&Oacute;\&Ocirc;\&Ouml;\&Omicron;",
-	"U\&Ugrave;\&Uacute;\&Ucirc;\&Uuml;\&cap;\&cup;\&sub;\&sup;\&nsub;",
+        "A\&Agrave;\&Aacute;\&Acirc;\&Atilde;\&Auml;\&Aring;\&AElig;\&Alpha;\&forall;",
+        "E\&Egrave;\&Eacute;\&Ecirc;\&Euml;\&Epsilon;\&exist;\&isin;\&notin;\&ni;",
+        "I\&Igrave;\&Iacute;\&Icirc;\&Iuml;\&Iota;\&int;",
+        "O\&Ograve;\&Oacute;\&Ocirc;\&Ouml;\&Omicron;",
+        "U\&Ugrave;\&Uacute;\&Ucirc;\&Uuml;\&cap;\&cup;\&sub;\&sup;\&nsub;",
 
-	"c\&ccedil;\&copy;",
-	"C\&Ccedil;",
+        "c\&ccedil;\&copy;",
+        "C\&Ccedil;",
 
-	"$\&euro;\&cent;\&pound;\&curren;\&yen;",
-	"\"\&ldquo;\&rdquo;\&bdquo;\&laquo;\&raquo;",
-	"'\&lsquo;\&rsquo;\&sbquo;\&acute;",
-	"-\&ndash;\&mdash;\&macr;\&oline;\&minus;",
-	"~\&tilde;\&sim;\&cong;\&asymp;",
-	"!\&iexcl;",
+        "$\&euro;\&cent;\&pound;\&curren;\&yen;",
+        "\"\&ldquo;\&rdquo;\&bdquo;\&laquo;\&raquo;",
+        "'\&lsquo;\&rsquo;\&sbquo;\&acute;",
+        "-\&ndash;\&mdash;\&macr;\&oline;\&minus;",
+        "~\&tilde;\&sim;\&cong;\&asymp;",
+        "!\&iexcl;",
     ];
 
     LINE* dotp = curwp.w_dotp;
@@ -384,27 +384,27 @@ int scrollUnicode(bool f, int n)
     dchar dc = decodeUTF8(s, i);
     foreach (entry; table)
     {
-	for (size_t j = 0; j < entry.length; )
-	{
-	    dchar dr = decodeUTF8(entry, j);
-	    if (dr == dc)
-	    {
-		if (j == entry.length)
-		    j = 0;
-		size_t k = j;
-		decodeUTF8(entry, k);
+        for (size_t j = 0; j < entry.length; )
+        {
+            dchar dr = decodeUTF8(entry, j);
+            if (dr == dc)
+            {
+                if (j == entry.length)
+                    j = 0;
+                size_t k = j;
+                decodeUTF8(entry, k);
 
-		/* Replace s[index .. i] with entry[j .. k]
-		 */
-		line_delete(cast(int)(i - index), FALSE);
-		foreach (char c; entry[j .. k])
-		    line_insert(1, c);
-		backchar(f, cast(int)(k - j));
-		line_change(WFEDIT);
+                /* Replace s[index .. i] with entry[j .. k]
+                 */
+                line_delete(cast(int)(i - index), FALSE);
+                foreach (char c; entry[j .. k])
+                    line_insert(1, c);
+                backchar(f, cast(int)(k - j));
+                line_change(WFEDIT);
 
-		return TRUE;
-	    }
-	}
+                return TRUE;
+            }
+        }
     }
     return FALSE;
 }

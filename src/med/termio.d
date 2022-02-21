@@ -32,7 +32,7 @@ void ttopen()
         /* Adjust output channel        */
         tcgetattr(1, &ostate);                       /* save old state */
         tcgetattr(1, &nstate);                       /* get base of new state */
-	cfmakeraw(&nstate);
+        cfmakeraw(&nstate);
         tcsetattr(1, TCSADRAIN, &nstate);      /* set mode */
 }
 
@@ -43,7 +43,7 @@ void ttopen()
  */
 void ttclose()
 {
-        tcsetattr(1, TCSADRAIN, &ostate);	// return to original mode
+        tcsetattr(1, TCSADRAIN, &ostate);       // return to original mode
 }
 
 /*
@@ -82,8 +82,8 @@ int ttgetc()
 
 int ttkeysininput()
 {
-	int n;
-	ioctl(0, FIONREAD, &n);
+        int n;
+        ioctl(0, FIONREAD, &n);
         return n != 0;
 }
 
@@ -98,7 +98,7 @@ void ttwaitkeys()
     FD_ZERO(&readfds);
     FD_SET(0, &readfds);
     select(1, &readfds, null, null, null);
-} 
+}
 
 /******************************
  */

@@ -53,9 +53,9 @@ int spawncli(bool f, int n)
     {
         term.t_flush();
         auto comspec = core.stdc.stdlib.getenv("COMSPEC");
-	string[] args;
-	args ~= to!string(comspec);
-	args ~= "COMMAND.COM";
+        string[] args;
+        args ~= to!string(comspec);
+        args ~= "COMMAND.COM";
         spawnProcess(args);
     }
     version (Posix)
@@ -64,9 +64,9 @@ int spawncli(bool f, int n)
         term.t_close();                             /* stty to old settings */
         auto cp = core.stdc.stdlib.getenv("SHELL");
         if (cp && *cp != '\0')
-	    core.stdc.stdlib.system(cp);
+            core.stdc.stdlib.system(cp);
         else
-	    core.stdc.stdlib.system("exec /bin/sh");
+            core.stdc.stdlib.system("exec /bin/sh");
         sleep(2);
         term.t_open();
     }
@@ -90,7 +90,7 @@ int spawn(bool f, int n)
         core.stdc.stdlib.system(toUTF8(line).toStringz());
         while (term.t_getchar() != '\r')     /* Pause.               */
         {
-	}
+        }
         sgarbf = TRUE;
         return (TRUE);
     }
@@ -108,7 +108,7 @@ int spawn(bool f, int n)
         term.t_flush();
         while ((s = term.t_getchar()) != '\r' && s != ' ')
         {
-	}
+        }
         sgarbf = TRUE;
         return (TRUE);
     }
@@ -120,7 +120,7 @@ int spawn(bool f, int n)
  */
 int spawn_pipe(bool f, int n)
 {
-    int    s; 	       /* return status from CLI */
+    int    s;          /* return status from CLI */
     WINDOW *wp;        /* pointer to new window */
     BUFFER *bp;        /* pointer to buffer to zot */
     static string bname = "[DOS]";
@@ -135,7 +135,7 @@ int spawn_pipe(bool f, int n)
 
     /* get rid of the command output buffer if it exists */
     if ((bp=buffer_find(bname, FALSE, BFTEMP)) != null) /* if buffer exists */
-    {   
+    {
         /* If buffer is displayed, try to move it off screen            */
         /* (can't remove an on-screen buffer)                           */
         if (bp.b_nwnd)                 /* if buffer is displayed       */
@@ -160,7 +160,7 @@ version (Windows)
     core.stdc.stdlib.system(sline.toStringz());
     sgarbf = TRUE;
     if (std.file.exists(filnam) && std.file.isFile(filnam))
-	return FALSE;
+        return FALSE;
 }
 version (Posix)
 {

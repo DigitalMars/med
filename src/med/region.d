@@ -47,7 +47,7 @@ struct REGION {
 
 int region_togglemode(bool f, int n)
 {
-    column_mode ^= 1;			/* toggle screen mode		*/
+    column_mode ^= 1;                   /* toggle screen mode           */
     line_change(WFHARD);
     mlwrite(column_mode ? "[Column mode on]" : "[Column mode off]");
     return TRUE;
@@ -63,44 +63,44 @@ int region_kill(bool f, int n)
         int    s;
         REGION region;
 
-	if (curbp.b_flag & BFRDONLY)
-	    return FALSE;
-	if ((s=getregion(&region)) != TRUE)
-		goto err;
-	if (region.r_size == 0)
-		goto err;			/* error if 0 length	*/
-	if ((lastflag&CFKILL) == 0)             /* This is a kill type  */
-		kill_freebuffer();		/* command, so do magic */
+        if (curbp.b_flag & BFRDONLY)
+            return FALSE;
+        if ((s=getregion(&region)) != TRUE)
+                goto err;
+        if (region.r_size == 0)
+                goto err;                       /* error if 0 length    */
+        if ((lastflag&CFKILL) == 0)             /* This is a kill type  */
+                kill_freebuffer();              /* command, so do magic */
         thisflag |= CFKILL;                     /* kill buffer stuff.   */
         curwp.w_dotp = region.r_linep;
         curwp.w_doto = region.r_offset;
-	curwp.w_markp = null;
-	if (column_mode)
-	{
-	    if (!kill_setsize(region.r_size))
-		return FALSE;
-	    while (region.r_nlines--)
-	    {	int lright;
-		LINE* linep = curwp.w_dotp;
+        curwp.w_markp = null;
+        if (column_mode)
+        {
+            if (!kill_setsize(region.r_size))
+                return FALSE;
+            while (region.r_nlines--)
+            {   int lright;
+                LINE* linep = curwp.w_dotp;
 
-		curwp.w_doto = coltodoto(linep,region.r_leftcol);
-		lright = coltodoto(linep,region.r_rightcol);
-		if (!line_delete(lright - curwp.w_doto, TRUE))
-		    goto err;
-		if (!kill_appendchar('\n'))
-		    goto err;
-		curwp.w_dotp = lforw(linep);
-	    }
-	    curwp.w_dotp = region.r_linep;
-	    curwp.w_doto = coltodoto(region.r_linep,region.r_leftcol);
-	    line_change(WFHARD);
-	}
-	else
-	    s = line_delete(region.r_size, TRUE);
-	kill_toClipboard();
-	return s;
+                curwp.w_doto = coltodoto(linep,region.r_leftcol);
+                lright = coltodoto(linep,region.r_rightcol);
+                if (!line_delete(lright - curwp.w_doto, TRUE))
+                    goto err;
+                if (!kill_appendchar('\n'))
+                    goto err;
+                curwp.w_dotp = lforw(linep);
+            }
+            curwp.w_dotp = region.r_linep;
+            curwp.w_doto = coltodoto(region.r_linep,region.r_leftcol);
+            line_change(WFHARD);
+        }
+        else
+            s = line_delete(region.r_size, TRUE);
+        kill_toClipboard();
+        return s;
 err:
-	return FALSE;
+        return FALSE;
 }
 
 /*
@@ -121,54 +121,54 @@ int region_copy(bool f, int n)
         if ((lastflag&CFKILL) == 0)             /* Kill type command.   */
                 kill_freebuffer();
 
-	/* Turn off marked region */
-	curwp.w_markp = null;
-	curwp.w_flag |= WFHARD;
+        /* Turn off marked region */
+        curwp.w_markp = null;
+        curwp.w_flag |= WFHARD;
 
         thisflag |= CFKILL;
         linep = region.r_linep;                 /* Current line.        */
         loffs = region.r_offset;                /* Current offset.      */
-	if (!kill_setsize(region.r_size))
-	    return FALSE;
-	if (column_mode)
-	{
-	    while (region.r_nlines--)
-	    {	int lright;
-		int lleft;
+        if (!kill_setsize(region.r_size))
+            return FALSE;
+        if (column_mode)
+        {
+            while (region.r_nlines--)
+            {   int lright;
+                int lleft;
 
-		lleft  = coltodoto(linep,region.r_leftcol);
-		lright = coltodoto(linep,region.r_rightcol);
-		if (!kill_appendstring(linep.l_text[lleft .. lright]))
-		    goto err;
-		if (!kill_appendchar('\n'))
-		    goto err;
-		linep = lforw(linep);
-	    }
-	}
-	else
-	    while (region.r_size) {
+                lleft  = coltodoto(linep,region.r_leftcol);
+                lright = coltodoto(linep,region.r_rightcol);
+                if (!kill_appendstring(linep.l_text[lleft .. lright]))
+                    goto err;
+                if (!kill_appendchar('\n'))
+                    goto err;
+                linep = lforw(linep);
+            }
+        }
+        else
+            while (region.r_size) {
                 if (loffs == llength(linep)) {  /* End of line.         */
                         if (kill_appendchar('\n') != TRUE)
                                 return FALSE;
                         linep = lforw(linep);
                         loffs = 0;
-			region.r_size--; 
+                        region.r_size--;
                } else {                        /* Middle of line.      */
-			int i;
+                        int i;
 
-			i = llength(linep) - loffs;
-			if (i > region.r_size)
-			    i = region.r_size;
+                        i = llength(linep) - loffs;
+                        if (i > region.r_size)
+                            i = region.r_size;
                         if (kill_appendstring(linep.l_text[loffs .. loffs + i]) != TRUE)
-			    return FALSE;
+                            return FALSE;
                         loffs += i;
-			region.r_size -= i;
+                        region.r_size -= i;
                 }
         }
-	kill_toClipboard();
+        kill_toClipboard();
         return (TRUE);
 
-err:	return FALSE;
+err:    return FALSE;
 }
 
 /*
@@ -180,12 +180,12 @@ err:	return FALSE;
  */
 int region_lower(bool f, int n)
 {
-	return region_case(TRUE);
+        return region_case(TRUE);
 }
 
 int region_upper(bool f, int n)
 {
-	return region_case(FALSE);
+        return region_case(FALSE);
 }
 
 private int region_case(bool flag)
@@ -198,39 +198,39 @@ private int region_case(bool flag)
 
         if ((s=getregion(&region)) != TRUE)
                 return (s);
-	line_change(WFHARD);
-	/*curwp.w_markp = null;*/
+        line_change(WFHARD);
+        /*curwp.w_markp = null;*/
         linep = region.r_linep;
-	if (column_mode)
-	{
-	    while (region.r_nlines--)
-	    {	int lright;
+        if (column_mode)
+        {
+            while (region.r_nlines--)
+            {   int lright;
 
-		loffs = coltodoto(linep,region.r_leftcol);
-		lright = coltodoto(linep,region.r_rightcol);
-		for (; loffs < lright; loffs++)
-		{   c = lgetc(linep, loffs);
-		    if (flag ? isUpper(c) : isLower(c))
-			lputc(linep, loffs, cast(char)(c ^ 0x20));
-		}
-		linep = lforw(linep);
-	    }
-	}
-	else
-	{
-	    loffs = region.r_offset;
-	    while (region.r_size--) {
-		if (loffs == llength(linep)) {
-		    linep = lforw(linep);
-		    loffs = 0;
-		} else {
-		    c = lgetc(linep, loffs);
-		    if (flag ? isUpper(c) : isLower(c))
-			lputc(linep, loffs, cast(char)(c ^ 0x20));
-		    ++loffs;
-		}
-	    }
-	}
+                loffs = coltodoto(linep,region.r_leftcol);
+                lright = coltodoto(linep,region.r_rightcol);
+                for (; loffs < lright; loffs++)
+                {   c = lgetc(linep, loffs);
+                    if (flag ? isUpper(c) : isLower(c))
+                        lputc(linep, loffs, cast(char)(c ^ 0x20));
+                }
+                linep = lforw(linep);
+            }
+        }
+        else
+        {
+            loffs = region.r_offset;
+            while (region.r_size--) {
+                if (loffs == llength(linep)) {
+                    linep = lforw(linep);
+                    loffs = 0;
+                } else {
+                    c = lgetc(linep, loffs);
+                    if (flag ? isUpper(c) : isLower(c))
+                        lputc(linep, loffs, cast(char)(c ^ 0x20));
+                    ++loffs;
+                }
+            }
+        }
         return (TRUE);
 }
 
@@ -249,48 +249,48 @@ int getregion(REGION* rp)
 {
         LINE   *flp;
         LINE   *blp;
-	int	nlines;		/* number of lines in region	*/
-	int	fsize;
-	int	bsize;
-	int	size;
+        int     nlines;         /* number of lines in region    */
+        int     fsize;
+        int     bsize;
+        int     size;
 
         if (!window_marking(curwp)) {
                 mlwrite("No mark set in this window");
                 return (FALSE);
         }
 
-	/* Figure out left and right columns, this is valid only if	*/
-	/* column cut mode is on.					*/
-	if (markcol < curgoal)
-	{   rp.r_leftcol  = markcol;
-	    rp.r_rightcol = curgoal;
-	}
-	else
-	{   rp.r_leftcol  = curgoal;
-	    rp.r_rightcol = markcol;
-	}
+        /* Figure out left and right columns, this is valid only if     */
+        /* column cut mode is on.                                       */
+        if (markcol < curgoal)
+        {   rp.r_leftcol  = markcol;
+            rp.r_rightcol = curgoal;
+        }
+        else
+        {   rp.r_leftcol  = curgoal;
+            rp.r_rightcol = markcol;
+        }
 
-	rp.r_nlines = 1;		/* always at least 1 line	*/
+        rp.r_nlines = 1;                /* always at least 1 line       */
 
-	/* If region lies within one line	*/
+        /* If region lies within one line       */
         if (curwp.w_dotp == curwp.w_markp)
-	{   rp.r_linep = curwp.w_dotp;
-	    if (column_mode)
-	    {
-		rp.r_size = rp.r_rightcol - rp.r_leftcol;
-	    }
-	    else
-	    {    
-		if (curwp.w_doto < curwp.w_marko)
-		{   rp.r_offset = curwp.w_doto;
-		    rp.r_size = curwp.w_marko-curwp.w_doto;
+        {   rp.r_linep = curwp.w_dotp;
+            if (column_mode)
+            {
+                rp.r_size = rp.r_rightcol - rp.r_leftcol;
+            }
+            else
+            {
+                if (curwp.w_doto < curwp.w_marko)
+                {   rp.r_offset = curwp.w_doto;
+                    rp.r_size = curwp.w_marko-curwp.w_doto;
                 }
-		else
-		{   rp.r_offset = curwp.w_marko;
-		    rp.r_size = curwp.w_doto-curwp.w_marko;
+                else
+                {   rp.r_offset = curwp.w_marko;
+                    rp.r_size = curwp.w_doto-curwp.w_marko;
                 }
-	    }
-	    return (TRUE);
+            }
+            return (TRUE);
         }
 
         blp = curwp.w_dotp;
@@ -298,18 +298,18 @@ int getregion(REGION* rp)
         flp = curwp.w_dotp;
         fsize = llength(flp)-curwp.w_doto+1;
         while (flp!=curbp.b_linep || lback(blp)!=curbp.b_linep)
-	{
-		rp.r_nlines++;
+        {
+                rp.r_nlines++;
                 if (flp != curbp.b_linep) {
                         flp = lforw(flp);
                         if (flp == curwp.w_markp) {
                                 rp.r_linep = curwp.w_dotp;
                                 rp.r_offset = curwp.w_doto;
                                 size = fsize+curwp.w_marko;
-				/* Don't count last line if it's at start */
-				if (curwp.w_marko == 0)
-				    rp.r_nlines--;
-				goto done;
+                                /* Don't count last line if it's at start */
+                                if (curwp.w_marko == 0)
+                                    rp.r_nlines--;
+                                goto done;
                         }
                         fsize += llength(flp)+1;
                 }
@@ -320,10 +320,10 @@ int getregion(REGION* rp)
                                 rp.r_linep = blp;
                                 rp.r_offset = curwp.w_marko;
                                 size = bsize - curwp.w_marko;
-				/* Don't count last line if it's at start */
-				if (curwp.w_doto == 0)
-				    rp.r_nlines--;
-				goto done;
+                                /* Don't count last line if it's at start */
+                                if (curwp.w_doto == 0)
+                                    rp.r_nlines--;
+                                goto done;
                         }
                 }
         }
@@ -331,8 +331,8 @@ int getregion(REGION* rp)
         return (FALSE);
 
 done:
-	if (column_mode)
-	    size = (rp.r_rightcol - rp.r_leftcol + 1) * rp.r_nlines;
-	rp.r_size = size;
-	return TRUE;
+        if (column_mode)
+            size = (rp.r_rightcol - rp.r_leftcol + 1) * rp.r_nlines;
+        rp.r_size = size;
+        return TRUE;
 }

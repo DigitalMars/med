@@ -25,7 +25,7 @@ import random;
 
 /********************************
  * Returns:
- *	starting syntax state of next line
+ *      starting syntax state of next line
  */
 SyntaxState syntaxHighlightC(SyntaxState syntaxState, const(char)[] text, attr_t[] attr)
 {
@@ -33,161 +33,161 @@ SyntaxState syntaxHighlightC(SyntaxState syntaxState, const(char)[] text, attr_t
 
     switch (syntaxState.syntax)
     {
-	case Syntax.string:
-	case Syntax.singleString:
-	{
-	    const quote = (syntaxState.syntax == Syntax.string)       ? '"' :
-			                                                '\'';
-	    const istart = i;
-	    bool escape;
-	    while (i < text.length)
-	    {
-		if (text[i] == quote && !escape)
-		{
-		    ++i;
-		    attr[istart .. i] = config.string;
-		    goto Loop;
-		}
-		else if (text[i] == '\\')
-		    escape ^= true;
-		else
-		    escape = false;
-		++i;
-	    }
-	    attr[istart .. i] = config.string;
-	    return SyntaxState(syntaxState.syntax);
-	}
+        case Syntax.string:
+        case Syntax.singleString:
+        {
+            const quote = (syntaxState.syntax == Syntax.string)       ? '"' :
+                                                                        '\'';
+            const istart = i;
+            bool escape;
+            while (i < text.length)
+            {
+                if (text[i] == quote && !escape)
+                {
+                    ++i;
+                    attr[istart .. i] = config.string;
+                    goto Loop;
+                }
+                else if (text[i] == '\\')
+                    escape ^= true;
+                else
+                    escape = false;
+                ++i;
+            }
+            attr[istart .. i] = config.string;
+            return SyntaxState(syntaxState.syntax);
+        }
 
-	case Syntax.comment:
-	{
-	    // it's /* */ comment
-	    const istart = i;
-	    while (i < text.length)
-	    {
-		if (text[i] == '*' && i + 1 < text.length && text[i + 1] == '/')
-		{
-		    i += 2;
-		    attr[istart .. i] = config.comment;
-		    goto Loop;
-		}
-		++i;
-	    }
-	    attr[istart .. i] = config.comment;
-	    return SyntaxState(Syntax.comment);
-	}
+        case Syntax.comment:
+        {
+            // it's /* */ comment
+            const istart = i;
+            while (i < text.length)
+            {
+                if (text[i] == '*' && i + 1 < text.length && text[i + 1] == '/')
+                {
+                    i += 2;
+                    attr[istart .. i] = config.comment;
+                    goto Loop;
+                }
+                ++i;
+            }
+            attr[istart .. i] = config.comment;
+            return SyntaxState(Syntax.comment);
+        }
 
-	default:
-	    break;
+        default:
+            break;
     }
 
   Loop:
     while (i < text.length)
     {
-	const c = text[i];
-	switch (c)
-	{
-	    case 'a': .. case 'z':
-	    case 'A': .. case 'Z':
-	    case '_':
-	    Idstart:
-	    {
-		const istart = i;
-		++i;
-		while (i < text.length)
-		{
-		    const ci = text[i];
-		    if (isalnum(ci) || ci == '_' || ci & 0x80)
-		    {
-			++i;
-			continue;
-		    }
-		    break;
-		}
-		const id = text[istart .. i];
-		attr[istart .. i] = isCKeyword(id) ? config.keyword : config.normattr;
-		continue;
-	    }
+        const c = text[i];
+        switch (c)
+        {
+            case 'a': .. case 'z':
+            case 'A': .. case 'Z':
+            case '_':
+            Idstart:
+            {
+                const istart = i;
+                ++i;
+                while (i < text.length)
+                {
+                    const ci = text[i];
+                    if (isalnum(ci) || ci == '_' || ci & 0x80)
+                    {
+                        ++i;
+                        continue;
+                    }
+                    break;
+                }
+                const id = text[istart .. i];
+                attr[istart .. i] = isCKeyword(id) ? config.keyword : config.normattr;
+                continue;
+            }
 
-	    case '/':
-	    {
-		const istart = i;
-		++i;
-		if (i < text.length)
-		{
-		    if (text[i] == '/')
-		    {
-			attr[istart .. text.length] = config.comment;
-			return SyntaxState(Syntax.normal);
-		    }
+            case '/':
+            {
+                const istart = i;
+                ++i;
+                if (i < text.length)
+                {
+                    if (text[i] == '/')
+                    {
+                        attr[istart .. text.length] = config.comment;
+                        return SyntaxState(Syntax.normal);
+                    }
 
-		    if (text[i] == '*')
-		    {
-			++i;
-			while (i < text.length)
-			{
-			    if (text[i] == '*' && i + 1 < text.length && text[i + 1] == '/')
-			    {
-				i += 2;
-				attr[istart .. i] = config.comment;
-				continue Loop;
-			    }
-			    ++i;
-			}
-			attr[istart .. i] = config.comment;
-			return SyntaxState(Syntax.comment);
-		    }
-		}
-		continue;
-	    }
+                    if (text[i] == '*')
+                    {
+                        ++i;
+                        while (i < text.length)
+                        {
+                            if (text[i] == '*' && i + 1 < text.length && text[i + 1] == '/')
+                            {
+                                i += 2;
+                                attr[istart .. i] = config.comment;
+                                continue Loop;
+                            }
+                            ++i;
+                        }
+                        attr[istart .. i] = config.comment;
+                        return SyntaxState(Syntax.comment);
+                    }
+                }
+                continue;
+            }
 
-	    case '"':
-	    case '\'':
-	    {
-		const istart = i;
-		bool escape;
-		++i;
-		while (i < text.length)
-		{
-		    if (text[i] == c && !escape)
-		    {
-			++i;
-			attr[istart .. i] = config.string;
-			continue Loop;
-		    }
-		    else if (text[i] == '\\')
-			escape ^= true;
-		    else
-			escape = false;
-		    ++i;
-		}
-		attr[istart .. i] = config.string;
-		return SyntaxState(c == '"'  ? Syntax.string :
-				               Syntax.singleString);
-	    }
+            case '"':
+            case '\'':
+            {
+                const istart = i;
+                bool escape;
+                ++i;
+                while (i < text.length)
+                {
+                    if (text[i] == c && !escape)
+                    {
+                        ++i;
+                        attr[istart .. i] = config.string;
+                        continue Loop;
+                    }
+                    else if (text[i] == '\\')
+                        escape ^= true;
+                    else
+                        escape = false;
+                    ++i;
+                }
+                attr[istart .. i] = config.string;
+                return SyntaxState(c == '"'  ? Syntax.string :
+                                               Syntax.singleString);
+            }
 
-	    default:
-		if (text[i] & 0x80)
-		    goto Idstart;
-		attr[i] = config.normattr;
-		++i;
-		continue;
-	}
+            default:
+                if (text[i] & 0x80)
+                    goto Idstart;
+                attr[i] = config.normattr;
+                ++i;
+                continue;
+        }
 /*
-	switch (syntaxState.syntax)
-	{
-	    case Syntax.normal:
-		break;
+        switch (syntaxState.syntax)
+        {
+            case Syntax.normal:
+                break;
 
-	    case Syntax.string:
-	    case Syntax.singleString:
-		break;
+            case Syntax.string:
+            case Syntax.singleString:
+                break;
 
-	    case Syntax.comment:
-		break;
+            case Syntax.comment:
+                break;
 
-	    default:
-		assert(0);
-	}
+            default:
+                assert(0);
+        }
 */
     }
     return SyntaxState(Syntax.normal);
@@ -241,9 +241,9 @@ private bool isCKeyword(const(char)[] s)
         case "_Thread_local ":
         case "__FILE__":
         case "__LINE__":
-	    return true;
+            return true;
 
-	default:
-	    return false;
+        default:
+            return false;
     }
 }
