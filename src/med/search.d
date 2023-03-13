@@ -680,12 +680,12 @@ again:
                     break again;
 
                 char c2 = front(i);
-                ++i;
 
                 lastc = c2;
 
                 if (!eq(c2, pc))
                     continue again;
+                ++i;
             }
 
             if (word && i <= s.length && isWordChar(front(i)))
