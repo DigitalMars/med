@@ -133,15 +133,19 @@ clean:
 
 
 tolf:
-	tolf $(SRC)
+	tolf $(SOURCE)
 
 
-zip: tolf win32.mak
+detab:
+	detab $(SRC)
+
+
+zip: tolf detab
 	$(DEL) me.zip
 	zip32 me $(SOURCE)
 
 
-git: tolf win32.mak
+git: tolf detab win32.mak
 	\putty\pscp -i c:\.ssh\colossus.ppk $(SRC) walter@mercury:dm/med/src/med
 	\putty\pscp -i c:\.ssh\colossus.ppk win32.mak linux.mak me.html walter@mercury:dm/med/
 
