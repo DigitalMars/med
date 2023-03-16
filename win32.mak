@@ -24,14 +24,14 @@ SRC= $S\ed.d $S\basic.d $S\buffer.d $S\display.d $S\file.d $S\fileio.d $S\line.d
 	$S\random.d $S\region.d $S\search.d $S\spawn.d $S\terminal.d \
 	$S\window.d $S\word.d $S\main.d $S\more.d $S\disprev.d \
 	$S\termio.d $S\xterm.d $S\syntaxd.d $S\syntaxc.d $S\syntaxcpp.d \
-	$S\tcap.d $S\console.d $S\mouse.d $S\disp.d $S\url.d $S\utf.d
+	$S\tcap.d $S\console.d $S\mouse.d $S\disp.d $S\url.d $S\utf.d $S\regexp.d
 
 
 OBJ= $O\ed.obj $O\basic.obj $O\buffer.obj $O\display.obj $O\file.obj $O\fileio.obj $O\line.obj \
 	$O\random.obj $O\region.obj $O\search.obj $O\spawn.obj $O\terminal.obj \
 	$O\window.obj $O\word.obj $O\main.obj $O\more.obj $O\disprev.obj \
 	$O\termio.obj $O\xterm.obj $O\syntaxd.obj $O\syntaxc.obj $O\syntaxcpp.obj \
-	$O\tcap.obj $O\console.obj $O\mouse.obj $O\disp.obj $O\url.obj $O\utf.obj
+	$O\tcap.obj $O\console.obj $O\mouse.obj $O\disp.obj $O\url.obj $O\utf.obj $O\regexp.obj
 
 SOURCE= $(SRC) win32.mak linux.mak me.html
 
@@ -74,6 +74,9 @@ $O\mouse.obj: $S\mouse.d
 
 $O\random.obj: $S\random.d
 	$(DMD) -c $(DFLAGS) -od$O $S\random.d
+
+$O\regexp.obj: $S\regexp.d
+	$(DMD) -c $(DFLAGS) -od$O $S\regexp.d
 
 $O\region.obj: $S\region.d
 	$(DMD) -c $(DFLAGS) -od$O $S\region.d

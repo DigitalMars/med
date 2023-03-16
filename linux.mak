@@ -21,14 +21,14 @@ SRC= $S/ed.d $S/basic.d $S/buffer.d $S/display.d $S/file.d $S/fileio.d $S/line.d
 	$S/random.d $S/region.d $S/search.d $S/spawn.d $S/terminal.d \
 	$S/window.d $S/word.d $S/main.d $S/more.d $S/disprev.d \
 	$S/syntaxd.d $S/syntaxc.d $S/syntaxcpp.d $S/termio.d $S/xterm.d \
-	$S/tcap.d $S/console.d $S/mouse.d $S/disp.d $S/url.d $S/utf.d
+	$S/tcap.d $S/console.d $S/mouse.d $S/disp.d $S/url.d $S/utf.d $S/regexp.d
 
 
 OBJ= $O/ed.o $O/basic.o $O/buffer.o $O/display.o $O/file.o $O/fileio.o $O/line.o \
 	$O/random.o $O/region.o $O/search.o $O/spawn.o $O/terminal.o \
 	$O/window.o $O/word.o $O/main.o $O/more.o $O/disprev.o \
 	$O/syntaxd.o $O/syntaxc.o $O/syntaxcpp.o $O/termio.o $O/xterm.o \
-	$O/tcap.o $O/console.o $O/mouse.o $O/disp.o $O/url.o $O/utf.o
+	$O/tcap.o $O/console.o $O/mouse.o $O/disp.o $O/url.o $O/utf.o $O/regexp.o
 
 SOURCE= $(SRC) win32.mak linux.mak me.html
 
@@ -70,6 +70,9 @@ $O/mouse.o: $S/mouse.d
 
 $O/random.o: $S/random.d
 	$(DMD) -c $(DFLAGS) $S/random.d
+
+$O/regexp.o: $S/regexp.d
+	$(DMD) -c $(DFLAGS) $S/regexp.d
 
 $O/region.o: $S/region.d
 	$(DMD) -c $(DFLAGS) $S/region.d
