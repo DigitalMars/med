@@ -50,7 +50,7 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
                     attr[istart .. i] = config.string;
                     goto Loop;
                 }
-                else if (text[i] == '\\')
+                else if (text[i] == '\\' && quote != '`')
                     escape ^= true;
                 else
                     escape = false;
@@ -216,7 +216,7 @@ SyntaxState syntaxHighlightD(SyntaxState syntaxState, const(char)[] text, attr_t
                         attr[istart .. i] = config.string;
                         continue Loop;
                     }
-                    else if (text[i] == '\\')
+                    else if (text[i] == '\\' && c != '`')
                         escape ^= true;
                     else
                         escape = false;
