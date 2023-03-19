@@ -35,6 +35,7 @@ import main;
 import buffer;
 import basic;
 import terminal;
+import regexp;
 
 enum CASESENSITIVE = true;      /* TRUE means case sensitive            */
 enum WORDPREFIX = 'W' & 0x1F;   // prefix to trigger word search
@@ -72,16 +73,44 @@ int forwsearch(bool f, int n)
         return FALSE;
     }
 
-    bool word;
     string pattern = pat;       // pattern to match
     if (pattern.length == 0)
         return notFound();
-    word = pattern[0] == WORDPREFIX;  // ^D means only match words
+    const word = pattern[0] == WORDPREFIX;  // ^W means only match words
     if (word)
     {
         pattern = pattern[1 .. $];
         if (pattern.length == 0)
             return notFound();
+    }
+
+
+    if (regExp)                         // regular expressionp search
+    {
+        LINE* clp = curwp.w_dotp;           /* get pointer to current line  */
+        int cbo = curwp.w_doto;             /* and offset into that line    */
+
+        while (!empty(clp, cbo))
+        {
+            string slice = cast(string)clp.slice();
+            regExp.search(slice);
+            if (regExp.test(slice, cbo))
+            {
+                /* found it */
+                curwp.w_dotp  = clp;
+                curwp.w_doto  = regExp.pmatch[0].rm_eo;
+                curwp.w_flag |= WFMOVE;
+                curwp.w_flag |= WFHARD;
+                winSearchPat = curwp;
+                return (TRUE);
+            }
+
+            /* start of next line
+             */
+            clp = lforw(clp);
+            cbo = 0;
+        }
+        return notFound();
     }
 
     char p0 = pattern[0];               // first char to match
@@ -449,6 +478,12 @@ L1:
  * updated if the user types in an empty line. If the user typed an empty line,
  * and there is no old pattern, it is an error. Display the old pattern, in the
  * style of Jeff Lomicka. There is some do-it-yourself control expansion.
+ * Params:
+ *      prompt = text prompt for user input
+ *      pat = previous value, updated to new value
+ *      regExp = previous value of RegExp
+ * Returns:
+ *      TRUE for success, FALSE for error
  */
 private int readpattern(string prompt, ref string pat)
 {
@@ -457,7 +492,21 @@ private int readpattern(string prompt, ref string pat)
     auto tpat = pat;
     auto s = mlreply(prompt, pat, tpat);
     if (s == TRUE)                      /* Specified */
-        pat = tpat;
+    {
+        // Replace regExp if the new pattern is different from the old
+        if (pat != tpat)
+        {
+            if (regExp)
+            {
+                regExp.destroy();
+                regExp = null;
+            }
+            if (tpat.length && tpat[0] == 0x14) // ^T
+                regExp = new RegExp(tpat[1 .. tpat.length], null);
+        }
+
+        pat = tpat;     // set new pattern
+    }
     else if (s == FALSE && pat.length != 0)         /* CR, but old one */
         s = TRUE;
 
@@ -632,13 +681,27 @@ int search_paren(bool f, int n)
 }
 
 /****************************************************
- * Determine if index is in a URL or not.
+ * Determine if index is in a search pattern or not.
  */
 
 bool inSearch(const(char)[] s, size_t index)
 {
+    //printf("inSearch %p %d\n", regExp, cast(int)pat.length);
+
     if (curwp != winSearchPat || pat.length == 0)
         return false;
+
+    if (regExp)
+    {
+        regExp.search(cast(string)s);
+        while (regExp.test(cast(string)s, regExp.pmatch[0].rm_eo))
+        {
+            if (regExp.pmatch[0].rm_so <= index &&
+                regExp.pmatch[0].rm_eo >  index)
+                return true;
+        }
+        return false;
+    }
 
     string pattern = pat;
     bool word = pattern[0] == WORDPREFIX;

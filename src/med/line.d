@@ -54,6 +54,7 @@ LINE* lback(LINE* lp) { return lp.l_bp; }
 char lputc(LINE* lp, int n, char c) { return lp.l_text[n] = c; }
 int llength(LINE* lp) { return cast(int)lp.l_text.length; }
 char lgetc(LINE* lp, int n) { return lp.l_text[n]; }
+const(char)[] slice(LINE* lp) { return lp.l_text[]; };
 
 bool empty(LINE* lp, int n) { return lp == curbp.b_linep; }
 int  front(LINE* lp, int n) { return n == llength(lp) ? '\n' : lgetc(lp, n); }

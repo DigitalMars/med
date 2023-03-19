@@ -25,7 +25,7 @@ import std.process;
 import std.string;
 import std.utf;
 
-version (Posix)
+version(Posix)
 {
     import core.sys.posix.unistd;
 }

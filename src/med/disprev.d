@@ -1,3 +1,3 @@
 
-immutable string VERSION = "2 Digital Mars";
+immutable string VERSION = "3 Digital Mars";
 immutable string EMACSREV = " med." ~ VERSION;

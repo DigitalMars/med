@@ -122,6 +122,8 @@ ctlxe                Execute macro			^X E, F11
 <b>Search</b>
 
 forwsearch           Search forward			^S
+                     Search forward regexp              ^S^T
+                     Search forward word                ^S^W
 backsearch           Search backwards			^R
 replacestring        Search and replace			Esc R
 queryreplacestring   Query search and replace		Esc Q
@@ -198,6 +200,7 @@ scrollUnicode        Scroll through Unicode variations  ^X U
 	<dt>minibuffer<dd>text entry box used for entering file names
 	and search strings
 	<dt>region<dd>text between "dot" and "mark"
+        <dt><a href="https://www.digitalmars.com/ctg/regular.html" title="Regular Expressions">Regular Expressions</a>
 </dl>
 
 <h2>Notes</h2>
@@ -228,7 +231,6 @@ scrollUnicode        Scroll through Unicode variations  ^X U
 	<li>The control numeric pad sequences don't work on Linux.
 	<li>The colors can't be modified on any but the DOS version.
 	<li>The process functionality is flaky.
-	<li>The mouse doesn't work on Linux.
 	<li>For some reason, the mouse in the Win32 version doesn't
 	work on Win2000, but does on WinNT.
 </ul>

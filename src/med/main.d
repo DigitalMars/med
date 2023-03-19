@@ -57,6 +57,7 @@ import terminal;
 import line;
 import mouse;
 import console;
+import regexp;
 
 int     currow;                         /* Working cursor row           */
 int     fillcol;                        /* Current fill column          */
@@ -73,6 +74,7 @@ dchar[256] kbdm = [CTLX|')'];           /* Macro                        */
 dchar   *kbdmip;                        /* Input  for above             */
 dchar   *kbdmop;                        /* Output for above             */
 string  pat;                            /* search pattern               */
+RegExp  regExp;                         /* regular expression search pattern */
 ubyte   insertmode = 1;                 /* insert/overwrite mode        */
 string  progname;                       /* this program name            */
 

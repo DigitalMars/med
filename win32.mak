@@ -33,7 +33,7 @@ OBJ= $O\ed.obj $O\basic.obj $O\buffer.obj $O\display.obj $O\file.obj $O\fileio.o
 	$O\termio.obj $O\xterm.obj $O\syntaxd.obj $O\syntaxc.obj $O\syntaxcpp.obj \
 	$O\tcap.obj $O\console.obj $O\mouse.obj $O\disp.obj $O\url.obj $O\utf.obj $O\regexp.obj
 
-SOURCE= $(SRC) win32.mak linux.mak me.html
+SOURCE= $(SRC) win32.mak linux.mak me.html README.md
 
 all: $B\$(TARGET).exe
 
@@ -150,5 +150,5 @@ zip: tolf detab
 
 git: tolf detab win32.mak
 	\putty\pscp -i c:\.ssh\colossus.ppk $(SRC) walter@mercury:dm/med/src/med
-	\putty\pscp -i c:\.ssh\colossus.ppk win32.mak linux.mak me.html walter@mercury:dm/med/
+	\putty\pscp -i c:\.ssh\colossus.ppk win32.mak linux.mak me.html README.md walter@mercury:dm/med/
 

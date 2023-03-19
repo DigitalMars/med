@@ -103,6 +103,8 @@ ctlxe                Execute macro			^X E, F11
 Search
 
 forwsearch           Search forward			^S
+                     Search forward regexp              ^S^T
+                     Search forward word                ^S^W
 backsearch           Search backwards			^R
 replacestring        Search and replace			Esc R
 queryreplacestring   Query search and replace		Esc Q
@@ -178,6 +180,8 @@ scrollUnicode        Scroll through Unicode variations  ^X U
 * *minibuffer* text entry box used for entering file names
 and search strings
 * *region* text between "dot" and "mark"
+* [Regular Expressions](https://www.digitalmars.com/ctg/regular.html)
+
 
 ### Notes
 
