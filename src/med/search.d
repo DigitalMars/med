@@ -64,7 +64,7 @@ int forwsearch(bool f, int n)
     }
 
     int s;
-    if ((s = readpattern("Search: ",pat)) != TRUE)
+    if ((s = readpattern("Search: ",pat, true)) != TRUE)
         return (s);
 
     static bool notFound()
@@ -302,49 +302,41 @@ int queryreplacestring(bool f, int n)
 
 private int replace(bool query)
 {
-    LINE * clp;
-    int    cbo;
-    LINE * tlp;
-    int    tbo;
-    int    c;
-    int    s;
-    int    numreplacements;
-    int    retval;
-    LINE*  dotpsave;
-    int dotosave;
-    string withpat;
-    int stop;
-
     if (winSearchPat)
     {
         winSearchPat.w_flag |= WFHARD;
         winSearchPat = null;
     }
 
-    if ((s = readpattern("Replace: ", pat)) != TRUE)
+    int s;
+    if ((s = readpattern("Replace: ", pat, true)) != TRUE)
         return (s);                     /* must have search pattern     */
+
+    static bool notFound()
+    {
+        mlwrite("Not found");
+        return FALSE;
+    }
 
     bool word;
     string pattern = pat;       // pattern to match
     if (pattern.length == 0)
-        return FALSE;
+        return notFound();
     word = pattern[0] == WORDPREFIX;  // ^D means only match words
     if (word)
     {
         pattern = pattern[1 .. $];
         if (pattern.length == 0)
-            return FALSE;
+            return notFound();
     }
 
+    string withpat;
     readpattern ("With: ", withpat);    /* replacement pattern can be null */
 
-    stop = FALSE;
-    retval = TRUE;
-    numreplacements = 0;
-    dotpsave = curwp.w_dotp;
-    dotosave = curwp.w_doto;            /* save original position       */
-    clp = curwp.w_dotp;                 /* get pointer to current line   */
-    cbo = curwp.w_doto;                 /* and offset into that line     */
+    int retval = TRUE;
+    int numreplacements = 0;
+    LINE* dotpsave = curwp.w_dotp;
+    int dotosave = curwp.w_doto;        /* save original position       */
 
     curwp.w_flag |= WFHARD;             // repaint window with matches
     winSearchPat = curwp;
@@ -354,26 +346,95 @@ private int replace(bool query)
 
     char lastc;
 
+    enum Action { Skip, ChangeRest, Change, ChangeStop, Abort }
+
+    auto action = query ? Action.Change : Action.ChangeRest;
+
+    LINE* clp = curwp.w_dotp;           /* get pointer to current line   */
+    int cbo = curwp.w_doto;             /* and offset into that line     */
+
+    Action getAction()
+    {
+        /* If query, get user input about this                      */
+        if (action == Action.ChangeRest)
+            return action;
+
+        curwp.w_dotp= clp;
+        curwp.w_doto = cbo;
+        backchar(FALSE,1);
+        mlwrite("' ' change 'n' continue '!' change rest '.' change and stop ^G abort");
+        curwp.w_flag |= WFMOVE;
+        while (1)
+        {
+            update();
+            switch (getkey())
+            {
+                case 'n':           /* don't change, but continue   */
+                    return Action.Skip;
+
+                /*case 'R':*/       /* enter recursive edit         */
+                case '!':           /* change rest w/o asking       */
+                    return Action.ChangeRest;
+
+                case ' ':           /* change and continue to next  */
+                    return Action.Change;
+
+                case '.':           /* change and stop              */
+                    return Action.ChangeStop;
+
+                case 'G' & 0x1F:    /* abort                        */
+                    return Action.Abort;
+
+                default:            /* illegal command              */
+                    term.t_beep();
+                    break;
+            }
+        }
+    }
+
 again:
     while (!empty(clp, cbo))            /* while not end of buffer       */
     {
-        /* Compute c, the character at the current position              */
-        c = front(clp, cbo);
-        popFront(clp, cbo);
+        int i;
+        LINE* tlp = clp;
+        int tbo = cbo;               /* remember where start of pattern */
 
-        if (!eq(c, p0))
+        if (regExp)
         {
-            lastc = cast(char)c;
-            continue;
-        }
-        if (word && lastc != lastc.init && isWordChar(lastc))
-            continue;
-        lastc = cast(char)c;
-
-        {
+            string slice = cast(string)clp.slice();
+            regExp.search(slice);
+            if (!regExp.test(slice, cbo))
+            {
+                /* start of next line
+                 */
+                clp = lforw(clp);
+                cbo = 0;
+                continue;
+            }
+            /* found it */
+            cbo = regExp.pmatch[0].rm_so + 1; // start of match + 1
             tlp = clp;
-            tbo = cbo;                  /* remember where start of pattern */
-            int i = 1;
+            tbo = regExp.pmatch[0].rm_eo; // end of match + 1
+            i = tbo - cbo + 1;
+        }
+        else
+        {
+            /* Compute c, the character at the current position              */
+            int c = front(clp, cbo);
+            popFront(clp, cbo);
+
+            if (!eq(c, p0))
+            {
+                lastc = cast(char)c;
+                continue;
+            }
+            if (word && lastc != lastc.init && isWordChar(lastc))
+                continue;
+            lastc = cast(char)c;
+
+            tlp = clp;
+            tbo = cbo;                  /* remember start of pattern */
+            i = 1;
 
             foreach (pc; pattern[1 .. $])
             {
@@ -388,75 +449,54 @@ again:
                     continue again;
                 i++;
             }
-
             if (word && !empty(tlp, tbo) && isWordChar(cast(char)front(tlp, tbo)))
-            {
+                continue;
+        }
+
+        /* We've found it. It starts before clp,cbo and ends        */
+        /* before tlp,tbo                                           */
+
+        /* Query user for decision */
+        action = getAction();
+        final switch (action)
+        {
+            case Action.Skip:
                 continue again;
-            }
+            case Action.Abort:
+                goto abortreplace;
 
-            /* We've found it. It starts before clp,cbo and ends        */
-            /* before tlp,tbo                                           */
-
-            /* If query, get user input about this                      */
-            if (query)
-            {
-                curwp.w_dotp= clp;
-                curwp.w_doto = cbo;
-                backchar(FALSE,1);
-                mlwrite("' ' change 'n' continue '!' change rest '.' change and stop ^G abort");
-                curwp.w_flag |= WFMOVE;
-              tryagain:
-                update();
-                switch (getkey())
-                {
-                    case 'n':           /* don't change, but continue   */
-                        continue again;
-
-                    /*case 'R':*/       /* enter recursive edit         */
-                    case '!':           /* change rest w/o asking       */
-                        query = FALSE;
-                        goto case;
-
-                    case ' ':           /* change and continue to next  */
-                        break;
-                    case '.':           /* change and stop              */
-                        stop = TRUE;
-                        break;
-                    case 'G' & 0x1F:    /* abort                        */
-                        goto abortreplace;
-                    default:            /* illegal command              */
-                        term.t_beep();
-                        goto tryagain;
-                }
-            }
-
-            /* Delete the pattern by setting the current position to    */
-            /* the start of the pattern, and deleting 'n' characters    */
-            curwp.w_flag |= WFHARD;
-            curwp.w_dotp= clp;
-            curwp.w_doto = cbo;
-            if (backchar(FALSE,1) == FALSE ||
-                line_delete(i,FALSE) == FALSE)
-                goto L1;
-
-            /* 'Yank' the replacement pattern back in at dot (also      */
-            /* moving cursor past end of replacement pattern to prevent */
-            /* recursive replaces).                                     */
-            foreach (wc; withpat)
-                if (line_insert(1, wc) == FALSE)
-                {
-                    goto L1;
-                }
-
-            /* Take care of case where line_insert() reallocated the line       */
-            if (dotpsave == clp)
-                dotpsave = curwp.w_dotp;
-            clp = curwp.w_dotp;
-            cbo = curwp.w_doto;         /* continue from end of with text */
-            numreplacements++;
-            if (stop)
+            case Action.ChangeRest:
+            case Action.Change:
+            case Action.ChangeStop:
                 break;
         }
+
+        /* Delete the pattern by setting the current position to    */
+        /* the start of the pattern, and deleting 'i' characters    */
+        curwp.w_flag |= WFHARD;
+        curwp.w_dotp= clp;
+        curwp.w_doto = cbo;
+        if (backchar(FALSE,1) == FALSE ||
+            line_delete(i,FALSE) == FALSE)
+            goto L1;
+
+        /* 'Yank' the replacement pattern back in at dot (also      */
+        /* moving cursor past end of replacement pattern to prevent */
+        /* recursive replaces).                                     */
+        foreach (wc; withpat)
+            if (line_insert(1, wc) == FALSE)
+            {
+                goto L1;
+            }
+
+        /* Take care of case where line_insert() reallocated the line       */
+        if (dotpsave == clp)
+            dotpsave = curwp.w_dotp;
+        clp = curwp.w_dotp;
+        cbo = curwp.w_doto;         /* continue from end of with text */
+        numreplacements++;
+        if (action == Action.ChangeStop)
+            break;
     }
 
 abortreplace:
@@ -482,10 +522,11 @@ L1:
  *      prompt = text prompt for user input
  *      pat = previous value, updated to new value
  *      regExp = previous value of RegExp
+ *      acceptRegExp = true if accepting regular expressions
  * Returns:
  *      TRUE for success, FALSE for error
  */
-private int readpattern(string prompt, ref string pat)
+private int readpattern(string prompt, ref string pat, bool acceptRegExp = false)
 {
     if( Dnoask_search )
         return( pat.length != 0 );
@@ -494,7 +535,7 @@ private int readpattern(string prompt, ref string pat)
     if (s == TRUE)                      /* Specified */
     {
         // Replace regExp if the new pattern is different from the old
-        if (pat != tpat)
+        if (acceptRegExp && pat != tpat)
         {
             if (regExp)
             {
