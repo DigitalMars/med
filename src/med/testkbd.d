@@ -124,7 +124,7 @@ int main()
     {
         int c = ttgetc();
         if (c > ' ' && c <= '~')
-            printf("c = '%c'\n\r", c);
+            printf("c = '%c' x%02x\n\r", c, c);
         else
             printf("c = x%02x\n\r", c);
         if (c == 'x')

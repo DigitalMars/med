@@ -39,8 +39,9 @@ enum
     HELPCH  = 0x1F,                    /* Help key,    Control-_       */
 }
 
-enum MOUSEKEY = 0x12345678;             // left mouse button down
-enum MOUSEKEYR = 0x12345679;            // right mouse button down
+enum MOUSEKEY = 0x12345678;            // left mouse button down
+enum MOUSEKEYR = 0x12345679;           // right mouse button down
+enum MOUSEKEYU = 0x7600;               // right or left mouse button up
 
 
 enum

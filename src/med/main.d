@@ -285,6 +285,7 @@ immutable KEYTAB[]  keytab =
         {CtrlLFKEY,              &word_back},
         {CtrlHome,               &gotobob},
         {CtrlEnd,                &gotoeob},
+        {MOUSEKEYU,              &Dignore},
 
         /* Commands with a special key value    */
         {0x8001,         &spawn_pipe},

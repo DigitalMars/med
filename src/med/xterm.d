@@ -26,20 +26,16 @@ enum
 int msm_init()
 {
     if (!mstat.inited)
-    {
         puts("\x1b[?1000h");
-        mstat.inited = true;
-    }
+    mstat.inited = true;
     return TRUE;
 }
 
 void msm_term()
 {
     if (mstat.inited)
-    {
         puts("\x1b[?1000l");
-        mstat.inited = false;
-    }
+    mstat.inited = false;
 }
 
 void    msm_showcursor() { }
@@ -48,7 +44,6 @@ void    msm_hidecursor() { }
 struct msm_status               // current state of mouse
 {
     bool inited;
-    bool right;         // if right mouse button is depressed
     int state;
     uint row;
     uint col;
@@ -69,18 +64,18 @@ int msm_getstatus(uint *pcol,uint *prow)
         case 1:
             *prow = mstat.row;
             *pcol = mstat.col;
-            mstat.state = 2;
+            mstat.state++;
             return 1;
 
         case 2:
             c = ttgetc();
             if (c == 0x1b)
             {   c = ttgetc();
-                if (c == '[')
+                if (c == 0x5b)
                 {   c = ttgetc();
-                    if (c == 'M')
+                    if (c == 0x4d)
                     {   c = ttgetc();
-                        if (c == '#')   // left and right mouse up event
+                        if (c == 0x23)
                         {   c = ttgetc();
                             if (c >= 0x21)
                             {   mstat.col = c - 0x21;
@@ -94,18 +89,13 @@ int msm_getstatus(uint *pcol,uint *prow)
             }
             *prow = mstat.row;
             *pcol = mstat.col;
-            mstat.state = 3;
+            mstat.state++;
             return 1;
 
         case 3:
             *prow = mstat.row;
             *pcol = mstat.col;
             mstat.state = 0;
-            if (mstat.right)
-            {
-                msm_term();
-                mstat.right = false;
-            }
             return 0;
 
         default:
@@ -260,37 +250,40 @@ struct TERM
                 //printf("\nmatch %d\n",++x); fflush(stdout); sleep(2);
                 if( LONGFINAL(lkp[i].key) )
                 {
-msm_init();
+                        void getMouseRowCol()
+                        {
+                            int col;
+                            if (backlen)
+                                col = backc[--backlen];
+                            else
+                                col = ttgetc();
+                            mstat.col = col - 0x21;
+                            int row;
+                            if (backlen)
+                                row = backc[--backlen];
+                            else
+                                row = ttgetc();
+                            mstat.row = row - 0x21;
+                        }
+
                         c = lkp[i].keyv;
                         if (c == MOUSEKEY)
                         {
-                            if (backlen)
-                                c = backc[--backlen];
-                            else
-                                c = ttgetc();
-                            mstat.col = c - 0x21;
-                            if (backlen)
-                                c = backc[--backlen];
-                            else
-                                c = ttgetc();
-                            mstat.row = c - 0x21;
+                            getMouseRowCol();
                             mstat.state = 1;
                             c = MOUSEKEY;
                         }
                         else if (c == MOUSEKEYR)
                         {
-                            if (backlen)
-                                c = backc[--backlen];
-                            else
-                                c = ttgetc();
-                            mstat.col = c - 0x21;
-                            if (backlen)
-                                c = backc[--backlen];
-                            else
-                                c = ttgetc();
-                            mstat.row = c - 0x21;
-                            mstat.state = 1;
-                            mstat.right = true;
+                            getMouseRowCol();
+                            mstat.state = 0;
+                            c = MOUSEKEYR;
+                            msm_term();
+                        }
+                        else if (c == MOUSEKEYU)
+                        {
+                            getMouseRowCol();
+                            mstat.state = 0;
                             c = MOUSEKEYR;
                         }
                         return c;
@@ -523,8 +516,9 @@ void build_long_keys()
         build_one_long("\033\x5B\x35\x7E", PgUpKEY );
         build_one_long("\033\x5B\x36\x7E", PgDnKEY );
 
-        build_one_long("\033[M ", MOUSEKEY );   // left mouse button down
-        build_one_long("\033[M\"", MOUSEKEYR ); // right mouse button down
+        build_one_long("\033\x5B\x4d\x20", MOUSEKEY );
+        build_one_long("\033\x5B\x4d\x22", MOUSEKEYR );
+        build_one_long("\033\x5B\x4d\x23", MOUSEKEYU );
 }
 
 void build_one_long( const(char) *s, int keyval )

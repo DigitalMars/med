@@ -408,4 +408,3 @@ int scrollUnicode(bool f, int n)
     }
     return FALSE;
 }
-

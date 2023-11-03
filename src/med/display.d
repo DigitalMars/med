@@ -521,6 +521,7 @@ Lout:
              if ((wp.w_flag & (WFEDIT | WFHARD)) != 0 ||
                   marking && wp.w_flag & WFMOVE)
              {
+                msm_init();
                 const oneLine = (wp.w_flag & (WFFORCE | WFEDIT | WFHARD | WFMOVE)) == WFEDIT;
 
                 if (oneLine)
