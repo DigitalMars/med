@@ -98,7 +98,7 @@ int forwsearch(bool f, int n)
             {
                 /* found it */
                 curwp.w_dotp  = clp;
-                curwp.w_doto  = regExp.pmatch[0].rm_eo;
+                curwp.w_doto  = cast(int)regExp.pmatch[0].rm_eo;
                 curwp.w_flag |= WFMOVE;
                 curwp.w_flag |= WFHARD;
                 winSearchPat = curwp;
@@ -412,9 +412,9 @@ again:
                 continue;
             }
             /* found it */
-            cbo = regExp.pmatch[0].rm_so + 1; // start of match + 1
+            cbo = cast(int)regExp.pmatch[0].rm_so + 1; // start of match + 1
             tlp = clp;
-            tbo = regExp.pmatch[0].rm_eo; // end of match + 1
+            tbo = cast(int)regExp.pmatch[0].rm_eo; // end of match + 1
             i = tbo - cbo + 1;
         }
         else

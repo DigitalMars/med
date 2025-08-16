@@ -119,10 +119,10 @@ int ffchmod(string subject, string image)
         subject = std.path.expandTilde(subject);
         image = std.path.expandTilde(image);
 
-        uint attr;
+        mode_t attr;
         try
         {
-            attr = std.file.getAttributes(image);
+            attr = cast(mode_t)std.file.getAttributes(image);
         }
         catch (FileException fe)
         {
